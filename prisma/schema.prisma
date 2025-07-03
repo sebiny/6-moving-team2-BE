@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 인증 및 공통 유저 정보 테이블
+model AuthUser {
+  id         Int          @id @default(autoincrement()) // 기본 키
+  email      String       @unique // 이메일 (SNS 로그인은 없을 수 있음)
+  password   String? // 비밀번호 (SNS 로그인은 없음)
+  phone      String? // 전화번호
+  userType   UserType // 유저 유형 (일반 유저 / 기사님)
+  provider   AuthProvider @default(LOCAL) // 로그인 방식
+  providerId String? // SNS 제공자 고유 ID
+  createdAt  DateTime     @default(now()) // 생성 시각
+  updatedAt  DateTime     @updatedAt // 수정 시각
+
+  customer  Customer? // 일반 유저 연결
+  driver    Driver? // 기사 연결
+  deletedAt DateTime? // 소프트 삭제를 위한 필드
+
+  receivedNotifications Notification[] @relation("ReceivedNoti") // 받은 알림
+  sentNotifications     Notification[] @relation("SentNoti") // 보낸 알림
+}
+
+// 유저 역할 정의
+enum UserType {
+  CUSTOMER // 일반 유저
+  DRIVER // 기사님
+}
+
+// 로그인 제공자
+enum AuthProvider {
+  LOCAL // 자체 가입
+  GOOGLE // 구글
+  NAVER // 네이버
+  KAKAO // 카카오
+}
+
+// 주소 테이블
+model Address {
+  id         Int        @id @default(autoincrement())
+  postalCode String // 우편번호
+  street     String // 도로명 주소
+  detail     String? // 상세 주소
+  region     RegionType // 광역시도
+  district   String // 구/군
+
+  customersFrom Customer[]        @relation("CustomerFrom")
+  customersTo   Customer[]        @relation("CustomerTo")
+  requestsFrom  EstimateRequest[] @relation("RequestFrom")
+  requestsTo    EstimateRequest[] @relation("RequestTo")
+
+  @@unique([postalCode, street, detail]) // 주소 중복 방지
+  @@index([region]) // 지역 기반 인덱스
+  @@index([district]) // 행정구 인덱스
+}
+
+// 광역시도 enum
+enum RegionType {
+  SEOUL
+  GYEONGGI
+}
+
+// 이사 유형 enum
+enum MoveType {
+  SMALL
+  HOME
+  OFFICE
+}
+
+// 일반 유저 정보
+model Customer {
+  id            Int       @id @default(autoincrement())
+  authUserId    Int       @unique // 인증 유저 ID
+  profileImage  String? // 프로필 이미지
+  moveType      MoveType? // 선호 이사 유형
+  currentArea   String? // 현재 지역 텍스트
+  fromAddressId Int? // 출발지 주소 ID
+  toAddressId   Int? // 도착지 주소 ID
+  moveDate      DateTime? // 이사 예정일
+  deletedAt     DateTime? // 소프트 삭제
+
+  authUser    AuthUser @relation(fields: [authUserId], references: [id]) // 인증 유저 연결
+  fromAddress Address? @relation("CustomerFrom", fields: [fromAddressId], references: [id])
+  toAddress   Address? @relation("CustomerTo", fields: [toAddressId], references: [id])
+
+  requests  EstimateRequest[] // 견적 요청 목록
+  reviews   Review[] // 내가 작성한 리뷰
+  favorites Favorite[] // 내가 찜한 기사들
+
+  languagePrefId Int?                @unique
+  languagePref   LanguagePreference? @relation("CustomerLanguage", fields: [languagePrefId], references: [id]) // 다국어 설정
+}
+
+// 기사 정보
+model Driver {
+  id           Int       @id @default(autoincrement())
+  authUserId   Int       @unique // 인증 유저 ID
+  profileImage String? // 프로필 이미지
+  nickname     String    @unique // 닉네임
+  career       String? // 경력
+  shortIntro   String? // 한 줄 소개
+  detailIntro  String? // 상세 소개
+  services     String[] // 제공 서비스
+  serviceAreas String[] // 서비스 가능 지역
+  deletedAt    DateTime? // 소프트 삭제
+
+  authUser        AuthUser   @relation(fields: [authUserId], references: [id]) // 인증 유저 연결
+  estimates       Estimate[] // 보낸 견적 목록
+  reviewsReceived Review[] // 받은 리뷰 목록
+
+  languagePrefId Int?                @unique
+  languagePref   LanguagePreference? @relation("DriverLanguage", fields: [languagePrefId], references: [id]) // 다국어 설정
+
+  EstimateRequest EstimateRequest[] // 받은 요청들
+  Favorite        Favorite[] // 찜 당한 내역
+}
+
+// 유저가 기사에게 견적 요청
+model EstimateRequest {
+  id                 Int           @id @default(autoincrement())
+  customerId         Int // 요청자 ID
+  moveType           MoveType // 이사 유형
+  moveDate           DateTime // 희망 이사 날짜
+  fromAddressId      Int // 출발 주소 ID
+  toAddressId        Int // 도착 주소 ID
+  status             RequestStatus // 상태
+  designatedDriverId Int? // 지정 요청 기사 ID
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?
+
+  customer         Customer @relation(fields: [customerId], references: [id])
+  fromAddress      Address  @relation("RequestFrom", fields: [fromAddressId], references: [id])
+  toAddress        Address  @relation("RequestTo", fields: [toAddressId], references: [id])
+  designatedDriver Driver?  @relation(fields: [designatedDriverId], references: [id])
+
+  estimates Estimate[] // 받은 견적 목록
+}
+
+// 견적 요청 상태
+enum RequestStatus {
+  ACTIVE
+  CONFIRMED
+  EXPIRED
+}
+
+// 기사 견적 응답
+model Estimate {
+  id                Int            @id @default(autoincrement())
+  driverId          Int // 기사 ID
+  estimateRequestId Int // 견적 요청 ID
+  price             Int? // 제안 가격
+  comment           String? // 메시지
+  status            EstimateStatus @default(PROPOSED) // 상태
+  rejectReason      String? // 반려 이유
+  isDesignated      Boolean        @default(false) // 지정 요청 여부
+  createdAt         DateTime       @default(now()) // 생성일
+  deletedAt         DateTime?
+
+  driver          Driver          @relation(fields: [driverId], references: [id])
+  estimateRequest EstimateRequest @relation(fields: [estimateRequestId], references: [id])
+
+  @@unique([estimateRequestId, driverId]) // 중복 방지
+}
+
+// 견적 상태
+enum EstimateStatus {
+  PROPOSED
+  REJECTED
+}
+
+// 리뷰
+model Review {
+  id         Int       @id @default(autoincrement())
+  customerId Int // 작성자 ID
+  driverId   Int // 대상 기사 ID
+  rating     Int // 평점
+  content    String // 내용
+  createdAt  DateTime  @default(now())
+  deletedAt  DateTime?
+
+  writer Customer @relation(fields: [customerId], references: [id])
+  driver Driver   @relation(fields: [driverId], references: [id])
+}
+
+// 찜 목록
+model Favorite {
+  id         Int @id @default(autoincrement())
+  customerId Int // 찜한 유저
+  driverId   Int // 찜된 기사
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  driver   Driver   @relation(fields: [driverId], references: [id])
+}
+
+// 알림 모델
+model Notification {
+  id        Int      @id @default(autoincrement())
+  title     String // 알림 내용
+  isRead    Boolean  @default(false) // 읽음 여부
+  createdAt DateTime @default(now())
+
+  receiverId Int // 수신자 ID
+  senderId   Int? // 발신자 ID
+
+  receiver AuthUser  @relation("ReceivedNoti", fields: [receiverId], references: [id])
+  sender   AuthUser? @relation("SentNoti", fields: [senderId], references: [id])
+}
+
+// 다국어 설정
+model LanguagePreference {
+  id       Int      @id @default(autoincrement())
+  language LangCode // 언어 코드
+  value    String? // 번역된 메시지 등 저장
+
+  customer Customer? @relation("CustomerLanguage")
+  driver   Driver?   @relation("DriverLanguage")
+}
+
+// 지원 언어 enum
+enum LangCode {
+  ko // 한국어
+  en // 영어
+  zh // 중국어
+}
