@@ -205,20 +205,26 @@ model Address {
   @@index([district]) // 시/군/구 필터링 인덱스
 }
 
-// 고객이 등록한 주소 정보와의 연결 테이블 (출발지, 도착지, 기타 역할 명확히 구분)
+// 고객이 등록한 주소 정보와의 연결 테이블
+// ✅ 고객과 주소 간 다대다 관계를 정의하고, 주소의 용도(role)를 명시함 (출발지, 도착지, 기타)
+// ✅ customLabel을 통해 "회사", "창고" 등 식별 가능한 이름 지정 가능
 model CustomerAddress {
-  id         String      @id @default(cuid()) // 고유 ID
-  customerId String // 연결된 고객 ID
-  addressId  String // 연결된 주소 ID
-  role       AddressRole // 주소의 용도 (FROM, TO, EXTRA)
-  createdAt  DateTime    @default(now()) // 연결 생성 시각
-  updatedAt  DateTime    @updatedAt // 마지막 수정 시각
-  deletedAt  DateTime? // 소프트 삭제 시각 (null이면 유효)
+  id          String      @id @default(cuid()) // 고유 ID
+  customerId  String // 연결된 고객 ID
+  addressId   String // 연결된 주소 ID
+  role        AddressRole // 주소의 용도 (FROM, TO, EXTRA)
+  customLabel String? // 선택: "회사", "창고" 등 라벨
+  createdAt   DateTime    @default(now()) // 연결 생성 시각
+  updatedAt   DateTime    @updatedAt // 마지막 수정 시각
+  deletedAt   DateTime? // 소프트 삭제 시각 (null이면 유효)
 
   customer Customer @relation(fields: [customerId], references: [id]) // 고객 참조
   address  Address  @relation(fields: [addressId], references: [id]) // 주소 참조
 
   @@unique([customerId, addressId, role]) // 같은 고객이 동일한 주소를 동일한 용도로 중복 연결 금지
+  @@index([deletedAt]) // 소프트 삭제된 데이터 필터링용 인덱스
+  @@index([customerId]) // 고객 ID 기반 빠른 조회
+  @@index([addressId]) // 주소 ID 기반 빠른 조회
 }
 
 // 견적 요청 (고객 → 기사)
