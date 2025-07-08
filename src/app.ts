@@ -6,7 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
 import yaml from 'yaml';
 import path from 'path';
-import authController from './controllers/AuthController';
+import authRouter from './routes/AuthRouter';
 
 const app = express();
 app.use(
@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
-app.use('/auth', authController);
+app.use('/auth', authRouter);
 
 app.use(
   '/api-docs',
