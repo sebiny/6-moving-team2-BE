@@ -1,0 +1,113 @@
+# auth.http
+# 이 파일은 VS Code의 REST Client 확장 프로그램을 사용하여 테스트할 수 있습니다.
+
+# 서버 주소 (필요에 따라 변경)
+@baseUrl = http://localhost:4000
+
+# Bearer 토큰을 저장할 변수
+@accessToken =
+
+###
+# ========================================
+# 1. 회원가입
+# ========================================
+
+### 고객 회원가입
+# userType: CUSTOMER, 이름(name) 필드가 필요합니다.
+# email과 nickname은 고유해야 하므로, 테스트 시마다 다른 값을 사용하세요.
+# {{$randomInt}}를 사용하여 임의의 값을 생성할 수 있습니다.
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "userType": "CUSTOMER",
+  "name": "테스트고객_{{$randomInt}}",
+  "email": "user@test.com",
+  "phone": "010-1111-{{$randomInt}}",
+  "password": "password123",
+  "passwordConfirmation": "password123"
+}
+
+###
+### 기사 회원가입
+# userType: DRIVER, 닉네임(nickname) 필드가 필요합니다.
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "userType": "DRIVER",
+  "nickname": "test",
+  "email": "drivertest@test.com",
+  "phone": "010-2222-{{$randomInt}}",
+  "password": "password123",
+  "passwordConfirmation": "password123"
+}
+
+
+###
+# ========================================
+# 2. 로그인 및 인증
+# ========================================
+# prisma/seed.ts 파일로 생성된 계정을 사용합니다.
+
+### 고객 로그인
+# email: user0@test.com, password: pw01234
+# @name loginCustomer
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@test.com",
+  "password": "password123"
+}
+
+
+###
+### 내 정보 조회 (인증 필요)
+# 위에서 로그인하여 받은 accessToken을 사용하여 인증된 사용자의 정보를 가져옵니다.
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+###
+### 액세스 토큰 재발급 (인증 필요 - Refresh Token)
+# 로그인 시 응답 헤더의 Set-Cookie로 받은 refreshToken을 사용하여 새로운 accessToken을 발급받습니다.
+# REST Client는 쿠키를 자동으로 관리합니다.
+# @name refreshToken
+POST {{baseUrl}}/auth/refresh-token
+
+
+###
+### 재발급된 토큰으로 내 정보 조회
+# 새로 발급받은 accessToken으로 다시 정보를 조회하여 토큰이 유효한지 확인합니다.
+GET {{baseUrl}}/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWN0dGJ3bHQwMDBhczYyemtrcGk2YWZ2IiwiaWF0IjoxNzUxOTQ5NzcyLCJleHAiOjE3NTE5NTMzNzJ9.x9b4V9XS2dOI1XFG4UZE6MwZ0TzaAT56Hbe1MiXiCSs
+
+
+###
+# ========================================
+# 3. 로그아웃
+# ========================================
+
+### 로그아웃
+# 서버에서 refreshToken 쿠키를 삭제하여 로그아웃 처리합니다.
+POST {{baseUrl}}/auth/logout
+
+
+###
+# ========================================
+# 4. 다른 사용자 유형 테스트 (기사)
+# ========================================
+
+### 기사 로그인
+# email: driver0@move.com, password: driver0pass
+# @name loginDriver
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "driver0@move.com",
+  "password": "driver0pass"
+}
+
+
+

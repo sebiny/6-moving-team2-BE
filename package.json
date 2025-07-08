@@ -20,7 +20,10 @@
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.10",
     "@types/passport": "^1.0.17",
+    "@types/passport-google-oauth20": "^2.0.16",
     "@types/passport-jwt": "^4.0.1",
+    "@types/passport-kakao": "^1.0.3",
+    "@types/passport-naver": "^1.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "prettier": "^3.6.2",
     "prisma": "^6.11.0",
@@ -35,7 +38,10 @@
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
+    "passport-kakao": "^1.0.1",
+    "passport-naver": "^1.0.6",
     "swagger-ui-express": "^5.0.1",
     "yaml": "^2.8.0"
   }

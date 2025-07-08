@@ -1,23 +1,19 @@
-// src/repositories/AuthRepository.ts
 import prisma from '../config/prisma';
-import { AuthUser, Prisma, UserType, AuthProvider } from '@prisma/client';
+import type { AuthUser, Prisma } from '@prisma/client';
+import { UserType } from '../types/UserType';
 
-// 서비스 레이어의 SignUpUserData와 유사하게, 타입 안정성을 높이기 위한 명확한 타입 정의
 type CreateCustomerParams = Omit<Prisma.AuthUserCreateInput, 'userType' | 'customer' | 'driver'> & {
-  userType: UserType.CUSTOMER;
+  userType: typeof UserType.CUSTOMER;
   name: string;
 };
 
 type CreateDriverParams = Omit<Prisma.AuthUserCreateInput, 'userType' | 'customer' | 'driver'> & {
-  userType: UserType.DRIVER;
+  userType: typeof UserType.DRIVER;
   nickname: string;
 };
 
 export type CreateAuthUserParams = CreateCustomerParams | CreateDriverParams;
 
-/**
- * AuthUser와 연결된 프로필(Customer/Driver)을 트랜잭션으로 함께 생성합니다.
- */
 async function createAuthUserWithProfile(data: CreateAuthUserParams): Promise<AuthUser> {
   const { userType, ...rest } = data;
 
@@ -51,13 +47,12 @@ async function createAuthUserWithProfile(data: CreateAuthUserParams): Promise<Au
   });
 }
 
-// AuthService의 UserResponse와 유사한 응답 타입을 정의하여 일관성 유지
 export type AuthUserWithProfile = AuthUser & {
   customer?: { name: string } | null;
   driver?: { nickname: string } | null;
 };
 
-async function findById(id: number) {
+async function findById(id: string) {
   return prisma.authUser.findUnique({
     where: { id },
     include: {
@@ -67,7 +62,7 @@ async function findById(id: number) {
   });
 }
 
-async function findByIdWithPassword(id: number) {
+async function findByIdWithPassword(id: string) {
   return prisma.authUser.findUnique({
     where: { id },
     include: {
@@ -97,7 +92,7 @@ async function findByNickname(nickname: string) {
   });
 }
 
-async function updateAuthUser(id: number, data: Prisma.AuthUserUpdateInput) {
+async function updateAuthUser(id: string, data: Prisma.AuthUserUpdateInput) {
   return prisma.authUser.update({
     where: { id },
     data,

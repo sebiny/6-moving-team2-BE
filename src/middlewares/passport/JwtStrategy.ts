@@ -42,8 +42,6 @@ async function jwtVerify(payload: JwtPayload, done: VerifiedCallback) {
       return done(null, false);
     }
 
-    // req.user에 담길 객체를 TokenUserPayload 타입에 맞게 가공합니다.
-    // 다른 곳(예: 컨트롤러)에서 req.user.nickname 등을 일관되게 사용하기 위함입니다.
     const userPayload: TokenUserPayload = {
       id: user.id,
       email: user.email,

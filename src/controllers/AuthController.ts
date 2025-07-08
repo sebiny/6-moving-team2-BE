@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
-import authService, { TokenUserPayload } from '../services/authService';
+import authService, { TokenUserPayload } from '../services/AuthService';
 import passport from '../config/passport';
-import { asyncHandler } from '../utils/asyncHandler';
+import { asyncHandler } from '../utils/AsyncHandler';
 import { UserType } from '@prisma/client';
 import { CustomError } from '../utils/CustomError';
 
@@ -66,7 +66,7 @@ authController.post(
 // 로그아웃
 authController.post(
   '/logout',
-  asyncHandler(async (_req, res: Response) => {
+  asyncHandler(async (_req: Request, res: Response) => {
     res.clearCookie('refreshToken', {
       httpOnly: true,
       path: '/',
@@ -86,7 +86,8 @@ authController.get('/social/:provider', (req: Request, res: Response, next: Next
   const { provider } = req.params;
 
   if (!SUPPORTED_PROVIDERS.includes(provider as Provider)) {
-    return res.status(400).json({ message: '지원하지 않는 소셜 로그인입니다.' });
+    res.status(400).json({ message: '지원하지 않는 소셜 로그인입니다.' });
+    return;
   }
 
   passport.authenticate(provider, {
@@ -94,35 +95,39 @@ authController.get('/social/:provider', (req: Request, res: Response, next: Next
   })(req, res, next);
 });
 
-// 소셜 로그인 콜백 (서비스 분리 적용)
+// 소셜 로그인 콜백
 authController.get('/social/:provider/callback', (req, res, next) => {
   const { provider } = req.params;
-
   const failureRedirectUrl = `${process.env.CLIENT_URL}/auth/fail?provider=${provider}&message=social_login_failed`;
 
   if (!SUPPORTED_PROVIDERS.includes(provider as Provider)) {
     return res.redirect(failureRedirectUrl);
   }
 
-  passport.authenticate(provider, { session: false }, async (err: Error | null, user: TokenUserPayload | undefined) => {
-    if (err || !user) {
-      return res.redirect(failureRedirectUrl);
-    }
+  passport.authenticate(
+    provider,
+    { session: false },
+    async (err: Error | null, user?: TokenUserPayload): Promise<void> => {
+      if (err || !user) {
+        res.redirect(failureRedirectUrl);
+        return;
+      }
 
-    try {
-      const { accessToken, refreshToken } = await authService.handleSocialLogin(user);
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        path: '/',
-        sameSite: 'none',
-        secure: true
-      });
-
-      res.redirect(`${process.env.CLIENT_URL}/auth/callback?accessToken=${accessToken}`);
-    } catch (error) {
-      next(error);
+      try {
+        const { accessToken, refreshToken } = await authService.handleSocialLogin(user);
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          path: '/',
+          sameSite: 'none',
+          secure: true
+        });
+        res.redirect(`${process.env.CLIENT_URL}/auth/callback?accessToken=${accessToken}`);
+        return;
+      } catch (error) {
+        next(error);
+      }
     }
-  })(req, res, next);
+  )(req, res, next);
 });
 
 // 로그인된 유저 인증 정보 조회
@@ -133,7 +138,6 @@ authController.get(
     if (!req.user) {
       throw new CustomError(401, '인증 정보가 없습니다.');
     }
-
     res.json({ user: req.user });
   })
 );
@@ -146,7 +150,6 @@ authController.post(
     if (!req.user) {
       throw new CustomError(401, '토큰 갱신을 위한 사용자 정보가 없습니다.');
     }
-
     const newAccessToken = authService.generateNewAccessToken(req.user);
     res.json({ accessToken: newAccessToken });
   })
