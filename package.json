@@ -7,9 +7,14 @@
     "migrate": "prisma migrate dev",
     "studio": "prisma studio",
     "build": "tsc",
+    "seed": "ts-node prisma/seed.ts",
     "start": "node --enable-source-maps dist/server.ts"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
@@ -24,6 +29,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.11.0",
+    "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
