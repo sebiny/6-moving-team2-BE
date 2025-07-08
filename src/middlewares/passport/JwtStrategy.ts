@@ -44,11 +44,7 @@ async function jwtVerify(payload: JwtPayload, done: VerifiedCallback) {
 
     const userPayload: TokenUserPayload = {
       id: user.id,
-      email: user.email,
-      userType: user.userType,
-      phone: user.phone,
-      name: user.customer?.name,
-      nickname: user.driver?.nickname
+      userType: user.userType
     };
 
     return done(null, userPayload);

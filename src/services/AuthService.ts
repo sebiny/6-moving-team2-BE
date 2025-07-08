@@ -1,4 +1,3 @@
-import prisma from '../config/prisma';
 import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { AuthUser, AuthProvider } from '@prisma/client';
@@ -14,28 +13,20 @@ if (!JWT_SECRET) {
 const ACCESS_TOKEN_EXPIRES_IN = process.env.ACCESS_TOKEN_EXPIRES_IN || '60m';
 const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '7d';
 
-type BaseSignUpData = {
+type SignUpUserData = {
+  userType: UserType;
   email: string;
   phone: string;
   password: string;
   passwordConfirmation: string;
+  name: string; // 공통 실명 필드 (AuthUser.name)
 };
 
-type CustomerSignUpData = BaseSignUpData & {
-  userType: typeof UserType.CUSTOMER;
-  name: string;
-};
+type UserResponse = Pick<AuthUser, 'id' | 'email' | 'userType' | 'phone' | 'name'>;
 
-type DriverSignUpData = BaseSignUpData & {
-  userType: typeof UserType.DRIVER;
-  nickname: string;
-};
-
-type SignUpUserData = CustomerSignUpData | DriverSignUpData;
-
-type UserResponse = Pick<AuthUser, 'id' | 'email' | 'userType' | 'phone'> & {
-  name?: string;
-  nickname?: string;
+export type TokenUserPayload = {
+  id: string;
+  userType: UserType;
 };
 
 type SignInResponse = {
@@ -44,81 +35,38 @@ type SignInResponse = {
   user: UserResponse;
 };
 
-export type TokenUserPayload = UserResponse;
-
-type NormalizedOAuthProfile = {
-  provider: AuthProvider;
-  providerId: string;
-  email: string | null;
-  displayName: string;
-  profileImageUrl: string | null;
-};
-
+// 회원가입
 async function signUpUser(data: SignUpUserData): Promise<Omit<AuthUser, 'password'>> {
-  const { userType, email, phone, password, passwordConfirmation } = data;
+  const { userType, email, phone, password, passwordConfirmation, name } = data;
 
   if (password !== passwordConfirmation) {
     throw new CustomError(422, '비밀번호가 일치하지 않습니다.');
   }
 
-  const existingUserByEmail = await prisma.authUser.findUnique({ where: { email } });
-  if (existingUserByEmail) {
+  const existingUser = await authRepository.findByEmail(email);
+  if (existingUser) {
     throw new CustomError(409, '이미 사용중인 이메일입니다.');
-  }
-
-  if (userType === UserType.DRIVER) {
-    const { nickname } = data as DriverSignUpData;
-    const existingDriverByNickname = await prisma.driver.findUnique({ where: { nickname } });
-    if (existingDriverByNickname) {
-      throw new CustomError(409, '이미 사용중인 닉네임입니다.');
-    }
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const user = await prisma.$transaction(async (tx) => {
-    const newAuthUser = await tx.authUser.create({
-      data: {
-        email,
-        password: hashedPassword,
-        phone,
-        userType
-      }
-    });
-
-    if (userType === UserType.CUSTOMER) {
-      const { name } = data as CustomerSignUpData;
-      await tx.customer.create({
-        data: {
-          authUserId: newAuthUser.id,
-          name
-        }
-      });
-    } else {
-      const { nickname } = data as DriverSignUpData;
-      await tx.driver.create({
-        data: {
-          authUserId: newAuthUser.id,
-          nickname
-        }
-      });
-    }
-
-    return newAuthUser;
+  const newUser = await authRepository.createAuthUser({
+    email,
+    phone,
+    password: hashedPassword,
+    userType,
+    name,
+    provider: AuthProvider.LOCAL,
+    providerId: null
   });
 
-  const { password: _, ...userWithoutPassword } = user;
+  const { password: _, ...userWithoutPassword } = newUser;
   return userWithoutPassword;
 }
 
+// 로그인
 async function signInUser(email: string, passwordInput: string): Promise<SignInResponse> {
-  const authUser = await prisma.authUser.findUnique({
-    where: { email },
-    include: {
-      customer: { select: { name: true } },
-      driver: { select: { nickname: true } }
-    }
-  });
+  const authUser = await authRepository.findByEmail(email);
 
   if (!authUser || !authUser.password) {
     throw new CustomError(401, '이메일 또는 비밀번호가 일치하지 않습니다.');
@@ -129,99 +77,109 @@ async function signInUser(email: string, passwordInput: string): Promise<SignInR
     throw new CustomError(401, '이메일 또는 비밀번호가 일치하지 않습니다.');
   }
 
-  const payload = { userId: authUser.id };
+  const payload: TokenUserPayload = {
+    id: authUser.id!,
+    userType: authUser.userType
+  };
 
-  const accessToken = jwt.sign(payload, JWT_SECRET, {
+  const accessToken = jwt.sign({ userId: payload.id }, JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRES_IN
   } as SignOptions);
 
-  const refreshToken = jwt.sign(payload, JWT_SECRET, {
+  const refreshToken = jwt.sign({ userId: payload.id }, JWT_SECRET, {
     expiresIn: REFRESH_TOKEN_EXPIRES_IN
   } as SignOptions);
 
   const user: UserResponse = {
-    id: authUser.id,
+    id: authUser!.id,
     email: authUser.email,
     userType: authUser.userType,
     phone: authUser.phone,
-    name: authUser.customer?.name,
-    nickname: authUser.driver?.nickname
+    name: authUser.name
   };
 
   return { accessToken, refreshToken, user };
 }
 
+// 액세스 토큰 재발급
 function generateNewAccessToken(user: Pick<TokenUserPayload, 'id'>): string {
-  const payload = { userId: user.id };
-
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign({ userId: user.id }, JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRES_IN
   } as SignOptions);
 }
 
+// 소셜 로그인 후 토큰 발급
 async function handleSocialLogin(user: TokenUserPayload): Promise<SignInResponse> {
-  const payload = { userId: user.id };
+  const authUser = await authRepository.findById(user.id);
 
-  const accessToken = jwt.sign(payload, JWT_SECRET, {
+  if (!authUser) {
+    throw new CustomError(401, '사용자 정보를 찾을 수 없습니다.');
+  }
+
+  const accessToken = jwt.sign({ userId: user.id }, JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRES_IN
   } as SignOptions);
 
-  const refreshToken = jwt.sign(payload, JWT_SECRET, {
+  const refreshToken = jwt.sign({ userId: user.id }, JWT_SECRET, {
     expiresIn: REFRESH_TOKEN_EXPIRES_IN
   } as SignOptions);
 
-  return { accessToken, refreshToken, user };
+  const userResponse: UserResponse = {
+    id: authUser!.id,
+    email: authUser.email,
+    userType: authUser.userType,
+    phone: authUser.phone,
+    name: authUser.name
+  };
+
+  return { accessToken, refreshToken, user: userResponse };
 }
 
+// 유저 ID로 조회
 async function getUserById(id: string): Promise<AuthUserWithProfile | null> {
   return authRepository.findById(id);
 }
 
-async function findOrCreateOAuthUser(profile: NormalizedOAuthProfile): Promise<TokenUserPayload> {
-  let authUser = await prisma.authUser.findFirst({
-    where: {
-      provider: profile.provider,
-      providerId: profile.providerId
-    },
-    include: {
-      customer: true,
-      driver: true
-    }
-  });
+// 소셜 로그인 유저 조회 또는 생성
+async function findOrCreateOAuthUser(profile: {
+  provider: AuthProvider;
+  providerId: string;
+  email: string | null;
+  displayName: string;
+  profileImageUrl: string | null;
+}): Promise<TokenUserPayload> {
+  const { provider, providerId, email, displayName, profileImageUrl } = profile;
+
+  if (provider === AuthProvider.LOCAL) {
+    throw new CustomError(400, 'LOCAL 제공자는 소셜 로그인으로 사용할 수 없습니다.');
+  }
+
+  let authUser = await authRepository.findByProviderId(provider, providerId);
 
   if (!authUser) {
-    authUser = await prisma.authUser.create({
-      data: {
-        email: profile.email || '',
-        phone: '',
-        password: '',
-        userType: UserType.CUSTOMER,
-        provider: profile.provider,
-        providerId: profile.providerId,
-        customer: {
-          create: {
-            name: profile.displayName
-          }
-        }
-      },
-      include: {
-        customer: true,
-        driver: true
-      }
+    if (!email) {
+      throw new CustomError(400, `소셜 프로필에 이메일 정보가 없습니다. (${provider})`);
+    }
+
+    const existingUser = await authRepository.findByEmail(email);
+    if (existingUser) {
+      throw new CustomError(409, `이미 다른 계정으로 가입된 이메일입니다. (${existingUser.provider})`);
+    }
+
+    authUser = await authRepository.createAuthUser({
+      email,
+      phone: null,
+      password: null,
+      userType: UserType.CUSTOMER,
+      provider,
+      providerId,
+      name: displayName
     });
   }
 
-  if (!authUser) {
-    throw new CustomError(500, 'OAuth 사용자 생성 실패');
-  }
-
   return {
-    id: authUser.id,
-    email: authUser.email,
-    userType: authUser.userType,
-    phone: authUser.phone || '',
-    name: authUser.customer?.name,
-    nickname: authUser.driver?.nickname
+    id: authUser!.id,
+    userType: authUser!.userType
   };
 }
 

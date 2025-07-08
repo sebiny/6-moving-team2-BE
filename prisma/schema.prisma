@@ -38,20 +38,20 @@ enum MoveType {
 
 // 견적 요청 상태
 enum RequestStatus {
-  PENDING // 대기 중
-  APPROVED // 고객이 특정 견적을 수락함
-  COMPLETED // 이사 완료됨
-  REJECTED // 관리자/기사에 의해 반려됨
-  CANCELLED // 고객이 요청 취소
-  EXPIRED // 유효 기간 만료
+  PENDING // (시스템상)고객이 이사요청서를 작성한 직후, 견적 기다리는상태
+  APPROVED // (고객) 고객이 기사님의견적중 하나견적을 수락함
+  COMPLETED // (관리자/기사님수동) 실제 이사가 완료됨
+  REJECTED // (관리자/지정기사) 관리자/기사가 고객요청서를 반려한 상태
+  CANCELLED // (고객) 고객이 이사요청을 직접 취소
+  EXPIRED // (시스템) 견적수락기한이 지나 자동 만료
 }
 
 // 견적 응답 상태
 enum EstimateStatus {
-  PROPOSED // 기사 제안 상태
-  ACCEPTED // 고객이 수락한 견적
-  REJECTED // 기사 직접 반려
-  AUTO_REJECTED // 다른 견적이 확정되며 자동 반려됨
+  PROPOSED // (기사) 기사님이 기사견적을 보낸 직후 / 기사 제안 상태
+  ACCEPTED // (고객) 고객이 해당 견적을 선택함
+  REJECTED // (기사) 기사님이 직접 반려처리함
+  AUTO_REJECTED // (시스템) 고객이 다른견적을 수락했기 때문에 자동 반려됨
 }
 
 // 주소 역할 (고객 기준)
@@ -112,6 +112,7 @@ model AuthUser {
   email      String       @unique // 이메일 (고유)
   password   String? // 비밀번호 (소셜 로그인은 null 가능)
   phone      String? // 전화번호
+  name       String //공통 실명 필드 (회원가입 시 입력, 수정 가능)
   userType   UserType // 유저 타입 (CUSTOMER / DRIVER)
   provider   AuthProvider @default(LOCAL) // 로그인 제공자 (로컬/소셜)
   providerId String? // 소셜 로그인 ID
@@ -130,7 +131,6 @@ model AuthUser {
 model Customer {
   id           String    @id @default(cuid())
   authUserId   String    @unique // AuthUser와 연결
-  name         String // 이름
   profileImage String? // 프로필 이미지 URL
   moveType     MoveType? // 이사 유형
   currentArea  String? // 현재 위치(시/군/구)
@@ -206,8 +206,8 @@ model Address {
 }
 
 // 고객이 등록한 주소 정보와의 연결 테이블
-// ✅ 고객과 주소 간 다대다 관계를 정의하고, 주소의 용도(role)를 명시함 (출발지, 도착지, 기타)
-// ✅ customLabel을 통해 "회사", "창고" 등 식별 가능한 이름 지정 가능
+// 고객과 주소 간 다대다 관계를 정의하고, 주소의 용도(role)를 명시함 (출발지, 도착지, 기타)
+// customLabel을 통해 "회사", "창고" 등 식별 가능한 이름 지정 가능
 model CustomerAddress {
   id          String      @id @default(cuid()) // 고유 ID
   customerId  String // 연결된 고객 ID
