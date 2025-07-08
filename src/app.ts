@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import passport from './config/passport';
@@ -7,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
 import yaml from 'yaml';
 import path from 'path';
+import authController from './controllers/AuthController';
 
 const app = express();
 app.use(
@@ -18,6 +18,9 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
+
+app.use('/auth', authController);
+
 app.use(
   '/api-docs',
   swaggerUi.serve,
