@@ -82,13 +82,21 @@ async function signInUser(email: string, passwordInput: string): Promise<SignInR
     userType: authUser.userType
   };
 
-  const accessToken = jwt.sign({ userId: payload.id }, JWT_SECRET, {
-    expiresIn: ACCESS_TOKEN_EXPIRES_IN
-  } as SignOptions);
+  const accessToken = jwt.sign(
+    { userId: payload.id, userType: payload.userType }, // userType 추가
+    JWT_SECRET,
+    {
+      expiresIn: ACCESS_TOKEN_EXPIRES_IN
+    } as SignOptions
+  );
 
-  const refreshToken = jwt.sign({ userId: payload.id }, JWT_SECRET, {
-    expiresIn: REFRESH_TOKEN_EXPIRES_IN
-  } as SignOptions);
+  const refreshToken = jwt.sign(
+    { userId: payload.id, userType: payload.userType }, // userType 추가
+    JWT_SECRET,
+    {
+      expiresIn: REFRESH_TOKEN_EXPIRES_IN
+    } as SignOptions
+  );
 
   const user: UserResponse = {
     id: authUser!.id,
@@ -102,8 +110,8 @@ async function signInUser(email: string, passwordInput: string): Promise<SignInR
 }
 
 // 액세스 토큰 재발급
-function generateNewAccessToken(user: Pick<TokenUserPayload, 'id'>): string {
-  return jwt.sign({ userId: user.id }, JWT_SECRET, {
+function generateNewAccessToken(user: TokenUserPayload): string {
+  return jwt.sign({ userId: user.id, userType: user.userType }, JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRES_IN
   } as SignOptions);
 }
@@ -116,11 +124,11 @@ async function handleSocialLogin(user: TokenUserPayload): Promise<SignInResponse
     throw new CustomError(401, '사용자 정보를 찾을 수 없습니다.');
   }
 
-  const accessToken = jwt.sign({ userId: user.id }, JWT_SECRET, {
+  const accessToken = jwt.sign({ userId: user.id, userType: user.userType }, JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRES_IN
   } as SignOptions);
 
-  const refreshToken = jwt.sign({ userId: user.id }, JWT_SECRET, {
+  const refreshToken = jwt.sign({ userId: user.id, userType: user.userType }, JWT_SECRET, {
     expiresIn: REFRESH_TOKEN_EXPIRES_IN
   } as SignOptions);
 
