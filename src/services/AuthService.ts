@@ -19,7 +19,7 @@ type SignUpUserData = {
   phone: string;
   password: string;
   passwordConfirmation: string;
-  name: string; // 공통 실명 필드 (AuthUser.name)
+  name: string;
 };
 
 type UserResponse = Pick<AuthUser, 'id' | 'email' | 'userType' | 'phone' | 'name'>;
