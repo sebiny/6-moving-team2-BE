@@ -11,7 +11,7 @@ import authRouter from './routes/AuthRouter';
 const app = express();
 app.use(
   cors({
-    origin: [],
+    origin: ['http://localhost:3000', 'https://6-moving-team2-fe-sepia.vercel.app'],
     credentials: true
   })
 );

@@ -13,24 +13,19 @@ declare global {
 
 // 회원가입
 export const signUp = asyncHandler(async (req: Request, res: Response) => {
-  const { userType, name, nickname, email, phone, password, passwordConfirmation } = req.body;
+  const { userType, name, email, phone, password, passwordConfirmation } = req.body;
 
-  if (!userType || !email || !phone || !password || !passwordConfirmation) {
-    throw new CustomError(422, '공통 필수 필드를 입력해주세요.');
+  if (!userType || !email || !phone || !password || !passwordConfirmation || !name) {
+    throw new CustomError(422, '필수 필드를 모두 입력해주세요. (name 포함)');
   }
 
-  if (userType === UserType.CUSTOMER) {
-    if (!name) throw new CustomError(422, '고객 가입 시 이름(name)은 필수입니다.');
-  } else if (userType === UserType.DRIVER) {
-    if (!nickname) throw new CustomError(422, '기사 가입 시 닉네임(nickname)은 필수입니다.');
-  } else {
+  if (![UserType.CUSTOMER, UserType.DRIVER].includes(userType)) {
     throw new CustomError(422, "userType은 'CUSTOMER' 또는 'DRIVER' 여야 합니다.");
   }
 
-  const commonData = { email, phone, password, passwordConfirmation };
-  const result = await authService.signUpUser(
-    userType === UserType.CUSTOMER ? { ...commonData, userType, name } : { ...commonData, userType, nickname }
-  );
+  const commonData = { email, phone, password, passwordConfirmation, name, userType };
+
+  const result = await authService.signUpUser(commonData);
 
   res.status(201).json(result);
 });
