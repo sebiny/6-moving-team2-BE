@@ -48,9 +48,32 @@ export async function findByProviderId(
   });
 }
 
+// ID로 AuthUser 조회 (비밀번호 포함, 인증용)
+export async function findAuthUserWithPassword(id: string): Promise<AuthUser | null> {
+  return prisma.authUser.findUnique({
+    where: { id }
+  });
+}
+
 // 회원가입 시 AuthUser 생성 (프로필 없이)
 export async function createAuthUser(data: Prisma.AuthUserCreateInput): Promise<AuthUser> {
   return prisma.authUser.create({
+    data
+  });
+}
+
+// authUser 정보를 업데이트하는 함수
+async function updateAuthUser(
+  id: string,
+  data: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    password?: string;
+  }
+): Promise<void> {
+  await prisma.authUser.update({
+    where: { id },
     data
   });
 }
@@ -59,5 +82,7 @@ export default {
   findByEmail,
   findById,
   findByProviderId,
-  createAuthUser
+  createAuthUser,
+  updateAuthUser,
+  findAuthUserWithPassword
 };

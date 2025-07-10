@@ -153,10 +153,11 @@ model Driver {
   authUserId   String    @unique // AuthUser와 연결
   nickname     String    @unique // 닉네임
   profileImage String? // 프로필 이미지
-  career       String? // 경력
   shortIntro   String? // 간단 소개
   detailIntro  String? // 상세 소개
   services     String[] // 제공 서비스
+  career       Int? //String에서 Int로 타입만 변경
+  work         Int       @default(0) //추가
   deletedAt    DateTime? // 소프트 삭제
 
   authUser        AuthUser            @relation(fields: [authUserId], references: [id])
