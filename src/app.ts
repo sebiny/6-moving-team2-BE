@@ -7,6 +7,7 @@ import fs from 'fs';
 import yaml from 'yaml';
 import path from 'path';
 import authRouter from './routes/AuthRouter';
+import profileRouter from './routes/ProfileRouter';
 
 const app = express();
 app.use(
@@ -20,6 +21,7 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 app.use('/auth', authRouter);
+app.use('/profile', profileRouter);
 
 app.use(
   '/api-docs',
