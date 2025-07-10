@@ -1,0 +1,26 @@
+regionType에 다른지역도 추가하기
+처음 가입시 이메일 -> 필요없음
+알림도 soft delete 넣기
+서비스 가능지역 분리 더 하기 다대다 관계로
+model DriverServiceArea {
+  id       Int         @id @default(autoincrement())
+  driver   Driver      @relation(fields: [driverId], references: [id])
+  driverId Int
+  region   RegionType
+  district String
+
+  @@index([region])
+  @@index([district])
+}
+
+enum 으로 알람 타입 
+리뷰 중복 처리 방지
+Req 하나당 review 도 하나씩 달리게
+Confirmed 상태면 customer가 리뷰 달수 있도록
+
+Pending, 
+Approved-> 
+Rejected
+Active
+Completed-> 이때 리뷰
+Canceled
