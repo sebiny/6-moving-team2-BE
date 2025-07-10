@@ -1,12 +1,13 @@
 // middlewares/passport/JwtStrategy.ts
 import { Strategy as JwtStrategy, ExtractJwt, StrategyOptions, VerifiedCallback } from 'passport-jwt';
 import { Request } from 'express';
-import { AuthUser } from '@prisma/client';
+import { AuthUser, UserType } from '@prisma/client';
 import { AuthUserWithProfile } from '../../repositories/AuthRepository';
 import authService, { TokenUserPayload } from '../../services/AuthService';
 
 interface JwtPayload {
   userId: AuthUser['id'];
+  userType: UserType;
 }
 
 if (!process.env.JWT_SECRET) {
