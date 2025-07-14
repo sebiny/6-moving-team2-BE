@@ -3,10 +3,10 @@
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as KakaoStrategy } from "passport-kakao";
 import { Strategy as NaverStrategy } from "passport-naver";
-import authService from "../../services/authService";
+import authService from "../../services/auth.Service";
 import { Profile } from "passport";
 import { AuthProvider } from "@prisma/client";
-import { TokenUserPayload } from "../../services/authService";
+import { TokenUserPayload } from "../../services/auth.Service";
 
 type VerifyCallback = (error: any, user?: Express.User | false, info?: any) => void;
 

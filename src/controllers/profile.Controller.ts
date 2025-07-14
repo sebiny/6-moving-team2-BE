@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
-import { CustomError } from "../utils/customError";
-import profileService from "../services/profileService";
+import { asyncHandler } from "../utils/async.Handler";
+import { CustomError } from "../utils/custom.Error";
+import profileService from "../services/profile.Service";
 import { UserType } from "@prisma/client";
 
 declare global {

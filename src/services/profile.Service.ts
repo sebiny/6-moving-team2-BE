@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import { MoveType, RegionType, UserType } from "@prisma/client";
-import { CustomError } from "../utils/customError";
-import profileRepository from "../repositories/profileRepository";
-import authRepository from "../repositories/authRepository";
+import { CustomError } from "../utils/custom.Error";
+import profileRepository from "../repositories/profile.Repository";
+import authRepository from "../repositories/auth.Repository";
 
 // 고객 프로필 생성
 async function createCustomerProfile(
@@ -17,6 +17,18 @@ async function createCustomerProfile(
     throw new CustomError(400, "유저 ID가 유효하지 않습니다.");
   }
 
+  // 유저 정보 조회
+  const authUser = await authRepository.findById(authUserId);
+  if (!authUser) {
+    throw new CustomError(404, "사용자를 찾을 수 없습니다.");
+  }
+
+  // 유저 타입이 CUSTOMER가 아닌 경우 생성 금지
+  if (authUser.userType !== UserType.CUSTOMER) {
+    throw new CustomError(403, "고객이 아닌 사용자는 고객 프로필을 생성할 수 없습니다.");
+  }
+
+  // 이미 존재하는 경우 예외 처리
   const existing = await profileRepository.findCustomerByAuthUserId(authUserId);
   if (existing) throw new CustomError(409, "이미 고객 프로필이 존재합니다.");
 

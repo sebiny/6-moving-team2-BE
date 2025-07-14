@@ -6,8 +6,8 @@ import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import yaml from "yaml";
 import path from "path";
-import authRouter from "./routes/authRouter";
-import profileRouter from "./routes/profileRouter";
+import authRouter from "./routes/auth.Router";
+import profileRouter from "./routes/profile.Router";
 
 const app = express();
 app.use(
