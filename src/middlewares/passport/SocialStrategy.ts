@@ -1,12 +1,12 @@
 // src/middlewares/passport/socialStrategy.ts
 
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { Strategy as KakaoStrategy } from 'passport-kakao';
-import { Strategy as NaverStrategy } from 'passport-naver';
-import authService from '../../services/AuthService';
-import { Profile } from 'passport';
-import { AuthProvider } from '@prisma/client';
-import { TokenUserPayload } from '../../services/AuthService';
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { Strategy as KakaoStrategy } from "passport-kakao";
+import { Strategy as NaverStrategy } from "passport-naver";
+import authService from "../../services/authService";
+import { Profile } from "passport";
+import { AuthProvider } from "@prisma/client";
+import { TokenUserPayload } from "../../services/authService";
 
 type VerifyCallback = (error: any, user?: Express.User | false, info?: any) => void;
 
@@ -21,7 +21,7 @@ if (
   !NAVER_CLIENT_SECRET ||
   !SERVER_URL
 ) {
-  console.error('FATAL ERROR: Missing social login environment variables.');
+  console.error("FATAL ERROR: Missing social login environment variables.");
   process.exit(1);
 }
 
@@ -41,7 +41,7 @@ const createSocialVerify =
         provider,
         providerId: profile.id,
         email: profile.emails?.[0]?.value || null,
-        displayName: profile.displayName || 'User',
+        displayName: profile.displayName || "User",
         profileImageUrl: profile.photos?.[0]?.value || null
       };
 

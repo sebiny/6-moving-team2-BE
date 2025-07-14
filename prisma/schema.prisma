@@ -132,8 +132,8 @@ model Customer {
   id           String    @id @default(cuid())
   authUserId   String    @unique // AuthUser와 연결
   profileImage String? // 프로필 이미지 URL
-  moveType     MoveType? // 이사 유형
-  currentArea  String? // 현재 위치(시/군/구)
+  moveType     MoveType // 이사 유형 필수값으로 변경
+  currentArea  String // 현재 위치(시/군/구) 필수값으로 변경 추가 수정 할 수도 있음
   moveDate     DateTime? // 이사 날짜
   deletedAt    DateTime? // 소프트 삭제
 
@@ -153,10 +153,10 @@ model Driver {
   authUserId   String    @unique // AuthUser와 연결
   nickname     String    @unique // 닉네임
   profileImage String? // 프로필 이미지
-  shortIntro   String? // 간단 소개
-  detailIntro  String? // 상세 소개
-  services     String[] // 제공 서비스
-  career       Int? //String에서 Int로 타입만 변경
+  shortIntro   String // 간단 소개 필수값으로 변경
+  detailIntro  String // 상세 소개 필수값으로 변경
+  moveType     MoveType // 제공 서비스 필수값으로 변경
+  career       Int //String에서 Int로 타입만 변경 필수값으로 변경
   work         Int       @default(0) //추가
   deletedAt    DateTime? // 소프트 삭제
 
@@ -176,7 +176,7 @@ model DriverServiceArea {
   id       String     @id @default(cuid()) // 고유 식별자
   driverId String // 활동 기사 ID (외래 키)
   region   RegionType // 광역시/도 (예: 서울, 경기)
-  district String // 시/군/구 (예: 강남구, 수원시)
+  district String? // 시/군/구 (예: 강남구, 수원시)
 
   driver Driver @relation(fields: [driverId], references: [id]) // 기사와 연결
 
@@ -273,15 +273,14 @@ model Estimate {
 
 // 리뷰 (1개의 견적 요청 당 1개만 가능)
 model Review {
-  id                String    @id @default(cuid())
+  id                String   @id @default(cuid())
   customerId        String // 작성자
   driverId          String // 대상 기사님
   estimateRequestId String // 연결된 견적 요청
   rating            Int // 평점
   content           String // 리뷰 내용
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   writer  Customer        @relation(fields: [customerId], references: [id])
   driver  Driver          @relation(fields: [driverId], references: [id])
