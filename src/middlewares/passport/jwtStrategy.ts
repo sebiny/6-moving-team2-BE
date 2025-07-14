@@ -3,7 +3,7 @@ import { Strategy as JwtStrategy, ExtractJwt, StrategyOptions, VerifiedCallback 
 import { Request } from "express";
 import { AuthUser, UserType } from "@prisma/client";
 import { AuthUserWithProfile } from "../../repositories/auth.Repository";
-import authService, { TokenUserPayload } from "../../services/auth.Service";
+import authService, { TokenUserPayload } from "../../services/auth.service";
 
 interface JwtPayload {
   userId: AuthUser["id"];

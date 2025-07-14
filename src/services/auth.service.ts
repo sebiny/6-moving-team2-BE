@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { AuthUser, AuthProvider } from "@prisma/client";
 import authRepository, { AuthUserWithProfile } from "../repositories/auth.Repository";
-import { CustomError } from "../utils/custom.Error";
+import { CustomError } from "../utils/customError";
 import { UserType } from "../types/userType";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;

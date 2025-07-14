@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import authService, { TokenUserPayload } from "../services/auth.Service";
+import authService, { TokenUserPayload } from "../services/auth.service";
 import passport from "../config/passport";
-import { asyncHandler } from "../utils/async.Handler";
+import { asyncHandler } from "../utils/asyncHandler";
 import { UserType } from "@prisma/client";
-import { CustomError } from "../utils/custom.Error";
+import { CustomError } from "../utils/customError";
 
 declare global {
   namespace Express {
