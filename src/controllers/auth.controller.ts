@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import authService, { TokenUserPayload } from "../services/authService";
+import authService, { TokenUserPayload } from "../services/auth.service";
 import passport from "../config/passport";
 import { asyncHandler } from "../utils/asyncHandler";
 import { UserType } from "@prisma/client";
