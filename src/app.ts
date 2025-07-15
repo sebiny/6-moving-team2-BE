@@ -9,6 +9,7 @@ import path from "path";
 import authRouter from "./routes/auth.router";
 import profileRouter from "./routes/profile.router";
 import estimateReqRouter from "./routes/estimateReq.router";
+import reviewRouter from "./routes/review.router";
 import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
@@ -25,6 +26,7 @@ app.use(passport.initialize());
 app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
 app.use("/", estimateReqRouter);
+app.use("/", reviewRouter);
 
 app.use(
   "/api-docs",

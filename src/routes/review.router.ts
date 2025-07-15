@@ -1,9 +1,9 @@
 // routes/review.routes.ts
 import express from "express";
-import { getAllCompletedController } from "../controllers/review.controller";
+import reviewController from "../controllers/review.controller";
 
-const reviewRouter = express.Router();
+const router = express.Router();
 
-reviewRouter.get("/completed", getAllCompletedController);
-
-export default reviewRouter;
+router.route("/reviewable").get(reviewController.getAllCompletedEstimate);
+router.route("/reviews").post(reviewController.createReview);
+export default router;
