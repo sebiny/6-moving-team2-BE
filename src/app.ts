@@ -8,6 +8,7 @@ import yaml from "yaml";
 import path from "path";
 import authRouter from "./routes/auth.router";
 import profileRouter from "./routes/profile.router";
+import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 app.use(
@@ -28,5 +29,7 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(yaml.parse(fs.readFileSync(path.join(path.resolve(), "openapi.yaml"), "utf-8")))
 );
+
+app.use(errorHandler as express.ErrorRequestHandler);
 
 export default app;

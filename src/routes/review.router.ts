@@ -1,6 +1,6 @@
 // routes/review.routes.ts
 import express from "express";
-import { getAllCompletedController } from "../controllers/ReviewController";
+import { getAllCompletedController } from "../controllers/review.controller";
 
 const reviewRouter = express.Router();
 
