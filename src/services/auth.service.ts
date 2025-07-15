@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
 import { AuthUser, AuthProvider } from "@prisma/client";
-import authRepository, { AuthUserWithProfile } from "../repositories/auth.Repository";
+import authRepository, { AuthUserWithProfile } from "../repositories/auth.repository";
 import { CustomError } from "../utils/customError";
 import { UserType } from "../types/userType";
 
