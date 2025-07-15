@@ -1,7 +1,7 @@
-import driverRepository, { EditDataType } from "../repositories/driver.repository";
+import driverRepository, { EditDataType, optionsType } from "../repositories/driver.repository";
 
-async function getAllDrivers() {
-  return await driverRepository.getAllDrivers();
+async function getAllDrivers(options: optionsType) {
+  return await driverRepository.getAllDrivers(options);
 }
 
 async function getDriverById(id: string) {

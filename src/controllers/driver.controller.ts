@@ -1,9 +1,18 @@
+import { MoveType, RegionType } from "@prisma/client";
+import { optionsType } from "../repositories/driver.repository";
 import driverService from "../services/driver.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Request, Response } from "express";
 
 const getAllDrivers = asyncHandler(async (req: Request, res: Response) => {
-  const result = await driverService.getAllDrivers();
+  const { keyword, orderBy, serviceArea, service } = req.query;
+  const options = {
+    keyword: keyword as string,
+    orderBy: orderBy as "reviewCount" | "career" | "work", //| "rating";,
+    serviceArea: serviceArea as RegionType,
+    service: service as MoveType
+  };
+  const result = await driverService.getAllDrivers(options);
   res.status(200).json(result);
 });
 

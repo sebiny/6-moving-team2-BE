@@ -1,12 +1,12 @@
-import express from 'express';
-import favoriteController from '../controllers/FavoriteController';
+import express from "express";
+import favoriteController from "../controllers/favorite.controller";
 
 const favoriteRouter = express.Router();
 
-favoriteRouter.get('/', favoriteController.getAllFavoriteDrivers);
+favoriteRouter.get("/", favoriteController.getAllFavoriteDrivers);
 
-favoriteRouter.post('/drivers/:id', favoriteController.createFavorite);
+favoriteRouter.post("/drivers/:id", favoriteController.createFavorite);
 
-favoriteRouter.delete('/drivers/:id', favoriteController.deleteFavorite);
+favoriteRouter.delete("/drivers/:id", favoriteController.deleteFavorite);
 
 export default favoriteRouter;
