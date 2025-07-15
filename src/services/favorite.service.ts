@@ -1,4 +1,4 @@
-import favoriteRepository from '../repositories/FavoriteRepository';
+import favoriteRepository from "../repositories/favorite.repository";
 
 async function getAllFavoriteDrivers(userId: string) {
   return await favoriteRepository.getAllFavoriteDrivers(userId);

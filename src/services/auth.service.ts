@@ -1,17 +1,17 @@
-import bcrypt from 'bcrypt';
-import jwt, { SignOptions } from 'jsonwebtoken';
-import { AuthUser, AuthProvider } from '@prisma/client';
-import authRepository, { AuthUserWithProfile } from '../repositories/AuthRepository';
-import { CustomError } from '../utils/CustomError';
-import { UserType } from '../types/UserType';
+import bcrypt from "bcrypt";
+import jwt, { SignOptions } from "jsonwebtoken";
+import { AuthUser, AuthProvider } from "@prisma/client";
+import authRepository, { AuthUserWithProfile } from "../repositories/auth.Repository";
+import { CustomError } from "../utils/customError";
+import { UserType } from "../types/userType";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET is not defined in .env');
+  throw new Error("JWT_SECRET is not defined in .env");
 }
 
-const ACCESS_TOKEN_EXPIRES_IN = process.env.ACCESS_TOKEN_EXPIRES_IN || '60m';
-const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '7d';
+const ACCESS_TOKEN_EXPIRES_IN = process.env.ACCESS_TOKEN_EXPIRES_IN || "60m";
+const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || "7d";
 
 type SignUpUserData = {
   userType: UserType;
@@ -22,7 +22,7 @@ type SignUpUserData = {
   name: string;
 };
 
-type UserResponse = Pick<AuthUser, 'id' | 'email' | 'userType' | 'phone' | 'name'>;
+type UserResponse = Pick<AuthUser, "id" | "email" | "userType" | "phone" | "name">;
 
 export type TokenUserPayload = {
   id: string;
@@ -36,16 +36,16 @@ type SignInResponse = {
 };
 
 // 회원가입
-async function signUpUser(data: SignUpUserData): Promise<Omit<AuthUser, 'password'>> {
+async function signUpUser(data: SignUpUserData): Promise<Omit<AuthUser, "password">> {
   const { userType, email, phone, password, passwordConfirmation, name } = data;
 
   if (password !== passwordConfirmation) {
-    throw new CustomError(422, '비밀번호가 일치하지 않습니다.');
+    throw new CustomError(422, "비밀번호가 일치하지 않습니다.");
   }
 
   const existingUser = await authRepository.findByEmail(email);
   if (existingUser) {
-    throw new CustomError(409, '이미 사용중인 이메일입니다.');
+    throw new CustomError(409, "이미 사용중인 이메일입니다.");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -69,12 +69,12 @@ async function signInUser(email: string, passwordInput: string): Promise<SignInR
   const authUser = await authRepository.findByEmail(email);
 
   if (!authUser || !authUser.password) {
-    throw new CustomError(401, '이메일 또는 비밀번호가 일치하지 않습니다.');
+    throw new CustomError(401, "이메일 또는 비밀번호가 일치하지 않습니다.");
   }
 
   const isPasswordValid = await bcrypt.compare(passwordInput, authUser.password);
   if (!isPasswordValid) {
-    throw new CustomError(401, '이메일 또는 비밀번호가 일치하지 않습니다.');
+    throw new CustomError(401, "이메일 또는 비밀번호가 일치하지 않습니다.");
   }
 
   const payload: TokenUserPayload = {
@@ -121,7 +121,7 @@ async function handleSocialLogin(user: TokenUserPayload): Promise<SignInResponse
   const authUser = await authRepository.findById(user.id);
 
   if (!authUser) {
-    throw new CustomError(401, '사용자 정보를 찾을 수 없습니다.');
+    throw new CustomError(401, "사용자 정보를 찾을 수 없습니다.");
   }
 
   const accessToken = jwt.sign({ userId: user.id, userType: user.userType }, JWT_SECRET, {
@@ -159,7 +159,7 @@ async function findOrCreateOAuthUser(profile: {
   const { provider, providerId, email, displayName, profileImageUrl } = profile;
 
   if (provider === AuthProvider.LOCAL) {
-    throw new CustomError(400, 'LOCAL 제공자는 소셜 로그인으로 사용할 수 없습니다.');
+    throw new CustomError(400, "LOCAL 제공자는 소셜 로그인으로 사용할 수 없습니다.");
   }
 
   let authUser = await authRepository.findByProviderId(provider, providerId);

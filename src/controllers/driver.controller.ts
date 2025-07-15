@@ -1,6 +1,6 @@
-import driverService from '../services/DriverService';
-import { asyncHandler } from '../utils/AsyncHandler';
-import { Request, Response } from 'express';
+import driverService from "../services/driver.service";
+import { asyncHandler } from "../utils/asyncHandler";
+import { Request, Response } from "express";
 
 const getAllDrivers = asyncHandler(async (req: Request, res: Response) => {
   const result = await driverService.getAllDrivers();

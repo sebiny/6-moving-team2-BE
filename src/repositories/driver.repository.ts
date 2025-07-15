@@ -1,4 +1,4 @@
-import prisma from '../config/prisma';
+import prisma from "../config/prisma";
 
 export type EditDataType = {
   nickname?: string;
@@ -6,7 +6,7 @@ export type EditDataType = {
   shortIntro?: string;
   detailIntro?: string;
   services?: string[];
-  serviceAreas?: string[];
+  // serviceAreas?: string[];
 };
 
 async function getAllDrivers() {
