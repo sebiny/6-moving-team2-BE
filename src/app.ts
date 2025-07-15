@@ -8,6 +8,8 @@ import yaml from "yaml";
 import path from "path";
 import authRouter from "./routes/auth.router";
 import profileRouter from "./routes/profile.router";
+import driverRouter from "./routes/driver.router";
+import favoriteRouter from "./routes/favorite.router";
 import estimateReqRouter from "./routes/estimateReq.router";
 import reviewRouter from "./routes/review.router";
 import { errorHandler } from "./middlewares/errorHandler";
@@ -27,6 +29,10 @@ app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
 app.use("/", estimateReqRouter);
 app.use("/", reviewRouter);
+
+app.use("/drivers", driverRouter);
+
+app.use("/favorite", favoriteRouter);
 
 app.use(
   "/api-docs",
