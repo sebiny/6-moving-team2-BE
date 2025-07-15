@@ -2,7 +2,7 @@
 import { Strategy as JwtStrategy, ExtractJwt, StrategyOptions, VerifiedCallback } from "passport-jwt";
 import { Request } from "express";
 import { AuthUser, UserType } from "@prisma/client";
-import { AuthUserWithProfile } from "../../repositories/auth.Repository";
+import { AuthUserWithProfile } from "../../repositories/auth.repository";
 import authService, { TokenUserPayload } from "../../services/auth.service";
 
 interface JwtPayload {

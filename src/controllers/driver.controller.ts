@@ -5,12 +5,13 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { Request, Response } from "express";
 
 const getAllDrivers = asyncHandler(async (req: Request, res: Response) => {
-  const { keyword, orderBy, serviceArea, service } = req.query;
+  const { keyword, orderBy, region, service, page } = req.query;
   const options = {
     keyword: keyword as string,
     orderBy: orderBy as "reviewCount" | "career" | "work", //| "rating";,
-    serviceArea: serviceArea as RegionType,
-    service: service as MoveType
+    region: region as RegionType,
+    service: service as MoveType,
+    page: Number(page) as number
   };
   const result = await driverService.getAllDrivers(options);
   res.status(200).json(result);

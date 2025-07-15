@@ -10,6 +10,8 @@ import authRouter from "./routes/auth.router";
 import profileRouter from "./routes/profile.router";
 import driverRouter from "./routes/driver.router";
 import favoriteRouter from "./routes/favorite.router";
+import estimateReqRouter from "./routes/estimateReq.router";
+import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 app.use(
@@ -24,6 +26,7 @@ app.use(passport.initialize());
 
 app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
+app.use("/", estimateReqRouter);
 
 app.use("/drivers", driverRouter);
 
@@ -34,5 +37,7 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(yaml.parse(fs.readFileSync(path.join(path.resolve(), "openapi.yaml"), "utf-8")))
 );
+
+app.use(errorHandler as express.ErrorRequestHandler);
 
 export default app;

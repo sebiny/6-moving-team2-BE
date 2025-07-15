@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import { MoveType, RegionType, UserType } from "@prisma/client";
 import { CustomError } from "../utils/customError";
-import profileRepository from "../repositories/profile.Repository";
-import authRepository from "../repositories/auth.Repository";
+import profileRepository from "../repositories/profile.repository";
+import authRepository from "../repositories/auth.repository";
 
 // 고객 프로필 생성
 async function createCustomerProfile(
