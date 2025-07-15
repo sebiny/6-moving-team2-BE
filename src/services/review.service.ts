@@ -1,5 +1,18 @@
-import { findAllCompleted } from "../repositories/review.repository";
+import reviewRepository from "../repositories/review.repository";
+import { CreateReviewInput } from "../types/review.type";
 
-export async function getAllCompleted() {
-  return await findAllCompleted();
+//작성 가능한 견적(리뷰)
+async function getAllCompleted(customerId: string) {
+  return reviewRepository.findAllCompletedEstimateRequest(customerId);
 }
+
+//리뷰 작성
+async function createReview(data: CreateReviewInput) {
+  return reviewRepository.createReview(data);
+}
+
+//내가 쓴 리뷰
+async function getMyReviews(customerId: string) {
+  return reviewRepository.getMyReviews(customerId);
+}
+export default { getAllCompleted, createReview, getMyReviews };
