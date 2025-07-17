@@ -13,6 +13,7 @@ import favoriteRouter from "./routes/favorite.router";
 import estimateReqRouter from "./routes/estimateReq.router";
 import reviewRouter from "./routes/review.router";
 import { errorHandler } from "./middlewares/errorHandler";
+import customerEstimateRouter from "./routes/customerEstimate.router";
 
 const app = express();
 app.use(
@@ -33,6 +34,8 @@ app.use("/", reviewRouter);
 app.use("/drivers", driverRouter);
 
 app.use("/favorite", favoriteRouter);
+
+app.use("/customer/estimate", customerEstimateRouter);
 
 app.use(
   "/api-docs",
