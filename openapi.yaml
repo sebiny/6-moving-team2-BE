@@ -20,15 +20,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateArticleRequest'
+              $ref: "#/components/schemas/CreateArticleRequest"
       responses:
-        '201':
+        "201":
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Article'
-        '400':
+                $ref: "#/components/schemas/Article"
+        "400":
           description: Validation failed
 
     get:
@@ -67,14 +67,14 @@ paths:
           required: false
           schema:
             type: string
-          example: '검색어'
+          example: "검색어"
       responses:
-        '200':
+        "200":
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetArticleListResponse'
+                $ref: "#/components/schemas/GetArticleListResponse"
 
   /articles/{articleId}:
     get:
@@ -90,21 +90,21 @@ paths:
             type: integer
           example: 1
       responses:
-        '200':
+        "200":
           description: 성공
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Article'
-        '404':
+                  $ref: "#/components/schemas/Article"
+        "404":
           description: Not found
 
     patch:
       tags:
         - Article
-      description: '게시글 수정 API'
+      description: "게시글 수정 API"
       operationId: updateArticle
       parameters:
         - name: articleId
@@ -117,23 +117,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateArticleRequest'
+              $ref: "#/components/schemas/UpdateArticleRequest"
       responses:
-        '200':
+        "200":
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Article'
-        '400':
+                $ref: "#/components/schemas/Article"
+        "400":
           description: Validation failed
-        '404':
+        "404":
           description: Not found
 
     delete:
       tags:
         - Article
-      description: '게시글 삭제 API'
+      description: "게시글 삭제 API"
       operationId: deleteArticle
       parameters:
         - name: articleId
@@ -143,9 +143,9 @@ paths:
             type: integer
           example: 1
       responses:
-        '204':
+        "204":
           description: 성공
-        '404':
+        "404":
           description: Not found
 
   /articles/{articleId}/comments:
@@ -165,18 +165,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateArticleCommentRequest'
+              $ref: "#/components/schemas/CreateArticleCommentRequest"
 
       responses:
-        '201':
+        "201":
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Comment'
-        '400':
+                $ref: "#/components/schemas/Comment"
+        "400":
           description: Validation failed
-        '404':
+        "404":
           description: Not found
 
     get:
@@ -209,15 +209,15 @@ paths:
             maximum: 10
           example: 10
       responses:
-        '200':
+        "200":
           description: 성공
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/GetArticleCommentListResponse'
-        '404':
+                  $ref: "#/components/schemas/GetArticleCommentListResponse"
+        "404":
           description: Not found'
 
   /products:
@@ -230,15 +230,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductRequest'
+              $ref: "#/components/schemas/CreateProductRequest"
       responses:
-        '201':
+        "201":
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
-        '400':
+                $ref: "#/components/schemas/Product"
+        "400":
           description: Validation failed
 
     get:
@@ -277,16 +277,16 @@ paths:
           required: false
           schema:
             type: string
-          example: '검색어'
+          example: "검색어"
       responses:
-        '200':
+        "200":
           description: 성공
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Product'
+                  $ref: "#/components/schemas/Product"
 
   /products/{productId}:
     get:
@@ -302,19 +302,19 @@ paths:
             type: integer
           example: 1
       responses:
-        '200':
+        "200":
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
-        '404':
+                $ref: "#/components/schemas/Product"
+        "404":
           description: Not found
 
     patch:
       tags:
         - Product
-      description: '상품 수정 API'
+      description: "상품 수정 API"
       operationId: updateProduct
       parameters:
         - name: productId
@@ -327,23 +327,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateProductRequest'
+              $ref: "#/components/schemas/UpdateProductRequest"
       responses:
-        '200':
+        "200":
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Product'
-        '400':
+                $ref: "#/components/schemas/Product"
+        "400":
           description: Validation failed
-        '404':
+        "404":
           description: Not found
 
     delete:
       tags:
         - Product
-      description: '상품 삭제 API'
+      description: "상품 삭제 API"
       operationId: deleteProduct
       parameters:
         - name: productId
@@ -353,9 +353,9 @@ paths:
             type: integer
           example: 1
       responses:
-        '204':
+        "204":
           description: 성공
-        '404':
+        "404":
           description: Not found
 
   /products/{productId}/comments:
@@ -375,17 +375,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProductCommentRequest'
+              $ref: "#/components/schemas/CreateProductCommentRequest"
       responses:
-        '201':
+        "201":
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Comment'
-        '400':
+                $ref: "#/components/schemas/Comment"
+        "400":
           description: Validation failed
-        '404':
+        "404":
           description: Not found
 
     get:
@@ -418,22 +418,22 @@ paths:
             maximum: 10
           example: 10
       responses:
-        '200':
+        "200":
           description: 성공
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/GetProductCommentListResponse'
-        '404':
+                  $ref: "#/components/schemas/GetProductCommentListResponse"
+        "404":
           description: Not found
 
   /comments/{commentId}:
     patch:
       tags:
         - Comment
-      description: '댓글 수정 API'
+      description: "댓글 수정 API"
       operationId: updateComment
       parameters:
         - name: commentId
@@ -446,23 +446,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateCommentRequest'
+              $ref: "#/components/schemas/UpdateCommentRequest"
       responses:
-        '200':
+        "200":
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Comment'
-        '400':
+                $ref: "#/components/schemas/Comment"
+        "400":
           description: Validation failed
-        '404':
+        "404":
           description: Not found
 
     delete:
       tags:
         - Comment
-      description: '댓글 삭제 API'
+      description: "댓글 삭제 API"
       operationId: deleteComment
       parameters:
         - name: commentId
@@ -472,9 +472,9 @@ paths:
             type: integer
           example: 1
       responses:
-        '204':
+        "204":
           description: 성공
-        '404':
+        "404":
           description: Not found
 
 components:
@@ -487,10 +487,10 @@ components:
       properties:
         title:
           type: string
-          example: '게시글 제목'
+          example: "게시글 제목"
         content:
           type: string
-          example: '게시글 내용'
+          example: "게시글 내용"
 
     GetArticleListResponse:
       type: object
@@ -498,7 +498,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Article'
+            $ref: "#/components/schemas/Article"
         nextCursor:
           type: integer
           example: 10
@@ -511,10 +511,10 @@ components:
       properties:
         title:
           type: string
-          example: '게시글 제목'
+          example: "게시글 제목"
         content:
           type: string
-          example: '게시글 내용'
+          example: "게시글 내용"
 
     CreateArticleCommentRequest:
       type: object
@@ -523,7 +523,7 @@ components:
       properties:
         content:
           type: string
-          example: '댓글 내용'
+          example: "댓글 내용"
 
     GetArticleCommentListResponse:
       type: object
@@ -531,7 +531,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Comment'
+            $ref: "#/components/schemas/Comment"
         nextCursor:
           type: integer
           example: 10
@@ -549,10 +549,10 @@ components:
       properties:
         name:
           type: string
-          example: '상품 이름'
+          example: "상품 이름"
         description:
           type: string
-          example: '상품 설명'
+          example: "상품 설명"
         price:
           type: integer
           minimum: 0
@@ -561,17 +561,17 @@ components:
           type: array
           items:
             type: string
-          example: ['태그1', '태그2']
+          example: ["태그1", "태그2"]
 
     UpdateProductRequest:
       type: object
       properties:
         name:
           type: string
-          example: '상품 이름'
+          example: "상품 이름"
         description:
           type: string
-          example: '상품 설명'
+          example: "상품 설명"
         price:
           type: integer
           minimum: 0
@@ -580,7 +580,7 @@ components:
           type: array
           items:
             type: string
-          example: ['태그1', '태그2']
+          example: ["태그1", "태그2"]
 
     CreateProductCommentRequest:
       type: object
@@ -589,7 +589,7 @@ components:
       properties:
         content:
           type: string
-          example: '댓글 내용'
+          example: "댓글 내용"
 
     GetProductCommentListResponse:
       type: object
@@ -597,7 +597,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/Comment'
+            $ref: "#/components/schemas/Comment"
         nextCursor:
           type: integer
           example: 10
@@ -610,7 +610,7 @@ components:
       properties:
         content:
           type: string
-          example: '댓글 내용'
+          example: "댓글 내용"
 
     Article:
       type: object
@@ -620,14 +620,14 @@ components:
           example: 1
         title:
           type: string
-          example: '게시글 제목'
+          example: "게시글 제목"
         content:
           type: string
-          example: '게시글 내용'
+          example: "게시글 내용"
         createdAt:
           type: string
           format: datetime
-          example: '2024-07-15T00:00:00.000Z'
+          example: "2024-07-15T00:00:00.000Z"
 
     Product:
       type: object
@@ -637,10 +637,10 @@ components:
           example: 1
         name:
           type: string
-          example: '상품 이름'
+          example: "상품 이름"
         description:
           type: string
-          example: '상품 설명'
+          example: "상품 설명"
         price:
           type: integer
           example: 10000
@@ -648,11 +648,11 @@ components:
           type: array
           items:
             type: string
-          example: ['태그1', '태그2']
+          example: ["태그1", "태그2"]
         createdAt:
           type: string
           format: datetime
-          example: '2024-07-15T00:00:00.000Z'
+          example: "2024-07-15T00:00:00.000Z"
 
     Comment:
       type: object
@@ -664,4 +664,4 @@ components:
         createdAt:
           type: string
           format: datetime
-          example: '2024-07-15T00:00:00.000Z'
+          example: "2024-07-15T00:00:00.000Z"
