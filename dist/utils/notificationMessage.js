@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createSignUpSuccessPayload = createSignUpSuccessPayload;
+exports.createLogInSuccessPayload = createLogInSuccessPayload;
 const client_1 = require("@prisma/client");
 // 회원가입 축하 메시지 생성
 function createSignUpSuccessPayload(name) {
@@ -8,7 +9,18 @@ function createSignUpSuccessPayload(name) {
         type: client_1.$Enums.NotificationType.MESSAGE,
         payload: {
             receivedName: name,
-            title: `${name}님, 회원가입을 축하합니다!`,
+            title: `${name}님, 무빙 회원가입을 축하합니다!`,
+            timeStamp: new Date().toISOString
+        }
+    };
+}
+// 로그인 확인 메시지 생성
+function createLogInSuccessPayload(name) {
+    return {
+        type: client_1.$Enums.NotificationType.MESSAGE,
+        payload: {
+            receivedName: name,
+            title: `${name}님, 로그인 하셨습니다.`,
             timeStamp: new Date().toISOString
         }
     };

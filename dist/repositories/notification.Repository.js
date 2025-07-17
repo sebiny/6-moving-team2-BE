@@ -27,6 +27,7 @@ const notificationRepository = {
                 data: {
                     title: data.title,
                     type: client_1.$Enums.NotificationType.MESSAGE,
+                    isRead: false,
                     receiver: {
                         connect: {
                             id: data.userId

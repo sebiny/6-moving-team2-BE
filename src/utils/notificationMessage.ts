@@ -23,7 +23,19 @@ export function createSignUpSuccessPayload(name: string) {
     type: $Enums.NotificationType.MESSAGE,
     payload: {
       receivedName: name,
-      title: `${name}님, 회원가입을 축하합니다!`,
+      title: `${name}님, 무빙 회원가입을 축하합니다!`,
+      timeStamp: new Date().toISOString
+    }
+  };
+}
+
+// 로그인 확인 메시지 생성
+export function createLogInSuccessPayload(name: string) {
+  return {
+    type: $Enums.NotificationType.MESSAGE,
+    payload: {
+      receivedName: name,
+      title: `${name}님, 로그인 하셨습니다.`,
       timeStamp: new Date().toISOString
     }
   };

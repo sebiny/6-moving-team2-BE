@@ -8,6 +8,7 @@ type CreateNotificationData = {
   userName?: string;
   userType?: "DRIVER" | "CUSTOMER" | undefined;
   type: string;
+  isRead: boolean;
 };
 
 // 알림 데이터베이스 작업을 담당하는 객체
@@ -22,7 +23,7 @@ const notificationRepository = {
       data: {
         title: data.title,
         type: $Enums.NotificationType.MESSAGE,
-
+        isRead: false,
         receiver: {
           connect: {
             id: data.userId

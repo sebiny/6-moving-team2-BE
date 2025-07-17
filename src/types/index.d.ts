@@ -5,7 +5,6 @@ declare global {
     interface User {
       id: string;
       userType: UserType;
-      name: string;
     }
   }
 }

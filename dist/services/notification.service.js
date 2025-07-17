@@ -43,8 +43,9 @@ class NotificationService {
             const newNotification = yield notification_Repository_1.default.create({
                 userId: id,
                 userName: name,
-                title: JSON.stringify(notificationPayload.payload.title),
-                type: notificationPayload.type
+                title: notificationPayload.payload.title,
+                type: notificationPayload.type,
+                isRead: false
             });
             // 3. 실시간으로 클라이언트에 알림 전송
             this.sendSseEvent(id, newNotification);
