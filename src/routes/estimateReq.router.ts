@@ -3,11 +3,9 @@ import estimateReqController from "../controllers/estimateReq.controller";
 
 const router = express.Router();
 
-router.post("/address", estimateReqController.createAddress);
-router
-  .route("/customer/address")
-  .post(estimateReqController.linkCustomerAddress)
-  .get(estimateReqController.getCustomerAddressesByRole);
-router.post("/customer/estimate-request", estimateReqController.createEstimateRequest);
+router.post("/address", estimateReqController.linkCustomerAddress);
+router.get("/address", estimateReqController.getCustomerAddressesByRole);
+router.post("/estimate-request", estimateReqController.createEstimateRequest);
+// router.post("/customer/estimate-request/designated", estimateReqController.postDesignatedEstimateRequest);
 
 export default router;
