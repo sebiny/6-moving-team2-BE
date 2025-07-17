@@ -10,12 +10,12 @@ import authRouter from "./routes/auth.router";
 import profileRouter from "./routes/profile.router";
 import driverRouter from "./routes/driver.router";
 import favoriteRouter from "./routes/favorite.router";
+import addressRouter from "./routes/address.router";
 import estimateReqRouter from "./routes/estimateReq.router";
 import reviewRouter from "./routes/review.router";
 import { errorHandler } from "./middlewares/errorHandler";
 import notificationRouter from "./routes/notification.router";
 import customerEstimateRouter from "./routes/customerEstimate.router";
-
 
 const app = express();
 app.use(
@@ -30,7 +30,8 @@ app.use(passport.initialize());
 
 app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
-app.use("/", estimateReqRouter);
+app.use("/address", addressRouter);
+app.use("/customer", estimateReqRouter);
 app.use("/", reviewRouter);
 
 app.use("/drivers", driverRouter);
