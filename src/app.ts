@@ -14,6 +14,8 @@ import estimateReqRouter from "./routes/estimateReq.router";
 import reviewRouter from "./routes/review.router";
 import { errorHandler } from "./middlewares/errorHandler";
 import notificationRouter from "./routes/notification.router";
+import customerEstimateRouter from "./routes/customerEstimate.router";
+
 
 const app = express();
 app.use(
@@ -35,6 +37,8 @@ app.use("/drivers", driverRouter);
 
 app.use("/favorite", favoriteRouter);
 app.use("/notification", notificationRouter);
+
+app.use("/customer/estimate", customerEstimateRouter);
 
 app.use(
   "/api-docs",
