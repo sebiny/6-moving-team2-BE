@@ -119,6 +119,7 @@ const getMe = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new CustomError(401, "인증 정보가 없습니다.");
   }
+
   res.json({ user: req.user });
 });
 
