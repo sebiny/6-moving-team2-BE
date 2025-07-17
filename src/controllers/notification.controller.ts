@@ -21,7 +21,13 @@ export const connectSse = (req: Request, res: Response) => {
   // 사용자별로 SSE 연결 관리
   sseEmitters[userId] = res;
 
+  const pingInterval = setInterval(() => {
+    res.write("event: ping\n");
+    res.write(`data: keepalive\n\n`);
+  }, 1000 * 120); // 2분(120초)마다 ping (타임아웃보다 짧게)
+
   req.on("close", () => {
+    clearInterval(pingInterval);
     delete sseEmitters[userId];
   });
 };
