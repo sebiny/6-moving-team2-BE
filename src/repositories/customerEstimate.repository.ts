@@ -1,7 +1,7 @@
 import prisma from "../config/prisma";
-import { RequestStatus, type EstimateStatus } from "@prisma/client";
+import { RequestStatus } from "@prisma/client";
 
-// 공통 데이터
+// ＜공통＞ 공통 데이터
 function buildEstimateInclude() {
   return {
     driver: {
@@ -45,7 +45,7 @@ function buildEstimateInclude() {
   };
 }
 
-// 리뷰 계산 함수
+// ＜공통＞ 리뷰 계산 함수
 function formatEstimate(estimate: any) {
   const reviewRatings = estimate.driver.reviewsReceived.map((r: any) => r.rating);
   const reviewCount = reviewRatings.length;
@@ -65,60 +65,118 @@ function formatEstimate(estimate: any) {
   };
 }
 
-// 여러 견적 조회
-async function getEstimatesByCustomerIdAndStatus(customerId: string, status: EstimateStatus) {
-  const estimates = await prisma.estimate.findMany({
+/**
+ * 대기 중인 견적 리스트 조회
+ */
+async function getPendingEstimatesByCustomerId(customerId: string) {
+  const estimateRequests = await prisma.estimateRequest.findMany({
     where: {
-      status,
-      deletedAt: null,
-      estimateRequest: {
-        customerId,
-        deletedAt: null
+      customerId,
+      status: RequestStatus.PENDING,
+      deletedAt: null
+    },
+    include: {
+      fromAddress: true,
+      toAddress: true,
+      estimates: {
+        where: {
+          status: "PROPOSED",
+          deletedAt: null
+        },
+        include: buildEstimateInclude(),
+        orderBy: { createdAt: "asc" }
       }
     },
-    include: buildEstimateInclude(),
     orderBy: {
       createdAt: "desc"
     }
   });
 
-  if (estimates.length === 0) {
+  if (estimateRequests.length === 0) {
     return {
       estimateRequest: null,
       estimates: []
     };
   }
 
-  const { estimateRequest } = estimates[0]; // 견적 요청 정보는 1번만 나오도록
-
-  const estimatesList = estimates.map((estimate) => {
+  const firstRequest = estimateRequests[0];
+  const estimatesList = firstRequest.estimates.map((estimate) => {
     const formatted = formatEstimate(estimate);
-    delete formatted.estimateRequest; // 중복 제거
+    delete formatted.estimateRequest;
     return formatted;
   });
 
   return {
-    estimateRequest,
+    estimateRequest: {
+      id: firstRequest.id,
+      moveDate: firstRequest.moveDate,
+      moveType: firstRequest.moveType,
+      createdAt: firstRequest.createdAt,
+      fromAddress: firstRequest.fromAddress,
+      toAddress: firstRequest.toAddress
+    },
     estimates: estimatesList
   };
 }
 
-// 견적 상세 조회
-async function getEstimateDetailById(estimateId: string) {
-  const estimate = await prisma.estimate.findUnique({
+/**
+ * 받았던 견적 리스트 조회
+ */
+async function getReceivedEstimatesByCustomerId(customerId: string) {
+  // 1. 확정된 견적 요청건 가져오기
+  const estimateRequests = await prisma.estimateRequest.findMany({
     where: {
-      id: estimateId,
+      customerId,
+      status: RequestStatus.APPROVED,
       deletedAt: null
     },
-    include: buildEstimateInclude()
+    include: {
+      fromAddress: true,
+      toAddress: true,
+      estimates: {
+        where: {
+          status: { in: ["ACCEPTED", "AUTO_REJECTED"] },
+          deletedAt: null
+        },
+        include: buildEstimateInclude(),
+        orderBy: { createdAt: "asc" }
+      }
+    },
+    orderBy: {
+      createdAt: "desc"
+    }
   });
 
-  if (!estimate) return null;
+  // 2. 데이터 구조 가공
+  return estimateRequests.map((request) => {
+    const formattedEstimates = request.estimates
+      .map((estimate) => {
+        const formatted = formatEstimate(estimate);
+        delete formatted.estimateRequest; // 중복 제거
+        return formatted;
+      })
+      .sort((a, b) => {
+        if (a.status === "ACCEPTED") return -1;
+        if (b.status === "ACCEPTED") return 1;
+        return 0;
+      });
 
-  return formatEstimate(estimate);
+    return {
+      estimateRequestId: request.id,
+      createdAt: request.createdAt,
+      moveDate: request.moveDate,
+      moveType: request.moveType,
+      fromAddress: request.fromAddress,
+      toAddress: request.toAddress,
+      estimateCount: formattedEstimates.length,
+      estimates: formattedEstimates
+    };
+  });
 }
 
-// 견적 확정하기
+/**
+ * 견적 확정하기
+ */
 async function acceptEstimateById(estimateId: string) {
   // 1. 선택된 견적 찾기
   const targetEstimate = await prisma.estimate.findUnique({
@@ -160,8 +218,26 @@ async function acceptEstimateById(estimateId: string) {
   });
 }
 
+/**
+ * 견적서 상세 조회 (대기 중인 & 받았던)
+ */
+async function getEstimateDetailById(estimateId: string) {
+  const estimate = await prisma.estimate.findUnique({
+    where: {
+      id: estimateId,
+      deletedAt: null
+    },
+    include: buildEstimateInclude()
+  });
+
+  if (!estimate) return null;
+
+  return formatEstimate(estimate);
+}
+
 export default {
-  getEstimatesByCustomerIdAndStatus,
   getEstimateDetailById,
-  acceptEstimateById
+  acceptEstimateById,
+  getReceivedEstimatesByCustomerId,
+  getPendingEstimatesByCustomerId
 };
