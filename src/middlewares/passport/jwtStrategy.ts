@@ -6,8 +6,10 @@ import { AuthUserWithProfile } from "../../repositories/auth.repository";
 import authService, { TokenUserPayload } from "../../services/auth.service";
 
 interface JwtPayload {
-  userId: AuthUser["id"];
+  id: AuthUser["id"];
   userType: UserType;
+  customerId?: string;
+  driverId?: string;
 }
 
 if (!process.env.JWT_SECRET) {
@@ -37,18 +39,12 @@ const refreshTokenOptions: StrategyOptions = {
 
 async function jwtVerify(payload: JwtPayload, done: VerifiedCallback) {
   try {
-    const user: AuthUserWithProfile | null = await authService.getUserById(payload.userId);
+    const user: AuthUserWithProfile | null = await authService.getUserById(payload.id);
 
     if (!user) {
       return done(null, false);
     }
-
-    const userPayload: TokenUserPayload = {
-      id: user.id,
-      userType: user.userType
-    };
-
-    return done(null, userPayload);
+    return done(null, payload);
   } catch (error) {
     return done(error, false);
   }

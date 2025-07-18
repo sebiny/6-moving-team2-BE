@@ -21,13 +21,19 @@ const createCustomerProfile = asyncHandler(async (req: Request, res: Response) =
 
   const { profileImage, moveType, currentArea } = req.body;
 
-  const profile = await profileService.createCustomerProfile(authUserId, {
+  const { profile, accessToken, refreshToken } = await profileService.createCustomerProfile(authUserId, {
     profileImage,
     moveType,
     currentArea
   });
 
-  res.status(201).json(profile);
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    path: "/",
+    sameSite: "none",
+    secure: true
+  });
+  res.status(201).json({ profile, accessToken });
 });
 
 // 고객 프로필 수정
@@ -78,7 +84,7 @@ const createDriverProfile = asyncHandler(async (req: Request, res: Response) => 
 
   const { profileImage, nickname, career, shortIntro, detailIntro, moveType, serviceAreas } = req.body;
 
-  const result = await profileService.createDriverProfile(authUserId, {
+  const { profile, accessToken, refreshToken } = await profileService.createDriverProfile(authUserId, {
     profileImage,
     nickname,
     career,
@@ -88,7 +94,9 @@ const createDriverProfile = asyncHandler(async (req: Request, res: Response) => 
     serviceAreas
   });
 
-  res.status(201).json(result);
+  res.cookie("refreshToken", refreshToken, { httpOnly: true, path: "/", sameSite: "none", secure: true });
+
+  res.status(201).json({ profile, accessToken });
 });
 
 // 기사 프로필 수정

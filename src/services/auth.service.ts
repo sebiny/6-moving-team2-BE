@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
-import { AuthUser, AuthProvider } from "@prisma/client";
+import { AuthUser, Customer, Driver, AuthProvider } from "@prisma/client";
 import authRepository, { AuthUserWithProfile } from "../repositories/auth.repository";
 import { CustomError } from "../utils/customError";
 import { UserType } from "../types/userType";
@@ -23,11 +23,26 @@ type SignUpUserData = {
   name: string;
 };
 
+// 토큰 생성 헬퍼 함수
+function generateTokens(payload: TokenUserPayload): { accessToken: string; refreshToken: string } {
+  const accessToken = jwt.sign(payload, JWT_SECRET, {
+    expiresIn: ACCESS_TOKEN_EXPIRES_IN
+  } as SignOptions);
+
+  const refreshToken = jwt.sign(payload, JWT_SECRET, {
+    expiresIn: REFRESH_TOKEN_EXPIRES_IN
+  } as SignOptions);
+
+  return { accessToken, refreshToken };
+}
+
 type UserResponse = Pick<AuthUser, "id" | "email" | "userType" | "phone" | "name">;
 
 export type TokenUserPayload = {
   id: string;
   userType: UserType;
+  customerId?: string;
+  driverId?: string;
 };
 
 type SignInResponse = {
@@ -39,6 +54,24 @@ type SignInResponse = {
 // 회원가입
 async function signUpUser(data: SignUpUserData): Promise<Omit<AuthUser, "password">> {
   const { userType, email, phone, password, passwordConfirmation, name } = data;
+
+  // 이메일 형식 검사
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    throw new CustomError(422, "유효하지 않은 이메일 형식입니다.");
+  }
+
+  // 전화번호 형식 검사 (대한민국)
+  const phoneRegex = /^010?\d{4}?\d{4}$/;
+  if (!phoneRegex.test(phone)) {
+    throw new CustomError(422, "유효하지 않은 전화번호 형식입니다. 숫자만 입력해 주세요.");
+  }
+
+  // 비밀번호 복잡성 검사: 최소 8자, 영문, 숫자, 특수문자 포함
+  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+  if (!passwordRegex.test(password)) {
+    throw new CustomError(422, "비밀번호는 최소 8자 이상이며 영문, 숫자, 특수문자를 포함해야 합니다.");
+  }
 
   if (password !== passwordConfirmation) {
     throw new CustomError(422, "비밀번호가 일치하지 않습니다.");
@@ -97,24 +130,12 @@ async function signInUser(email: string, passwordInput: string): Promise<SignInR
 
   const payload: TokenUserPayload = {
     id: authUser.id!,
-    userType: authUser.userType
+    userType: authUser.userType,
+    customerId: authUser.customer?.id,
+    driverId: authUser.driver?.id
   };
 
-  const accessToken = jwt.sign(
-    { userId: payload.id, userType: payload.userType }, // userType 추가
-    JWT_SECRET,
-    {
-      expiresIn: ACCESS_TOKEN_EXPIRES_IN
-    } as SignOptions
-  );
-
-  const refreshToken = jwt.sign(
-    { userId: payload.id, userType: payload.userType }, // userType 추가
-    JWT_SECRET,
-    {
-      expiresIn: REFRESH_TOKEN_EXPIRES_IN
-    } as SignOptions
-  );
+  const { accessToken, refreshToken } = generateTokens(payload);
 
   const user: UserResponse = {
     id: authUser!.id,
@@ -129,9 +150,8 @@ async function signInUser(email: string, passwordInput: string): Promise<SignInR
 
 // 액세스 토큰 재발급
 function generateNewAccessToken(user: TokenUserPayload): string {
-  return jwt.sign({ userId: user.id, userType: user.userType }, JWT_SECRET, {
-    expiresIn: ACCESS_TOKEN_EXPIRES_IN
-  } as SignOptions);
+  const { accessToken } = generateTokens(user);
+  return accessToken;
 }
 
 // 소셜 로그인 후 토큰 발급
@@ -142,16 +162,16 @@ async function handleSocialLogin(user: TokenUserPayload): Promise<SignInResponse
     throw new CustomError(401, "사용자 정보를 찾을 수 없습니다.");
   }
 
-  const accessToken = jwt.sign({ userId: user.id, userType: user.userType }, JWT_SECRET, {
-    expiresIn: ACCESS_TOKEN_EXPIRES_IN
-  } as SignOptions);
+  const payload: TokenUserPayload = {
+    id: authUser.id,
+    userType: authUser.userType,
+    customerId: authUser.customer?.id,
+    driverId: authUser.driver?.id
+  };
 
-  const refreshToken = jwt.sign({ userId: user.id, userType: user.userType }, JWT_SECRET, {
-    expiresIn: REFRESH_TOKEN_EXPIRES_IN
-  } as SignOptions);
-
+  const { accessToken, refreshToken } = generateTokens(payload);
   const userResponse: UserResponse = {
-    id: authUser!.id,
+    id: authUser.id,
     email: authUser.email,
     userType: authUser.userType,
     phone: authUser.phone,
@@ -212,6 +232,7 @@ async function findOrCreateOAuthUser(profile: {
 export default {
   signUpUser,
   signInUser,
+  generateTokens,
   generateNewAccessToken,
   handleSocialLogin,
   getUserById,
