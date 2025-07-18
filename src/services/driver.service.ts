@@ -1,11 +1,15 @@
 import driverRepository, { EditDataType, optionsType } from "../repositories/driver.repository";
 
-async function getAllDrivers(options: optionsType) {
-  return await driverRepository.getAllDrivers(options);
+async function getAllDrivers(options: optionsType, userId?: string) {
+  return await driverRepository.getAllDrivers(options, userId);
 }
 
-async function getDriverById(id: string) {
-  return await driverRepository.getDriverById(id);
+async function getDriverById(id: string, userId?: string) {
+  return await driverRepository.getDriverById(id, userId);
+}
+
+async function getDriverReviews(id: string, page: number) {
+  return await driverRepository.getDriverReviews(id, page);
 }
 
 async function updateDriver(id: string, data: EditDataType) {
@@ -15,5 +19,6 @@ async function updateDriver(id: string, data: EditDataType) {
 export default {
   getAllDrivers,
   getDriverById,
+  getDriverReviews,
   updateDriver
 };
