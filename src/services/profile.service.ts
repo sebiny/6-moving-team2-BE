@@ -1,9 +1,11 @@
 import bcrypt from "bcrypt";
-import { MoveType, RegionType, UserType } from "@prisma/client";
+import { Customer, Driver, MoveType, RegionType, UserType } from "@prisma/client";
 import { CustomError } from "../utils/customError";
 import profileRepository from "../repositories/profile.repository";
 import authRepository from "../repositories/auth.repository";
+import authService, { TokenUserPayload } from "./auth.service";
 
+type ProfileWithTokens = { profile: Customer | { driver: Driver }; accessToken: string; refreshToken: string };
 // 고객 프로필 생성
 async function createCustomerProfile(
   authUserId: string,
@@ -12,7 +14,7 @@ async function createCustomerProfile(
     moveType: MoveType;
     currentArea: string;
   }
-) {
+): Promise<ProfileWithTokens> {
   if (!authUserId) {
     throw new CustomError(400, "유저 ID가 유효하지 않습니다.");
   }
@@ -32,10 +34,21 @@ async function createCustomerProfile(
   const existing = await profileRepository.findCustomerByAuthUserId(authUserId);
   if (existing) throw new CustomError(409, "이미 고객 프로필이 존재합니다.");
 
-  return await profileRepository.createCustomerProfile({
+  const newProfile = await profileRepository.createCustomerProfile({
     ...data,
     authUser: { connect: { id: authUserId } }
   });
+
+  // 토큰 재발급을 위한 payload 생성
+  const newPayload: TokenUserPayload = {
+    id: authUserId,
+    userType: UserType.CUSTOMER,
+    customerId: newProfile.id
+  };
+
+  const { accessToken, refreshToken } = authService.generateTokens(newPayload);
+
+  return { profile: newProfile, accessToken, refreshToken };
 }
 
 // 고객 프로필 수정 (authUser 정보도 함께 반환)
@@ -144,7 +157,7 @@ async function createDriverProfile(
     moveType: MoveType;
     serviceAreas: { region: RegionType; district: string }[];
   }
-) {
+): Promise<ProfileWithTokens> {
   if (!authUserId) {
     throw new CustomError(400, "유저 ID가 유효하지 않습니다.");
   }
@@ -164,7 +177,7 @@ async function createDriverProfile(
   const existing = await profileRepository.findDriverByAuthUserId(authUserId);
   if (existing) throw new CustomError(409, "이미 기사 프로필이 존재합니다.");
 
-  return await profileRepository.createDriverProfile({
+  const newProfile = await profileRepository.createDriverProfile({
     authUser: { connect: { id: authUserId } },
     profileImage: data.profileImage,
     nickname: data.nickname,
@@ -176,6 +189,17 @@ async function createDriverProfile(
       create: data.serviceAreas
     }
   });
+
+  // 토큰 재발급을 위한 payload 생성
+  const newPayload: TokenUserPayload = {
+    id: authUserId,
+    userType: UserType.DRIVER,
+    driverId: newProfile.id
+  };
+
+  const { accessToken, refreshToken } = authService.generateTokens(newPayload);
+
+  return { profile: { driver: newProfile }, accessToken, refreshToken };
 }
 
 // 기사 프로필 수정

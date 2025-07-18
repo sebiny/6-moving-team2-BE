@@ -3,6 +3,7 @@ import authService, { TokenUserPayload } from "../services/auth.service";
 import passport from "../config/passport";
 import { asyncHandler } from "../utils/asyncHandler";
 import { UserType } from "@prisma/client";
+import rateLimit from "express-rate-limit";
 import { CustomError } from "../utils/customError";
 
 declare global {
@@ -11,12 +12,22 @@ declare global {
   }
 }
 
+// 회원가입, 로그인 등 인증 관련 요청에 대한 횟수 제한 미들웨어
+export const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1시간
+  max: 50, // 1시간 동안 IP당 20번 요청 가능
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "너무 많은 요청을 하셨습니다. 나중에 다시 시도해주세요." },
+  handler: (req, res, next, options) => res.status(options.statusCode).json(options.message)
+});
+
 // 회원가입
 const signUp = asyncHandler(async (req: Request, res: Response) => {
   const { userType, name, email, phone, password, passwordConfirmation } = req.body;
 
   if (!userType || !email || !phone || !password || !passwordConfirmation || !name) {
-    throw new CustomError(422, "필수 필드를 모두 입력해주세요. (name 포함)");
+    throw new CustomError(422, "필수 필드를 모두 입력해주세요.");
   }
 
   if (![UserType.CUSTOMER, UserType.DRIVER].includes(userType)) {
@@ -114,13 +125,30 @@ const socialLoginCallback = (req: Request, res: Response, next: NextFunction) =>
   )(req, res, next);
 };
 
-// 로그인된 유저 인증 정보 조회
+// 로그인된 유저 인증(최소) 정보 조회
 const getMe = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new CustomError(401, "인증 정보가 없습니다.");
   }
 
   res.json({ user: req.user });
+});
+
+// 로그인된 유저 자세한 정보 조회
+const getUserById = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new CustomError(401, "인증 정보가 없습니다.");
+  }
+  const { id } = req.user;
+  const user = await authService.getUserById(id);
+
+  if (!user) {
+    throw new CustomError(404, "정보를 찾을 수 없습니다.");
+  }
+
+  const { password, ...publicUser } = user;
+
+  res.json(publicUser);
 });
 
 // 액세스 토큰 재발급
@@ -136,8 +164,9 @@ export default {
   signUp,
   logIn,
   logOut,
+  getMe,
   startSocialLogin,
   socialLoginCallback,
-  getMe,
+  getUserById,
   refreshToken
 };

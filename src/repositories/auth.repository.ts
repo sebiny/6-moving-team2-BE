@@ -5,7 +5,7 @@ import { AuthProvider } from "@prisma/client";
 
 export type AuthUserWithProfile = AuthUser & {
   customer?: Customer | null;
-  driver?: Pick<Driver, "nickname"> | null;
+  driver?: Pick<Driver, "id" | "nickname"> | null;
 };
 
 // 이메일로 AuthUser 조회 (프로필 포함)
@@ -14,9 +14,7 @@ async function findByEmail(email: string): Promise<AuthUserWithProfile | null> {
     where: { email },
     include: {
       customer: true,
-      driver: {
-        select: { nickname: true }
-      }
+      driver: { select: { id: true, nickname: true } }
     }
   });
 }
@@ -27,9 +25,7 @@ async function findById(id: string): Promise<AuthUserWithProfile | null> {
     where: { id },
     include: {
       customer: true,
-      driver: {
-        select: { nickname: true }
-      }
+      driver: { select: { id: true, nickname: true } }
     }
   });
 }
