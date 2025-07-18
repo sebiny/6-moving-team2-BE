@@ -1,25 +1,27 @@
-import { EstimateStatus } from "@prisma/client";
 import { CustomError } from "../utils/customError";
 import customerEstimateRepository from "../repositories/customerEstimate.repository";
 
 // 대기 중인 견적 리스트 조회
-export const getEstimatesByCustomer = async (customerId: string, status: EstimateStatus) => {
+export const getPendingEstimates = async (customerId: string) => {
   if (!customerId) throw new CustomError(400, "고객 ID가 누락되었습니다.");
-  if (!status) throw new CustomError(400, "견적 상태가 누락되었습니다.");
 
-  const estimates = await customerEstimateRepository.getEstimatesByCustomerIdAndStatus(customerId, status);
-
-  return estimates;
+  const result = await customerEstimateRepository.getPendingEstimatesByCustomerId(customerId);
+  return result;
 };
 
-// 대기 중인 견적 리스트 상세 조회
-export const getEstimateDetail = async (estimateId: string) => {
-  if (!estimateId) throw new CustomError(400, "견적 ID가 누락되었습니다.");
+// 받았던 견적 리스트 조회
+export const getReceivedEstimates = async (customerId: string) => {
+  if (!customerId) {
+    throw new CustomError(400, "고객 ID가 필요합니다.");
+  }
 
-  const estimate = await customerEstimateRepository.getEstimateDetailById(estimateId);
-  if (!estimate) throw new CustomError(404, "견적 정보를 찾을 수 없습니다.");
-
-  return estimate;
+  try {
+    const result = await customerEstimateRepository.getReceivedEstimatesByCustomerId(customerId);
+    return result;
+  } catch (error: any) {
+    console.error("받았던 견적 조회 중 오류:", error);
+    throw new CustomError(500, error.message || "받았던 견적 조회 중 오류가 발생했습니다.");
+  }
 };
 
 // 견적 확정하기
@@ -42,8 +44,19 @@ export const acceptEstimate = async (estimateId: string) => {
   }
 };
 
+// 대기 중인 & 받았던 견적 리스트 상세 조회
+export const getEstimateDetail = async (estimateId: string) => {
+  if (!estimateId) throw new CustomError(400, "견적 ID가 누락되었습니다.");
+
+  const estimate = await customerEstimateRepository.getEstimateDetailById(estimateId);
+  if (!estimate) throw new CustomError(404, "견적 정보를 찾을 수 없습니다.");
+
+  return estimate;
+};
+
 export default {
-  getEstimatesByCustomer,
   getEstimateDetail,
-  acceptEstimate
+  acceptEstimate,
+  getReceivedEstimates,
+  getPendingEstimates
 };
