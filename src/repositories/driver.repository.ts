@@ -13,7 +13,7 @@ export type optionsType = {
   orderBy?: "reviewCount" | "career" | "work"; //| "rating";
   region?: RegionType;
   service?: MoveType;
-  page?: number;
+  page: number;
 };
 
 //기사님 찾기
@@ -29,7 +29,7 @@ async function getAllDrivers(options: optionsType, userId?: string) {
         }
       : { [orderBy]: "desc" as const };
 
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 3;
   const skip = (Number(page) - 1) * PAGE_SIZE;
 
   const drivers = await prisma.driver.findMany({
@@ -41,8 +41,8 @@ async function getAllDrivers(options: optionsType, userId?: string) {
       ...(service && { moveType: { equals: service } }),
       ...(region && { serviceAreas: { some: { region } } })
     },
-    // skip: skip,
-    take: PAGE_SIZE,
+    skip: skip,
+    take: PAGE_SIZE + 1, //hasNext 확인하기 위해 하나 더 가져옴
     orderBy: orderByClause,
     include: {
       reviewsReceived: true,
@@ -51,11 +51,14 @@ async function getAllDrivers(options: optionsType, userId?: string) {
     }
   });
 
-  return drivers.map((driver) => {
+  const hasNext = drivers.length > PAGE_SIZE;
+  const data = drivers.slice(0, PAGE_SIZE).map((driver) => {
     const isFavorite = userId ? driver.Favorite.length > 0 : false;
     const { Favorite, ...rest } = driver;
     return { ...rest, isFavorite };
   });
+
+  return { data, hasNext };
 }
 
 //기사님 상세 정보
