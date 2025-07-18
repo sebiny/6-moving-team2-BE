@@ -154,7 +154,7 @@ async function createDriverProfile(
     career: number;
     shortIntro: string;
     detailIntro: string;
-    moveType: MoveType;
+    moveType: MoveType[];
     serviceAreas: { region: RegionType; district: string }[];
   }
 ): Promise<ProfileWithTokens> {
@@ -211,7 +211,7 @@ async function updateDriverProfile(
     career?: number;
     shortIntro?: string;
     detailIntro?: string;
-    moveType?: MoveType;
+    moveType?: MoveType[];
     serviceAreas?: { region: RegionType; district: string }[];
   }
 ) {
@@ -239,6 +239,7 @@ async function updateDriverProfile(
   }
 
   const { serviceAreas, ...rest } = data;
+
   return await profileRepository.updateDriverProfile(authUserId, rest);
 }
 
