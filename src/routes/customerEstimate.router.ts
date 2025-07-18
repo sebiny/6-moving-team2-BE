@@ -10,13 +10,16 @@ const authMiddleware = passport.authenticate("access-token", {
   failWithError: true
 });
 
-// 기사님이 보낸 견적서 조회 (대기 중인 견적)
-customerEstimateRouter.get("/", authMiddleware, customerEstimateController.getEstimatesByCustomer);
+// 대기중인 견적서 조회
+customerEstimateRouter.get("/pending", authMiddleware, customerEstimateController.getPendingEstimates);
 
-// 견적서 상세 조회
-customerEstimateRouter.get("/:estimateId", authMiddleware, customerEstimateController.getEstimateDetail);
+// 받았던 견적 리스트 조회
+customerEstimateRouter.get("/approve", authMiddleware, customerEstimateController.getReceivedEstimates);
 
 // 견적 확정하기
 customerEstimateRouter.patch("/:estimateId/accept", authMiddleware, customerEstimateController.acceptEstimate);
+
+// 대기중인 견적서 상세 조회 & 받았던 견적서 상세 조회
+customerEstimateRouter.get("/:estimateId", authMiddleware, customerEstimateController.getEstimateDetail);
 
 export default customerEstimateRouter;
