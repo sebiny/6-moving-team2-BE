@@ -32,7 +32,7 @@ class NotificationService {
     const newNotification = await notificationRepository.create({
       userId: id,
       userName: name,
-      title: notificationPayload.payload.title,
+      message: notificationPayload.payload.message,
       type: notificationPayload.type,
       isRead: false
     });

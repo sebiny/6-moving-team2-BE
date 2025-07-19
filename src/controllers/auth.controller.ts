@@ -19,7 +19,7 @@ export const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "너무 많은 요청을 하셨습니다. 나중에 다시 시도해주세요." },
-  handler: (req, res, next, options) => res.status(options.statusCode).json(options.message)
+  handler: (req: Request, res: Response, next, options) => res.status(options.statusCode).json(options.message)
 });
 
 // 회원가입

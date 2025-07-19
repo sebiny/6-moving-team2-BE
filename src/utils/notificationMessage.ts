@@ -6,7 +6,7 @@ export type NotificationPayload = {
   payload: {
     receivedName: string;
     driverName?: string;
-    title?: string;
+    message?: string;
     moveType?: string;
     userType?: $Enums.UserType;
     fromAddress?: string;
@@ -20,10 +20,10 @@ export type NotificationPayload = {
 // 회원가입 축하 메시지 생성
 export function createSignUpSuccessPayload(name: string) {
   return {
-    type: $Enums.NotificationType.MESSAGE,
+    type: $Enums.NotificationType.WELCOME,
     payload: {
       receivedName: name,
-      title: `${name}님, 무빙 회원가입을 축하합니다!`,
+      message: `${name}님, 무빙 회원가입을 축하합니다!`,
       timeStamp: new Date().toISOString
     }
   };
@@ -32,10 +32,10 @@ export function createSignUpSuccessPayload(name: string) {
 // 로그인 확인 메시지 생성
 export function createLogInSuccessPayload(name: string) {
   return {
-    type: $Enums.NotificationType.MESSAGE,
+    type: $Enums.NotificationType.WELCOME,
     payload: {
       receivedName: name,
-      title: `${name}님, 로그인 하셨습니다.`,
+      message: `${name}님, 로그인 하셨습니다.`,
       timeStamp: new Date().toISOString
     }
   };

@@ -12,7 +12,7 @@ export type optionsType = {
   keyword?: string;
   orderBy?: "reviewCount" | "career" | "work"; //| "rating";
   region?: RegionType;
-  service?: MoveType;
+  service?: MoveType[];
   page: number;
 };
 
@@ -38,7 +38,7 @@ async function getAllDrivers(options: optionsType, userId?: string) {
         { nickname: { contains: keyword, mode: "insensitive" } },
         { shortIntro: { contains: keyword, mode: "insensitive" } }
       ],
-      ...(service && { moveType: { equals: service } }),
+      ...(service && { moveType: { hasSome: service } }),
       ...(region && { serviceAreas: { some: { region } } })
     },
     skip: skip,
@@ -47,14 +47,14 @@ async function getAllDrivers(options: optionsType, userId?: string) {
     include: {
       reviewsReceived: true,
       serviceAreas: true,
-      Favorite: userId ? { where: { customerId: userId }, select: { id: true } } : false
+      favorite: userId ? { where: { customerId: userId }, select: { id: true } } : false
     }
   });
 
   const hasNext = drivers.length > PAGE_SIZE;
   const data = drivers.slice(0, PAGE_SIZE).map((driver) => {
-    const isFavorite = userId ? driver.Favorite.length > 0 : false;
-    const { Favorite, ...rest } = driver;
+    const isFavorite = userId ? driver.favorite.length > 0 : false;
+    const { favorite, ...rest } = driver;
     return { ...rest, isFavorite };
   });
 
@@ -68,13 +68,13 @@ async function getDriverById(id: string, userId?: string) {
     include: {
       reviewsReceived: true,
       serviceAreas: true,
-      Favorite: userId ? { where: { customerId: userId }, select: { id: true } } : false
+      favorite: userId ? { where: { customerId: userId }, select: { id: true } } : false
     }
   });
 
   if (!driver) return null;
-  const isFavorite = userId ? driver.Favorite.length > 1 : false;
-  const { Favorite, ...rest } = driver;
+  const isFavorite = userId ? driver.favorite.length > 1 : false;
+  const { favorite, ...rest } = driver;
   return { ...rest, isFavorite };
 }
 
