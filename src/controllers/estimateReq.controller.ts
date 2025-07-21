@@ -2,10 +2,16 @@ import { Request, Response } from "express";
 import estimateReqService from "../services/estimateReq.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { CustomError } from "../utils/customError";
+import { JwtPayload } from "../middlewares/passport/jwtStrategy";
+
+interface AuthRequest extends Request {
+  user?: JwtPayload;
+}
 
 // 고객 주소 연결
-const linkCustomerAddress = asyncHandler(async (req: Request, res: Response) => {
-  const { customerId, addressId, role } = req.body;
+const linkCustomerAddress = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { addressId, role } = req.body;
+  const customerId = req.user?.customerId;
 
   if (!customerId || !addressId || !role) {
     throw new CustomError(400, "필수 주소 정보가 누락되었습니다.");
@@ -16,8 +22,9 @@ const linkCustomerAddress = asyncHandler(async (req: Request, res: Response) => 
 });
 
 // 고객 주소 목록 조회
-const getCustomerAddressesByRole = asyncHandler(async (req: Request, res: Response) => {
-  const { role, customerId } = req.query;
+const getCustomerAddressesByRole = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { role } = req.query;
+  const customerId = req.user?.customerId;
 
   if (!customerId || typeof role !== "string") {
     throw new CustomError(400, "필수 요청 정보가 누락되었습니다.");
@@ -28,8 +35,9 @@ const getCustomerAddressesByRole = asyncHandler(async (req: Request, res: Respon
 });
 
 // 일반 견적 요청 생성
-const createEstimateRequest = asyncHandler(async (req: Request, res: Response) => {
-  const { customerId, moveType, moveDate, fromAddressId, toAddressId } = req.body;
+const createEstimateRequest = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { moveType, moveDate, fromAddressId, toAddressId } = req.body;
+  const customerId = req.user?.customerId;
 
   if (!customerId || !moveType || !moveDate || !fromAddressId || !toAddressId) {
     throw new CustomError(400, "필수 요청 정보가 누락되었습니다.");
@@ -52,19 +60,20 @@ const createEstimateRequest = asyncHandler(async (req: Request, res: Response) =
 });
 
 // 지정 견적 요청 생성
-// const postDesignatedEstimateRequest = asyncHandler(async (req: Request, res: Response) => {
-//   const { customerId, driverId } = req.body; //TODO: 추후 프로필 완성되면 인증 미들웨어에서 받아오게 수정하기
+const createDesignatedEstimateRequest = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { driverId } = req.body;
+  const customerId = req.user?.customerId;
 
-//   if (!customerId) throw new CustomError(400, "고객 ID가 필요합니다.");
-//   if (!driverId) throw new CustomError(400, "기사 ID가 필요합니다.");
+  if (!customerId) throw new CustomError(400, "고객 ID가 필요합니다.");
+  if (!driverId) throw new CustomError(400, "기사 ID가 필요합니다.");
 
-//   const result = await estimateReqService.createDesignatedEstimateRequest(customerId, driverId);
-//   res.status(201).json({ message: "지정 견적 요청 완료", data: result });
-// });
+  const request = await estimateReqService.createDesignatedEstimateRequest(customerId, driverId);
+  res.status(201).json({ message: "지정 견적 요청 완료", data: request });
+});
 
 export default {
   linkCustomerAddress,
   getCustomerAddressesByRole,
-  createEstimateRequest
-  // postDesignatedEstimateRequest
+  createEstimateRequest,
+  createDesignatedEstimateRequest
 };

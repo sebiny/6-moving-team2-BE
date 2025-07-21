@@ -5,7 +5,7 @@ import { AuthUser, UserType } from "@prisma/client";
 import { AuthUserWithProfile } from "../../repositories/auth.repository";
 import authService, { TokenUserPayload } from "../../services/auth.service";
 
-interface JwtPayload {
+export interface JwtPayload {
   id: AuthUser["id"];
   userType: UserType;
   customerId?: string;
