@@ -1,14 +1,15 @@
 import prisma from "../config/prisma"; // Prisma 클라이언트 import
-import { $Enums, Notification, NotificationType } from "@prisma/client";
+import { $Enums, Notification } from "@prisma/client";
 
 // 알림 생성 시 필요한 데이터 타입
 type CreateNotificationData = {
   userId: string;
-  title: string;
+  message: string;
   userName?: string;
   userType?: "DRIVER" | "CUSTOMER" | undefined;
   type: string;
   isRead: boolean;
+  path?: string;
 };
 
 // 알림 데이터베이스 작업을 담당하는 객체
@@ -21,9 +22,10 @@ const notificationRepository = {
   async create(data: CreateNotificationData): Promise<Notification> {
     return prisma.notification.create({
       data: {
-        title: data.title,
+        message: data.message,
         type: $Enums.NotificationType.MESSAGE,
         isRead: false,
+        path: "/",
         receiver: {
           connect: {
             id: data.userId

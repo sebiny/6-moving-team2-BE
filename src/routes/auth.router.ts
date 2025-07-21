@@ -1,14 +1,13 @@
 import express from "express";
-import authController from "../controllers/auth.controller";
+import authController, { authLimiter } from "../controllers/auth.controller";
 import passport from "../config/passport";
 
 const authRouter = express.Router();
 
 // 회원가입
-authRouter.post("/signup", authController.signUp);
-
+authRouter.post("/signup", authLimiter, authController.signUp);
 // 로그인
-authRouter.post("/login", authController.logIn);
+authRouter.post("/login", authLimiter, authController.logIn);
 
 // 로그아웃
 authRouter.post("/logout", authController.logOut);
@@ -19,11 +18,18 @@ authRouter.get("/social/:provider", authController.startSocialLogin);
 // 소셜 로그인 콜백
 authRouter.get("/social/:provider/callback", authController.socialLoginCallback);
 
-// 로그인된 유저 인증 정보 조회
+// 로그인된 유저 인증(최소) 정보 조회
 authRouter.get(
   "/me",
   passport.authenticate("access-token", { session: false, failWithError: true }),
   authController.getMe
+);
+
+// 로그인된 유저 자세한 정보 조회
+authRouter.get(
+  "/me/detail",
+  passport.authenticate("access-token", { session: false, failWithError: true }),
+  authController.getUserById
 );
 
 // 액세스 토큰 재발급

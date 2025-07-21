@@ -9,7 +9,7 @@ const getAllDrivers = asyncHandler(async (req: Request, res: Response) => {
     keyword: keyword as string,
     orderBy: orderBy as "reviewCount" | "career" | "work", //| "rating";,
     region: region as RegionType,
-    service: service as MoveType,
+    service: service as MoveType[],
     page: Number(page) as number
   };
   const result = await driverService.getAllDrivers(options);
