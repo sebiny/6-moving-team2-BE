@@ -10,7 +10,7 @@ export type EditDataType = {
 
 export type optionsType = {
   keyword?: string;
-  orderBy?: "reviewCount" | "career" | "work"; //| "rating";
+  orderBy?: "reviewCount" | "career" | "work" | "averageRating";
   region?: RegionType;
   service?: MoveType[];
   page: number;
@@ -30,7 +30,7 @@ async function getAllDrivers(options: optionsType, userId?: string) {
       : { [orderBy]: "desc" as const };
 
   const PAGE_SIZE = 3;
-  const skip = (Number(page) - 1) * PAGE_SIZE;
+  const skip = (page - 1) * PAGE_SIZE;
 
   const drivers = await prisma.driver.findMany({
     where: {
@@ -45,7 +45,7 @@ async function getAllDrivers(options: optionsType, userId?: string) {
     take: PAGE_SIZE + 1, //hasNext 확인하기 위해 하나 더 가져옴
     orderBy: orderByClause,
     include: {
-      reviewsReceived: true,
+      _count: { select: { reviewsReceived: true, favorite: true } },
       serviceAreas: true,
       favorite: userId ? { where: { customerId: userId }, select: { id: true } } : false
     }
@@ -54,8 +54,8 @@ async function getAllDrivers(options: optionsType, userId?: string) {
   const hasNext = drivers.length > PAGE_SIZE;
   const data = drivers.slice(0, PAGE_SIZE).map((driver) => {
     const isFavorite = userId ? driver.favorite.length > 0 : false;
-    const { favorite, ...rest } = driver;
-    return { ...rest, isFavorite };
+    const { favorite, _count, ...rest } = driver;
+    return { ...rest, isFavorite, reviewCount: _count.reviewsReceived, favoriteCount: _count.favorite };
   });
 
   return { data, hasNext };
@@ -66,16 +66,24 @@ async function getDriverById(id: string, userId?: string) {
   const driver = await prisma.driver.findUnique({
     where: { id },
     include: {
-      reviewsReceived: true,
+      _count: { select: { reviewsReceived: true, favorite: true } },
       serviceAreas: true,
       favorite: userId ? { where: { customerId: userId }, select: { id: true } } : false
     }
   });
 
   if (!driver) return null;
-  const isFavorite = userId ? driver.favorite.length > 1 : false;
-  const { favorite, ...rest } = driver;
-  return { ...rest, isFavorite };
+  const isFavorite = userId ? driver.favorite.length > 0 : false;
+  const { favorite, _count, ...rest } = driver;
+  return { ...rest, isFavorite, reviewCount: _count.reviewsReceived, favoriteCount: _count.favorite };
+}
+
+//기사님 리뷰 (페이지네이션 때문에 분리)
+async function getDriverReviews(id: string, page: number) {
+  const PAGE_SIZE = 3;
+  const skip = (page - 1) * PAGE_SIZE;
+  const reviews = await prisma.review.findMany({ where: { driverId: id }, skip: skip, take: PAGE_SIZE });
+  return reviews;
 }
 
 //기사님 프로필 업데이트
@@ -86,5 +94,6 @@ async function updateDriver(id: string, data: EditDataType) {
 export default {
   getAllDrivers,
   getDriverById,
+  getDriverReviews,
   updateDriver
 };

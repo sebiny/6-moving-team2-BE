@@ -5,6 +5,8 @@ declare global {
     interface User {
       id: string;
       userType: UserType;
+      customerId?: string;
+      driverId?: string;
     }
   }
 }

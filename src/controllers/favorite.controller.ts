@@ -4,25 +4,26 @@ import { Request, Response } from "express";
 import { CustomError } from "../utils/customError";
 
 const getAllFavoriteDrivers = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  if (!userId) throw new CustomError(401, "인증 정보가 없습니다.");
-  const result = await favoriteService.getAllFavoriteDrivers(userId);
+  const customerId = req.user?.customerId;
+  if (!customerId) throw new CustomError(401, "인증 정보가 없습니다.");
+  const { page, pageSize } = req.query;
+  const result = await favoriteService.getAllFavoriteDrivers(customerId, Number(page), Number(pageSize));
   res.status(200).json(result);
 });
 
 const createFavorite = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  if (!userId) throw new CustomError(401, "인증 정보가 없습니다.");
+  const customerId = req.user?.customerId;
+  if (!customerId) throw new CustomError(401, "인증 정보가 없습니다.");
   const { id: driverId } = req.params;
-  const result = await favoriteService.createFavorite(driverId, userId);
+  const result = await favoriteService.createFavorite(driverId, customerId);
   res.status(201).json(result);
 });
 
 const deleteFavorite = asyncHandler(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
-  if (!userId) throw new CustomError(401, "인증 정보가 없습니다.");
+  const customerId = req.user?.customerId;
+  if (!customerId) throw new CustomError(401, "인증 정보가 없습니다.");
   const { id: driverId } = req.params;
-  const result = await favoriteService.deleteFavorite(driverId, userId);
+  const result = await favoriteService.deleteFavorite(driverId, customerId);
   res.status(204).json(result);
 });
 

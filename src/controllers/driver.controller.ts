@@ -1,25 +1,33 @@
 import { MoveType, RegionType } from "@prisma/client";
-import { optionsType } from "../repositories/driver.repository";
 import driverService from "../services/driver.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Request, Response } from "express";
 
 const getAllDrivers = asyncHandler(async (req: Request, res: Response) => {
   const { keyword, orderBy, region, service, page } = req.query;
+  const customerId = req.user?.customerId;
   const options = {
     keyword: keyword as string,
-    orderBy: orderBy as "reviewCount" | "career" | "work", //| "rating";,
+    orderBy: orderBy as "reviewCount" | "career" | "work" | "averageRating",
     region: region as RegionType,
     service: service as MoveType[],
     page: Number(page) as number
   };
-  const result = await driverService.getAllDrivers(options);
+  const result = await driverService.getAllDrivers(options, customerId);
   res.status(200).json(result);
 });
 
 const getDriverById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await driverService.getDriverById(id);
+  const customerId = req.user?.customerId;
+  const result = await driverService.getDriverById(id, customerId);
+  res.status(200).json(result);
+});
+
+const getDriverReviews = asyncHandler(async (req: Request, res: Response) => {
+  const { page } = req.query;
+  const { id } = req.params;
+  const result = await driverService.getDriverReviews(id, Number(page));
   res.status(200).json(result);
 });
 
@@ -33,5 +41,6 @@ const updateDriver = asyncHandler(async (req: Request, res: Response) => {
 export default {
   getAllDrivers,
   getDriverById,
+  getDriverReviews,
   updateDriver
 };
