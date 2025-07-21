@@ -5,20 +5,22 @@ import { Request, Response } from "express";
 
 const getAllDrivers = asyncHandler(async (req: Request, res: Response) => {
   const { keyword, orderBy, region, service, page } = req.query;
+  const customerId = req.user?.customerId;
   const options = {
     keyword: keyword as string,
-    orderBy: orderBy as "reviewCount" | "career" | "work", //| "rating";,
+    orderBy: orderBy as "reviewCount" | "career" | "work" | "averageRating",
     region: region as RegionType,
     service: service as MoveType[],
     page: Number(page) as number
   };
-  const result = await driverService.getAllDrivers(options);
+  const result = await driverService.getAllDrivers(options, customerId);
   res.status(200).json(result);
 });
 
 const getDriverById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await driverService.getDriverById(id);
+  const customerId = req.user?.customerId;
+  const result = await driverService.getDriverById(id, customerId);
   res.status(200).json(result);
 });
 

@@ -1,12 +1,14 @@
 import express from "express";
 import favoriteController from "../controllers/favorite.controller";
+import passport from "../config/passport";
 
 const favoriteRouter = express.Router();
+const authMiddleware = passport.authenticate("access-token", { session: false, failWithError: true });
 
-favoriteRouter.get("/", favoriteController.getAllFavoriteDrivers);
+favoriteRouter.get("/", authMiddleware, favoriteController.getAllFavoriteDrivers);
 
-favoriteRouter.post("/drivers/:id", favoriteController.createFavorite);
+favoriteRouter.post("/drivers/:id", authMiddleware, favoriteController.createFavorite);
 
-favoriteRouter.delete("/drivers/:id", favoriteController.deleteFavorite);
+favoriteRouter.delete("/drivers/:id", authMiddleware, favoriteController.deleteFavorite);
 
 export default favoriteRouter;

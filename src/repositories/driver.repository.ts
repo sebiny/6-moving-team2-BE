@@ -10,7 +10,7 @@ export type EditDataType = {
 
 export type optionsType = {
   keyword?: string;
-  orderBy?: "reviewCount" | "career" | "work"; //| "rating";
+  orderBy?: "reviewCount" | "career" | "work" | "averageRating";
   region?: RegionType;
   service?: MoveType[];
   page: number;
@@ -45,7 +45,7 @@ async function getAllDrivers(options: optionsType, userId?: string) {
     take: PAGE_SIZE + 1, //hasNext 확인하기 위해 하나 더 가져옴
     orderBy: orderByClause,
     include: {
-      _count: { select: { reviewsReceived: true } },
+      _count: { select: { reviewsReceived: true, favorite: true } },
       serviceAreas: true,
       favorite: userId ? { where: { customerId: userId }, select: { id: true } } : false
     }
@@ -55,7 +55,7 @@ async function getAllDrivers(options: optionsType, userId?: string) {
   const data = drivers.slice(0, PAGE_SIZE).map((driver) => {
     const isFavorite = userId ? driver.favorite.length > 0 : false;
     const { favorite, _count, ...rest } = driver;
-    return { ...rest, isFavorite, reviewCount: _count.reviewsReceived };
+    return { ...rest, isFavorite, reviewCount: _count.reviewsReceived, favoriteCount: _count.favorite };
   });
 
   return { data, hasNext };
@@ -73,7 +73,7 @@ async function getDriverById(id: string, userId?: string) {
   });
 
   if (!driver) return null;
-  const isFavorite = userId ? driver.favorite.length > 1 : false;
+  const isFavorite = userId ? driver.favorite.length > 0 : false;
   const { favorite, _count, ...rest } = driver;
   return { ...rest, isFavorite, reviewCount: _count.reviewsReceived, favoriteCount: _count.favorite };
 }

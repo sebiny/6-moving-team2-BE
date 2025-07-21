@@ -1,8 +1,9 @@
 import prisma from "../config/prisma";
 
 //찜한 기사님 불러오기
-async function getAllFavoriteDrivers(userId: string) {
-  return await prisma.favorite.findMany({ where: { customerId: userId } });
+async function getAllFavoriteDrivers(userId: string, page: number, pageSize: number) {
+  const skip = (page - 1) * pageSize;
+  return await prisma.favorite.findMany({ where: { customerId: userId }, skip: skip, take: pageSize });
 }
 
 //찜하기
