@@ -1,5 +1,5 @@
 import prisma from "../config/prisma";
-import type { AddressRole } from "@prisma/client";
+import type { AddressRole, RegionType } from "@prisma/client";
 import { LinkCustomerAddressInput, CreateEstimateRequestInput } from "../types/estimateReq.type";
 
 // 고객(customer) 테이블에 연결(FROM, TO)
@@ -38,31 +38,43 @@ async function findActiveEstimateRequest(customerId: string) {
       status: {
         in: ["PENDING", "APPROVED"]
       }
-    }
-    // include: { designatedDrivers: true } // 지정 요청 기사 목록 포함
+    },
+    include: { designatedDrivers: true } // 지정 요청 기사 목록 포함
   });
 }
 
-// DesignatedDriver 생성
-// async function createDesignatedDriver(estimateRequestId: string, driverId: string) {
-//   return prisma.designatedDriver.create({
-//     data: {
-//       estimateRequestId,
-//       driverId
-//     }
-//   });
-// }
+//  출발지 지역 기반 기사 필터링
+async function findDriversByRegion(region: RegionType, district: string) {
+  return prisma.driverServiceArea.findMany({
+    where: {
+      OR: [{ region }, { district }],
+      driver: { deletedAt: null }
+    },
+    select: { driverId: true }
+  });
+}
 
-// 현재 지정 기사 수 계산
-// async function getDesignatedDriverCount(estimateRequestId: string) {
-//   return prisma.designatedDriver.count({ where: { estimateRequestId } });
-// }
+// 지정 기사 수 조회
+async function getDesignatedDriverCount(estimateRequestId: string) {
+  return prisma.designatedDriver.count({ where: { estimateRequestId } });
+}
+
+// DesignatedDriver 생성
+async function createDesignatedDriver(estimateRequestId: string, driverId: string) {
+  return prisma.designatedDriver.create({
+    data: {
+      estimateRequestId,
+      driverId
+    }
+  });
+}
 
 export default {
   linkCustomerAddress,
   getCustomerAddressesByRole,
   createEstimateRequest,
-  findActiveEstimateRequest
-  // createDesignatedDriver,
-  // getDesignatedDriverCount
+  findActiveEstimateRequest,
+  findDriversByRegion,
+  getDesignatedDriverCount,
+  createDesignatedDriver
 };
