@@ -44,15 +44,16 @@ async function findActiveEstimateRequest(customerId: string) {
 }
 
 //  출발지 지역 기반 기사 필터링
-async function findDriversByRegion(region: RegionType, district: string) {
-  return prisma.driverServiceArea.findMany({
-    where: {
-      OR: [{ region }, { district }],
-      driver: { deletedAt: null }
-    },
-    select: { driverId: true }
-  });
-}
+
+// async function findDriversByRegion(region: RegionType, district: string) {
+//   return prisma.driverServiceArea.findMany({
+//     where: {
+//       OR: [{ region }, { district }],
+//       driver: { deletedAt: null }
+//     },
+//     select: { driverId: true }
+//   });
+// }
 
 // 지정 기사 수 조회
 async function getDesignatedDriverCount(estimateRequestId: string) {
@@ -74,7 +75,6 @@ export default {
   getCustomerAddressesByRole,
   createEstimateRequest,
   findActiveEstimateRequest,
-  findDriversByRegion,
   getDesignatedDriverCount,
   createDesignatedDriver
 };
