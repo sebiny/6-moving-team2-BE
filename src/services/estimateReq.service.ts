@@ -52,9 +52,15 @@ async function createDesignatedEstimateRequest(customerId: string, driverId: str
   return estimateReqRepository.createDesignatedDriver(activeRequest.id, driverId);
 }
 
+// 활성 견적 요청 조회
+async function getActiveEstimateRequest(customerId: string) {
+  return estimateReqRepository.findActiveEstimateRequest(customerId);
+}
+
 export default {
   linkCustomerAddress,
   getCustomerAddressesByRole,
   createEstimateRequest,
-  createDesignatedEstimateRequest
+  createDesignatedEstimateRequest,
+  getActiveEstimateRequest
 };
