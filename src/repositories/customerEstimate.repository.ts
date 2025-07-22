@@ -10,7 +10,8 @@ function buildEstimateInclude() {
           select: {
             name: true,
             phone: true,
-            email: true
+            email: true,
+            imageUrl: true
           }
         },
         reviewsReceived: {
@@ -18,7 +19,9 @@ function buildEstimateInclude() {
             rating: true
           }
         },
-        Favorite: true
+        Favorite: true,
+        career: true,
+        work: true
       }
     },
     estimateRequest: {
@@ -60,7 +63,9 @@ function formatEstimate(estimate: any) {
       ...estimate.driver,
       avgRating,
       reviewCount,
-      favoriteCount: estimate.driver.Favorite.length
+      favoriteCount: estimate.driver.Favorite.length,
+      career: estimate.driver.career,
+      work: estimate.driver.work
     }
   };
 }
