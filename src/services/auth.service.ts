@@ -59,9 +59,9 @@ async function signUpUser(data: SignUpUserData): Promise<Omit<AuthUser, "passwor
   const { userType, email, phone, password, passwordConfirmation, name } = data;
 
   // 이메일 형식 검사
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) {
-    throw new CustomError(422, "유효하지 않은 이메일 형식입니다.");
+    throw new CustomError(422, "유효하지 않은 이메일 형식입니다. 영문, 숫자, 일부 특수문자만 사용 가능합니다.");
   }
 
   // 전화번호 형식 검사 (대한민국)
