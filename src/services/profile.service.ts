@@ -11,7 +11,7 @@ async function createCustomerProfile(
   authUserId: string,
   data: {
     profileImage?: string;
-    moveType: MoveType;
+    moveType?: MoveType[];
     currentArea: string;
   }
 ): Promise<ProfileWithTokens> {
@@ -62,7 +62,7 @@ async function updateCustomerProfile(
     newPassword?: string;
     passwordConfirmation?: string;
     profileImage?: string;
-    moveType?: MoveType;
+    moveType?: MoveType[];
     currentArea?: string;
   }
 ) {
@@ -114,7 +114,7 @@ async function updateCustomerProfile(
   // 3. 고객 프로필 업데이트
   const profileUpdateData: {
     profileImage?: string;
-    moveType?: MoveType;
+    moveType?: MoveType[];
     currentArea?: string;
   } = {};
 
