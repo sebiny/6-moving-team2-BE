@@ -95,6 +95,7 @@ enum NotificationType {
   MOVE_DAY_REMINDER // 이사 당일 알림
   REVIEW_RECEIVED // 리뷰 등록 알림
   WELCOME // 회원가입 알림
+  ESTIMATE_PROPOSAL // 견적 제안
 }
 
 // 다국어 지원 언어 코드
@@ -134,10 +135,10 @@ model AuthUser {
 
 // 일반 사용자 상세 정보
 model Customer {
-  id           String    @id @default(cuid())
-  authUserId   String    @unique // AuthUser와 연결
+  id           String     @id @default(cuid())
+  authUserId   String     @unique // AuthUser와 연결
   profileImage String? // 프로필 이미지 URL
-  moveType     MoveType // 이사 유형 필수값으로 변경
+  moveType     MoveType[] // 이사 유형 필수값으로 변경
   currentArea  String // 현재 위치(시/군/구) 필수값으로 변경 추가 수정 할 수도 있음
   moveDate     DateTime? // 이사 날짜
   deletedAt    DateTime? // 소프트 삭제
