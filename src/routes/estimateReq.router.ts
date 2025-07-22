@@ -28,4 +28,10 @@ router.post(
   estimateReqController.createDesignatedEstimateRequest
 );
 
+router.get(
+  "/estimate-request/active",
+  passport.authenticate("access-token", { session: false }),
+  estimateReqController.getActiveEstimateRequest
+);
+
 export default router;

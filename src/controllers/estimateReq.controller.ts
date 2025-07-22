@@ -2,14 +2,9 @@ import { Request, Response } from "express";
 import estimateReqService from "../services/estimateReq.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { CustomError } from "../utils/customError";
-import { JwtPayload } from "../middlewares/passport/jwtStrategy";
-
-interface AuthRequest extends Request {
-  user?: JwtPayload;
-}
 
 // 고객 주소 연결
-const linkCustomerAddress = asyncHandler(async (req: AuthRequest, res: Response) => {
+const linkCustomerAddress = asyncHandler(async (req: Request, res: Response) => {
   const { addressId, role } = req.body;
   const customerId = req.user?.customerId;
 
@@ -22,7 +17,7 @@ const linkCustomerAddress = asyncHandler(async (req: AuthRequest, res: Response)
 });
 
 // 고객 주소 목록 조회
-const getCustomerAddressesByRole = asyncHandler(async (req: AuthRequest, res: Response) => {
+const getCustomerAddressesByRole = asyncHandler(async (req: Request, res: Response) => {
   const { role } = req.query;
   const customerId = req.user?.customerId;
 
@@ -35,7 +30,7 @@ const getCustomerAddressesByRole = asyncHandler(async (req: AuthRequest, res: Re
 });
 
 // 일반 견적 요청 생성
-const createEstimateRequest = asyncHandler(async (req: AuthRequest, res: Response) => {
+const createEstimateRequest = asyncHandler(async (req: Request, res: Response) => {
   const { moveType, moveDate, fromAddressId, toAddressId } = req.body;
   const customerId = req.user?.customerId;
 
@@ -60,7 +55,7 @@ const createEstimateRequest = asyncHandler(async (req: AuthRequest, res: Respons
 });
 
 // 지정 견적 요청 생성
-const createDesignatedEstimateRequest = asyncHandler(async (req: AuthRequest, res: Response) => {
+const createDesignatedEstimateRequest = asyncHandler(async (req: Request, res: Response) => {
   const { driverId } = req.body;
   const customerId = req.user?.customerId;
 
@@ -71,9 +66,22 @@ const createDesignatedEstimateRequest = asyncHandler(async (req: AuthRequest, re
   res.status(201).json({ message: "지정 견적 요청 완료", data: request });
 });
 
+// 활성 견적 요청 조회
+const getActiveEstimateRequest = asyncHandler(async (req: Request, res: Response) => {
+  const customerId = req.user?.customerId;
+
+  if (!customerId) {
+    throw new CustomError(400, "고객 ID가 필요합니다.");
+  }
+
+  const activeRequest = await estimateReqService.getActiveEstimateRequest(customerId);
+  res.status(200).json(activeRequest);
+});
+
 export default {
   linkCustomerAddress,
   getCustomerAddressesByRole,
   createEstimateRequest,
-  createDesignatedEstimateRequest
+  createDesignatedEstimateRequest,
+  getActiveEstimateRequest
 };
