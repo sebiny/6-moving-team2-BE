@@ -4,7 +4,7 @@ import { AuthUser, Customer, Driver, AuthProvider } from "@prisma/client";
 import authRepository, { AuthUserWithProfile } from "../repositories/auth.repository";
 import { CustomError } from "../utils/customError";
 import { UserType } from "../types/userType";
-import { notificationService } from "./notification.service";
+import notificationService from "./notification.service";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
@@ -105,19 +105,10 @@ async function signUpUser(data: SignUpUserData): Promise<Omit<AuthUser, "passwor
 
   const { password: _, ...userWithoutPassword } = newUser;
 
-  // 알림 전송
-  // 알림 전송 로직을 try...catch로 감쌈
-  // 요청을 보내면 서버에서 성공한다면, noti 하면 된다. 트랜잭션 하지 말고. .then으로 관리할 것
-  // 실무 방식은..?
-  // 중간과정에서 가공이 필요하다면 별도의 테이블이 합리적
-  // 액션테이블 : 분석, 감사 목적으로 만듦, 기록으로 남김
-  // 알림테이블에서 클라이언트로 보냄,
+  // 알림 전송 로직, 전송에 실패하더라도 회원가입은 성공해야 함
   try {
-    // 알림 전송 (비동기 처리를 위해 await을 붙이거나, 백그라운드 실행)
     notificationService.createAndSendSignUpNotification(newUser);
   } catch (error) {
-    // 알림 전송에 실패하더라도 회원가입은 성공해야 함
-    // 에러를 로깅하여 추후 원인을 파악하고 수정
     console.error("알림 전송 실패:", error);
   }
 

@@ -7,17 +7,18 @@ const notificationRouter = express.Router();
 
 const authMiddleware = passport.authenticate("access-token", { session: false, failWithError: true });
 
+// 실시간 알림
+notificationRouter.get("/sse", authMiddleware, connectSse);
+
 // 알림 전체 조회
-notificationRouter.get("/", authMiddleware, notificationController.getAllNotifications);
+notificationRouter.get("/", authMiddleware, notificationController.getMyNotifications);
 
 // 특정 알림 조회
-
-// 알림 전체 읽음 처리
+notificationRouter.get("/:id", authMiddleware, notificationController.getMyNotification);
 
 // 특정 알림 읽음 처리
+notificationRouter.patch("/:id", authMiddleware, notificationController.updateMyNotification);
 
 // 특정 알림 삭제 처리
-
-notificationRouter.get("/sse", authMiddleware, connectSse);
 
 export default notificationRouter;

@@ -240,9 +240,63 @@ async function getEstimateDetailById(estimateId: string) {
   return formatEstimate(estimate);
 }
 
+// (Notification) 고객 id로 이름 조회
+async function getCustomerNameById(customerId: string) {
+  const customerName = await prisma.customer.findUnique({
+    where: {
+      id: customerId
+    }
+  });
+
+  if (!customerId) return null;
+
+  return customerName;
+}
+
+// (Notification) 견적 Id로 고객/기사 Id 조회
+async function getCustomerAndDriverIdbyEstimateId(estimateId: string) {
+  const estimate = await prisma.estimate.findUnique({
+    where: { id: estimateId },
+    select: {
+      driverId: true,
+      estimateRequest: {
+        select: { customerId: true }
+      }
+    }
+  });
+  if (!estimate) throw new Error("견적을 찾을 수 없습니다.");
+
+  return estimate;
+}
+
+// (Notification) 이사 당일 리마인더 리스트 추출
+async function getMoveDayReminderNotificaiton() {
+  const today = new Date();
+  const dateString = today.toISOString().slice(0, 10); // YYYY-MM-DD 형태
+
+  const estimates = await prisma.estimate.findMany({
+    where: {
+      status: "ACCEPTED",
+      estimateRequest: {
+        moveDate: dateString // 연결된 견적요청 모델에 moveDate가 today인 것
+      }
+    },
+    include: {
+      // 유저 · 기사 정보, 견적요청 등 필요시 조인
+      driver: true,
+      estimateRequest: true
+    }
+  });
+}
+
+// (Notification) 이사 당일 리마인더 실행 로직
+
 export default {
   getEstimateDetailById,
   acceptEstimateById,
   getReceivedEstimatesByCustomerId,
-  getPendingEstimatesByCustomerId
+  getPendingEstimatesByCustomerId,
+  getCustomerNameById,
+  getCustomerAndDriverIdbyEstimateId,
+  getMoveDayReminderNotificaiton
 };

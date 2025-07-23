@@ -8,7 +8,9 @@ async function getAllCompleted(customerId: string) {
 
 //리뷰 작성
 async function createReview(data: CreateReviewInput) {
-  return reviewRepository.createReview(data);
+  const createReview = await reviewRepository.createReview(data);
+
+  return createReview;
 }
 
 //내가 쓴 리뷰
