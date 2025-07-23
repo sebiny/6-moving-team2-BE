@@ -1,5 +1,6 @@
 import { MoveType, RegionType } from "@prisma/client";
 import prisma from "../config/prisma";
+import { getDriversByRegionType } from "../types/notification.type";
 
 export type EditDataType = {
   name?: string;
@@ -180,6 +181,46 @@ async function getRejectedEstimateRequests(driverId: string) {
   });
 }
 
+type DriverWithAuthUserId = {
+  id: string; // Driver의 ID
+  authUserId: string; // Driver와 연결된 AuthUser의 ID
+};
+
+// 이사 서비스 가능 지역 조회
+async function getDriversByRegion({ fromRegion, toRegion }: getDriversByRegionType): Promise<DriverWithAuthUserId[]> {
+  // Step 1. 지역 배열 구성, 중복/undefined/null 제거
+  let regions = [fromRegion, toRegion].filter((region): region is RegionType => !!region);
+  // 또는 region !== undefined && region !== null
+
+  // Step 2. 유효 값이 없으면 바로 빈 배열 반환
+  if (regions.length === 0) {
+    console.log("유효한 지역 정보가 없어 드라이버 조회를 생략합니다.");
+    return [];
+  }
+
+  // Step 3. 중복 제거 (Set 활용)
+  regions = Array.from(new Set(regions));
+
+  console.log(`[${regions.join(", ")}] 지역의 드라이버를 조회합니다.`);
+
+  // Step 4. 드라이버 조회
+  return await prisma.driver.findMany({
+    where: {
+      serviceAreas: {
+        some: {
+          region: {
+            in: regions
+          }
+        }
+      }
+    },
+    select: {
+      id: true,
+      authUserId: true
+    }
+  });
+}
+
 export default {
   getAllDrivers,
   getDriverById,
@@ -191,5 +232,6 @@ export default {
   rejectEstimate,
   getMyEstimates,
   getEstimateDetail,
-  getRejectedEstimateRequests
+  getRejectedEstimateRequests,
+  getDriversByRegion
 };

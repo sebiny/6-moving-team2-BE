@@ -2,6 +2,7 @@ import { MoveType, RegionType } from "@prisma/client";
 import driverService from "../services/driver.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Request, Response } from "express";
+import notificationService from "../services/notification.service";
 
 const getAllDriversAuth = asyncHandler(async (req: Request, res: Response) => {
   const { keyword, orderBy, region, service, page } = req.query;
@@ -136,6 +137,11 @@ const getRejectedEstimateRequests = asyncHandler(async (req: Request, res: Respo
   res.status(200).json(rejectedEstimates);
 });
 
+const createEstimateProposal = asyncHandler(async (req: Request, res: Response) => {
+  const { driverId, customerId, moveType } = req.body;
+  notificationService.createEstimateProposalNotification({ driverId, customerId, moveType });
+});
+
 export default {
   getAllDriversAuth,
   getAllDrivers,
@@ -148,5 +154,6 @@ export default {
   rejectEstimateRequest,
   getMyEstimates,
   getEstimateDetail,
-  getRejectedEstimateRequests
+  getRejectedEstimateRequests,
+  createEstimateProposal
 };

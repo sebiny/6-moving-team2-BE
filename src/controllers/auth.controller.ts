@@ -79,21 +79,32 @@ type Provider = (typeof SUPPORTED_PROVIDERS)[number];
 // 소셜 로그인 시작
 const startSocialLogin = (req: Request, res: Response, next: NextFunction) => {
   const { provider } = req.params;
+  const { userType = UserType.CUSTOMER } = req.query;
 
   if (!SUPPORTED_PROVIDERS.includes(provider as Provider)) {
     res.status(400).json({ message: "지원하지 않는 소셜 로그인입니다." });
     return;
   }
 
+  if (![UserType.CUSTOMER, UserType.DRIVER].includes(userType as UserType)) {
+    res.status(422).json({ message: "userType은 'CUSTOMER' 또는 'DRIVER' 여야 합니다." });
+    return;
+  }
+
+  // ✅ provider가 kakao일 때 scope를 올바르게 설정
+  const scopes = provider === "kakao" ? ["account_email", "profile_nickname", "profile_image"] : ["profile", "email"]; // 구글, 네이버는 기존 방식 유지 가능
+
+  // userType을 state에 담아 passport-strategy로 전달
   passport.authenticate(provider, {
-    scope: ["profile", "email"]
+    scope: scopes,
+    state: userType as string
   })(req, res, next);
 };
 
 // 소셜 로그인 콜백
 const socialLoginCallback = (req: Request, res: Response, next: NextFunction) => {
   const { provider } = req.params;
-  const failureRedirectUrl = `${process.env.CLIENT_URL}/auth/fail?provider=${provider}&message=social_login_failed`;
+  const failureRedirectUrl = `${process.env.CLIENT_URL}/login/customer`;
 
   if (!SUPPORTED_PROVIDERS.includes(provider as Provider)) {
     return res.redirect(failureRedirectUrl);
@@ -116,7 +127,10 @@ const socialLoginCallback = (req: Request, res: Response, next: NextFunction) =>
           sameSite: "none",
           secure: true
         });
-        res.redirect(`${process.env.CLIENT_URL}/auth/callback?accessToken=${accessToken}`);
+
+        //  httpOnly 쿠키로 전달된 refreshToken을 사용하여 클라이언트 측에서 accessToken을 재발급받도록 구현
+
+        res.redirect(`${process.env.CLIENT_URL}`);
         return;
       } catch (error) {
         next(error);
