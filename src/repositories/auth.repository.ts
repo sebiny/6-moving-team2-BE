@@ -8,6 +8,11 @@ export type AuthUserWithProfile = AuthUser & {
   driver?: Pick<Driver, "id" | "nickname"> | null;
 };
 
+type AuthInfo = {
+  id: string;
+  name: string;
+};
+
 // 이메일로 AuthUser 조회 (프로필 포함)
 async function findByEmail(email: string): Promise<AuthUserWithProfile | null> {
   return prisma.authUser.findUnique({
@@ -71,11 +76,33 @@ async function updateAuthUser(
   });
 }
 
+async function findAuthUserProfileById(id: string) {
+  const users = await prisma.authUser.findMany({
+    where: {
+      OR: [{ customer: { id: id } }, { driver: { id: id } }]
+    },
+    // ★★★ 핵심 변경 사항: select에 'name: true'를 추가합니다. ★★★
+    select: {
+      id: true,
+      name: true // AuthUser 테이블의 name 필드를 함께 가져옵니다.
+    },
+    take: 1
+  });
+
+  if (users.length > 0) {
+    // 이제 users[0]은 { id: "...", name: "..." } 형태의 객체입니다.
+    return users[0];
+  } else {
+    return null;
+  }
+}
+
 export default {
   findByEmail,
   findById,
   findByProviderId,
   createAuthUser,
   updateAuthUser,
-  findAuthUserWithPassword
+  findAuthUserWithPassword,
+  findAuthUserProfileById
 };

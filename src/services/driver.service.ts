@@ -1,3 +1,4 @@
+import prisma from "../config/prisma";
 import driverRepository, { EditDataType, optionsType } from "../repositories/driver.repository";
 
 async function getAllDrivers(options: optionsType, userId?: string) {
@@ -16,9 +17,26 @@ async function updateDriver(id: string, data: EditDataType) {
   return await driverRepository.updateDriver(id, data);
 }
 
+async function getEstimateRequestsForDriver(driverId: string) {
+  return await driverRepository.getEstimateRequestsForDriver(driverId);
+}
+
+async function findEstimateByDriverAndRequest(driverId: string, estimateRequestId: string) {
+  return prisma.estimate.findFirst({
+    where: { driverId, estimateRequestId, deletedAt: null }
+  });
+}
+
+async function createEstimate(data: { driverId: string; estimateRequestId: string; price: number; comment?: string }) {
+  return prisma.estimate.create({ data });
+}
+
 export default {
   getAllDrivers,
   getDriverById,
   getDriverReviews,
-  updateDriver
+  updateDriver,
+  getEstimateRequestsForDriver,
+  findEstimateByDriverAndRequest,
+  createEstimate
 };

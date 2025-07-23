@@ -16,6 +16,7 @@ import reviewRouter from "./routes/review.router";
 import { errorHandler } from "./middlewares/errorHandler";
 import notificationRouter from "./routes/notification.router";
 import customerEstimateRouter from "./routes/customerEstimate.router";
+import driverPrivateRouter from "./routes/driverPrivate.router";
 
 const app = express();
 app.use(
@@ -34,7 +35,8 @@ app.use("/address", addressRouter);
 app.use("/customer", estimateReqRouter);
 app.use("/", reviewRouter);
 
-app.use("/drivers", driverRouter);
+app.use("/drivers", driverRouter); // 공개 API
+app.use("/driver", driverPrivateRouter); // 로그인된 기사용 API
 
 app.use("/favorite", favoriteRouter);
 app.use("/notification", notificationRouter);

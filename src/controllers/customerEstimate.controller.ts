@@ -3,6 +3,7 @@ import { UserType } from "@prisma/client";
 import { CustomError } from "../utils/customError";
 import customerEstimateService from "../services/customerEstimate.service";
 import { asyncHandler } from "../utils/asyncHandler";
+import notificationService from "../services/notification.service";
 
 declare global {
   namespace Express {
@@ -41,15 +42,27 @@ export const getReceivedEstimates = asyncHandler(async (req: Request, res: Respo
 
 // 견적 확정
 export const acceptEstimate = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const estimateId = req.params.estimateId;
   try {
-    const estimateId = req.params.estimateId;
-
     const result = await customerEstimateService.acceptEstimate(estimateId);
 
     res.status(200).json({
       message: "견적이 성공적으로 확정되었습니다.",
       data: result
     });
+  } catch (error) {
+    if (error instanceof CustomError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+    next(error); // 예기치 못한 에러는 전역 에러 핸들러로
+  }
+
+  // 알림 전송
+  try {
+    const estimate = await customerEstimateService.getCustomerAndDriverIdbyEstimateId(estimateId);
+    const driverId = estimate.driverId;
+    const customerId = estimate.estimateRequest.customerId;
+    await notificationService.createEstimateConfirmNotification({ driverId, customerId, estimateId });
   } catch (error) {
     if (error instanceof CustomError) {
       return res.status(error.statusCode).json({ message: error.message });

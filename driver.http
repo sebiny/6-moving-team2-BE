@@ -1,0 +1,39 @@
+@customer_access_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGVjemwxdjAwMDBzNm00Z3c2NnJzbHgiLCJ1c2VyVHlwZSI6IkNVU1RPTUVSIiwiY3VzdG9tZXJJZCI6ImNtZGVkMW5kaTAwMDRzNm00dDdic2ppemUiLCJpYXQiOjE3NTMyMzYyMTEsImV4cCI6MTc1MzIzOTgxMX0.N5a827RNhgtR2NbtZQvvSWpltvS3RwX6csrTNYFVifk
+@accessToken_driver = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGZiajU1NzAwMDBjOTk4eTN0MHV5ejEiLCJ1c2VyVHlwZSI6IkRSSVZFUiIsImRyaXZlcklkIjoiY21kZmJycDN5MDAwMGM5b3d4YnFxcnR3aSIsImlhdCI6MTc1MzI1NTE4MSwiZXhwIjoxNzUzMjU4NzgxfQ.AGDoaxOIQFxNI5Rock37pO6gdfKmjPSnqQjNdfB_4fE
+
+### 1. 고객 계정으로 견적 요청 생성
+POST http://localhost:4000/customer/estimate-request
+Content-Type: application/json
+Authorization: Bearer {{customer_access_token}}
+
+{
+  "moveType": "HOME", 
+  "moveDate": "2025-07-30",
+  "fromAddressId": "cmde8a7c30004v92d8qj2ove6",
+  "toAddressId": "cmde89skl0003v92dojwiie1d"
+}
+
+### 특정 기사님에게 "지정 견적 요청"
+POST http://localhost:4000/customer/estimate-request/designated
+Content-Type: application/json
+Authorization: Bearer {{customer_access_token}}
+
+{
+  "driverId": "cmdfbrp3y0000c9owxbqqrtwi"
+}
+
+### 기사님이 받은 견적 요청 리스트 조회
+GET http://localhost:4000/driver/estimate-requests
+Content-Type: application/json
+Authorization: Bearer {{accessToken_driver}}
+
+### 4. 기사님이 견적 보내기
+# 견적요청 ID는 위에서 받은 것을 사용
+POST http://localhost:4000/driver/estimate-requests/cmdfce4980006c9ow64zjc7c4/estimates
+Content-Type: application/json
+Authorization: Bearer {{accessToken_driver}}
+
+{
+  "price": 200000,
+  "message": "안녕하세요! 경력 5년의 기사입니다. 안전하고 깔끔하게 진행드리겠습니다."
+}
