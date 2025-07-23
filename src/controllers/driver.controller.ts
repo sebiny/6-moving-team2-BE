@@ -3,21 +3,40 @@ import driverService from "../services/driver.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Request, Response } from "express";
 
-const getAllDrivers = asyncHandler(async (req: Request, res: Response) => {
+const getAllDriversAuth = asyncHandler(async (req: Request, res: Response) => {
   const { keyword, orderBy, region, service, page } = req.query;
   const customerId = req.user?.customerId;
   const options = {
     keyword: keyword as string,
     orderBy: orderBy as "reviewCount" | "career" | "work" | "averageRating",
     region: region as RegionType,
-    service: service as MoveType[],
+    service: service as MoveType,
     page: Number(page) as number
   };
   const result = await driverService.getAllDrivers(options, customerId);
   res.status(200).json(result);
 });
 
+const getAllDrivers = asyncHandler(async (req: Request, res: Response) => {
+  const { keyword, orderBy, region, service, page } = req.query;
+  const options = {
+    keyword: keyword as string,
+    orderBy: orderBy as "reviewCount" | "career" | "work" | "averageRating",
+    region: region as RegionType,
+    service: service as MoveType,
+    page: Number(page) as number
+  };
+  const result = await driverService.getAllDrivers(options);
+  res.status(200).json(result);
+});
+
 const getDriverById = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await driverService.getDriverById(id);
+  res.status(200).json(result);
+});
+
+const getDriverByIdAuth = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const customerId = req.user?.customerId;
   const result = await driverService.getDriverById(id, customerId);
@@ -70,8 +89,10 @@ const createEstimate = asyncHandler(async (req, res) => {
 });
 
 export default {
+  getAllDriversAuth,
   getAllDrivers,
   getDriverById,
+  getDriverByIdAuth,
   getDriverReviews,
   updateDriver,
   getEstimateRequestsForDriver,

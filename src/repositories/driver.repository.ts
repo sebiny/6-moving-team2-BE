@@ -12,7 +12,7 @@ export type optionsType = {
   keyword?: string;
   orderBy?: "reviewCount" | "career" | "work" | "averageRating";
   region?: RegionType;
-  service?: MoveType[];
+  service?: MoveType;
   page: number;
 };
 
@@ -38,7 +38,7 @@ async function getAllDrivers(options: optionsType, userId?: string) {
         { nickname: { contains: keyword, mode: "insensitive" } },
         { shortIntro: { contains: keyword, mode: "insensitive" } }
       ],
-      ...(service && { moveType: { hasSome: service } }),
+      ...(service && { moveType: { has: service } }),
       ...(region && { serviceAreas: { some: { region } } })
     },
     skip: skip,
