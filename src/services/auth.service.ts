@@ -1,9 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
-import { AuthUser, Customer, Driver, AuthProvider } from "@prisma/client";
+import { AuthUser, Customer, Driver, AuthProvider, UserType } from "@prisma/client";
 import authRepository, { AuthUserWithProfile } from "../repositories/auth.repository";
 import { CustomError } from "../utils/customError";
-import { UserType } from "../types/userType";
 import { notificationService } from "./notification.service";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
@@ -196,20 +195,23 @@ async function getUserById(id: string): Promise<AuthUserWithProfile | null> {
 }
 
 // 소셜 로그인 유저 조회 또는 생성
-async function findOrCreateOAuthUser(profile: {
-  provider: AuthProvider;
-  providerId: string;
-  email: string | null;
-  displayName: string;
-  profileImageUrl: string | null;
-}): Promise<TokenUserPayload> {
-  const { provider, providerId, email, displayName, profileImageUrl } = profile;
+async function findOrCreateOAuthUser(
+  profile: {
+    provider: AuthProvider;
+    providerId: string;
+    email: string | null;
+    displayName: string;
+    profileImageUrl: string | null;
+  },
+  userType: UserType
+): Promise<TokenUserPayload> {
+  const { provider, providerId, email, displayName } = profile;
 
   if (provider === AuthProvider.LOCAL) {
     throw new CustomError(400, "LOCAL 제공자는 소셜 로그인으로 사용할 수 없습니다.");
   }
 
-  let authUser = await authRepository.findByProviderId(provider, providerId);
+  let authUser = await authRepository.findByProviderId(provider, String(providerId));
 
   if (!authUser) {
     if (!email) {
@@ -225,9 +227,9 @@ async function findOrCreateOAuthUser(profile: {
       email,
       phone: null,
       password: null,
-      userType: UserType.CUSTOMER,
+      userType,
       provider,
-      providerId,
+      providerId: String(providerId),
       name: displayName
     });
   }
