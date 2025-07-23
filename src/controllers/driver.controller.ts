@@ -38,9 +38,42 @@ const updateDriver = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(result);
 });
 
+const getEstimateRequestsForDriver = asyncHandler(async (req: Request, res: Response) => {
+  // driverId는 인증된 사용자에서 가져옴 (req.user)
+  const driverId = req.user?.driverId;
+  if (!driverId) {
+    return res.status(401).json({ message: "Driver not authenticated" });
+  }
+  const requests = await driverService.getEstimateRequestsForDriver(driverId);
+  res.status(200).json(requests);
+});
+
+const createEstimate = asyncHandler(async (req, res) => {
+  const driverId = req.user?.driverId;
+  const { requestId } = req.params;
+  const { price, message } = req.body;
+
+  if (!driverId) return res.status(401).json({ message: "Driver not authenticated" });
+
+  // 중복 응답 방지
+  const exists = await driverService.findEstimateByDriverAndRequest(driverId, requestId);
+  if (exists) return res.status(409).json({ message: "이미 견적을 보냈습니다." });
+
+  const estimate = await driverService.createEstimate({
+    driverId,
+    estimateRequestId: requestId,
+    price,
+    comment: message
+  });
+
+  res.status(201).json(estimate);
+});
+
 export default {
   getAllDrivers,
   getDriverById,
   getDriverReviews,
-  updateDriver
+  updateDriver,
+  getEstimateRequestsForDriver,
+  createEstimate
 };
