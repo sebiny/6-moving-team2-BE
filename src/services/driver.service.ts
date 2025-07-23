@@ -1,4 +1,3 @@
-import prisma from "../config/prisma";
 import driverRepository, { EditDataType, optionsType } from "../repositories/driver.repository";
 
 async function getAllDrivers(options: optionsType, userId?: string) {
@@ -22,13 +21,27 @@ async function getEstimateRequestsForDriver(driverId: string) {
 }
 
 async function findEstimateByDriverAndRequest(driverId: string, estimateRequestId: string) {
-  return prisma.estimate.findFirst({
-    where: { driverId, estimateRequestId, deletedAt: null }
-  });
+  return await driverRepository.findEstimateByDriverAndRequest(driverId, estimateRequestId);
 }
 
 async function createEstimate(data: { driverId: string; estimateRequestId: string; price: number; comment?: string }) {
-  return prisma.estimate.create({ data });
+  return await driverRepository.createEstimate(data);
+}
+
+async function rejectEstimate(estimateId: string, reason: string) {
+  return await driverRepository.rejectEstimate(estimateId, reason);
+}
+
+async function getMyEstimates(driverId: string) {
+  return await driverRepository.getMyEstimates(driverId);
+}
+
+async function getEstimateDetail(driverId: string, estimateId: string) {
+  return await driverRepository.getEstimateDetail(driverId, estimateId);
+}
+
+async function getRejectedEstimateRequests(driverId: string) {
+  return await driverRepository.getRejectedEstimateRequests(driverId);
 }
 
 export default {
@@ -38,5 +51,9 @@ export default {
   updateDriver,
   getEstimateRequestsForDriver,
   findEstimateByDriverAndRequest,
-  createEstimate
+  createEstimate,
+  rejectEstimate,
+  getMyEstimates,
+  getEstimateDetail,
+  getRejectedEstimateRequests
 };
