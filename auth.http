@@ -1,0 +1,158 @@
+
+
+@host = http://localhost:4000
+@api_prefix = /auth
+@accessToken =
+@refreshToken =
+
+### 1-1 회원가입 (CUSTOMER)
+# 새로운 고객 계정을 생성합니다.
+# 유저타입 CUSTOMER
+POST {{host}}{{api_prefix}}/signup
+Content-Type: application/json
+
+{
+  "userType": "CUSTOMER", 
+  "name": "김테스트",
+  "email": "customer@test10.com",
+  "phone": "01012345678",
+  "password": "password123!",
+  "passwordConfirmation": "password123!"
+}
+
+### 1-2 회원가입 (DRIVER)
+# 새로운 기사사 계정을 생성합니다.
+# 유저타입 DRIVER
+POST {{host}}{{api_prefix}}/signup
+Content-Type: application/json
+
+{
+  "userType": "DRIVER", 
+  "name": "김테스트",
+  "email": "customer@test9.com",
+  "phone": "01012345678",
+  "password": "password123!",
+  "passwordConfirmation": "password123!"
+}
+
+
+
+### 2. 로그인
+# 위에서 생성한 계정으로 로그인합니다.
+# 성공 시 응답에서 accessToken을, Set-Cookie 헤더에서 refreshToken을 추출하여 변수에 저장합니다.
+# @name login
+POST {{host}}{{api_prefix}}/login
+Content-Type: application/json
+
+{
+  "email": "customer@test10.com",
+  "password": "password123!"
+}
+
+
+### 3. 내 정보 조회 (인증 필요)
+# 발급받은 accessToken으로 현재 로그인된 사용자 정보를 조회합니다.
+GET {{host}}{{api_prefix}}/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGR1c3o0YjAwMDBzNmV4eTh6NDcwdHgiLCJ1c2VyVHlwZSI6IkNVU1RPTUVSIiwiaWF0IjoxNzUzMTQ3NjI3LCJleHAiOjE3NTMxNTEyMjd9.km6GRzwFKLCWi6iNToy5fdKz2yTUOOxdmvBHrSChyBs
+
+
+### 4. 액세스 토큰 재발급 (인증 필요)
+# 쿠키에 저장된 refreshToken을 사용하여 새로운 accessToken을 발급받습니다.
+# 쿠키 추출 방식이라 여기서 테스트 불가능
+
+
+### 5. 로그아웃
+# 서버에서 refreshToken을 무효화하고 쿠키를 삭제합니다.
+# 쿠키에 있는 refreshToken 삭제하는거라 여기서 테스트 불가능
+
+### 6. 소셜 로그인 (브라우저에서 실행)
+# 아래 주소를 브라우저 주소창에 직접 입력하여 소셜 로그인을 시작합니다.
+# 성공 시 CLIENT_URL로 리다이렉트됩니다.
+
+# Google
+GET {{host}}{{api_prefix}}/social/google
+
+### Kakao
+GET {{host}}{{api_prefix}}/social/kakao
+
+### Naver
+GET {{host}}{{api_prefix}}/social/naver
+
+
+### 고객 프로필 생성
+# currentArea 를 기사처럼 고정값으로 정해야하지만 일단은 string 이라서 프론트에서 막아야함
+POST http://localhost:4000/profile/customer
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGVjemwxdjAwMDBzNm00Z3c2NnJzbHgiLCJ1c2VyVHlwZSI6IkNVU1RPTUVSIiwiaWF0IjoxNzUzMTc4MTM1LCJleHAiOjE3NTMxODE3MzV9.PD7Pfso1v8w_mnPtsUmrmccaiQh_dw2w7w7QBd2tqiI
+
+{
+  "profileImage": "https://example.com/image.jpg",
+  "moveType": ["OFFICE", "HOME"],
+  "currentArea": "서울"
+}
+
+### 고객 프로필 수정
+# 고객 프로필 생성시 새로 발급된 액세스 토큰을 사용하여야함
+# 비밀번호 변경 원할 시  "currentPassword": "password!","newPassword": "password123!", "passwordConfirmation": "password123!" 추가가
+PATCH http://localhost:4000/profile/customer
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGR1c3o0YjAwMDBzNmV4eTh6NDcwdHgiLCJ1c2VyVHlwZSI6IkNVU1RPTUVSIiwiY3VzdG9tZXJJZCI6ImNtZGR1d2owMjAwMDJzNmV4NmRna3RjNWwiLCJpYXQiOjE3NTMxNDc3NDcsImV4cCI6MTc1MzE1MTM0N30.2rZBdg-wBmrTtKn0_h-fhBiItR40u2FA_ot4Zvkni_4
+
+{
+  "profileImage": "https://example.com/image.jpg",
+  "moveType": ["HOME"],
+  "currentArea": "서울",
+  "name": "홍길길동",
+  "phone": "01012345678",
+  "profileImage": "https://example.com/new"
+ 
+}
+
+### 고객 프로필 조회
+GET http://localhost:4000/profile/customer/cmd2oesl50001s6oys7rq85hs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGR1c3o0YjAwMDBzNmV4eTh6NDcwdHgiLCJ1c2VyVHlwZSI6IkNVU1RPTUVSIiwiY3VzdG9tZXJJZCI6ImNtZGR1d2owMjAwMDJzNmV4NmRna3RjNWwiLCJpYXQiOjE3NTMxNDc3NDcsImV4cCI6MTc1MzE1MTM0N30.2rZBdg-wBmrTtKn0_h-fhBiItR40u2FA_ot4Zvkni_4
+
+### 기사 프로필 생성
+POST http://localhost:4000/profile/driver
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGR1eml6dTAwMDNzNmV4ODhjbWw3dzUiLCJ1c2VyVHlwZSI6IkRSSVZFUiIsImlhdCI6MTc1MzE0Nzk4OSwiZXhwIjoxNzUzMTUxNTg5fQ.68ENsQKSUo9DNQWwSkLvgT3TwMf7w8Op8JI8syANuOs
+
+{
+  "nickname": "이사님",
+  "career": 5,
+  "shortIntro": "빠르고 안전한 이사",
+  "detailIntro": "경력 5년의 베테랑 기사입니다.",
+  "moveType": ["OFFICE", "HOME"],
+  "serviceAreas": [
+    { "region": "SEOUL" },
+    { "region": "BUSAN" }
+  ]
+}
+
+### 기사 프로필 수정
+PATCH http://localhost:4000/profile/driver
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGR1eml6dTAwMDNzNmV4ODhjbWw3dzUiLCJ1c2VyVHlwZSI6IkRSSVZFUiIsImlhdCI6MTc1MzE0Nzk4OSwiZXhwIjoxNzUzMTUxNTg5fQ.68ENsQKSUo9DNQWwSkLvgT3TwMf7w8Op8JI8syANuOs
+
+{
+  "nickname": "이사가능장인임임",
+  "career": 3,
+  "shortIntro": "빠르고 안전한 이사",
+  "detailIntro": "경력 5년의 베테랑 기사.",
+  "moveType": ["HOME"],
+  "serviceAreas": [
+    { "region": "JEONBUK" },
+    { "region": "BUSAN" }
+  ]
+ 
+}
+
+### 기사 프로필 상세 조회
+GET http://localhost:4000/profile/driver/cmd2pt2130001s6fprkyqlv6b
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWQycHM1d2MwMDAwczZmcHNrbzh3dHY0IiwidXNlclR5cGUiOiJEUklWRVIiLCJpYXQiOjE3NTI0NzQwMjUsImV4cCI6MTc1MjQ3NzYyNX0.qm8uPN6e6jLhPBTrXKv_AJkx6UKnUhTKv8yKp2Tdorg
+
+
+##### 내 상세 정보 조회
+
+GET http://localhost:4000/auth/me/detail
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGR1c3o0YjAwMDBzNmV4eTh6NDcwdHgiLCJ1c2VyVHlwZSI6IkNVU1RPTUVSIiwiaWF0IjoxNzUzMTQ3NjI3LCJleHAiOjE3NTMxNTEyMjd9.km6GRzwFKLCWi6iNToy5fdKz2yTUOOxdmvBHrSChyBs

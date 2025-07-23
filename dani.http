@@ -1,0 +1,46 @@
+
+@host = http://localhost:4000
+@api_prefix = /auth
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGR3cmZzODAwMDBjOXp0aWNxem1pcm4iLCJ1c2VyVHlwZSI6IkRSSVZFUiIsImlhdCI6MTc1MzE1MDg5NiwiZXhwIjoxNzUzMTU0NDk2fQ.Xo607NEMYDGrKbI9AIN-q0p46T4M7_VSrLu0pVzQpng
+@refreshToken =
+
+### 2. 로그인 (고객)
+# 위에서 생성한 계정으로 로그인합니다.
+# 성공 시 응답에서 accessToken을, Set-Cookie 헤더에서 refreshToken을 추출하여 변수에 저장합니다.
+# @name login
+POST {{host}}{{api_prefix}}/login
+Content-Type: application/json
+
+{
+  "email": "customer@test10.com",
+  "password": "password123!"
+}
+
+### 2. 로그인 (기사)
+# 위에서 생성한 계정으로 로그인합니다.
+# 성공 시 응답에서 accessToken을, Set-Cookie 헤더에서 refreshToken을 추출하여 변수에 저장합니다.
+# @name login
+POST {{host}}{{api_prefix}}/login
+Content-Type: application/json
+
+{
+  "email": "customer@test9.com",
+  "password": "password123!"
+}
+
+### 기사 프로필 생성
+POST http://localhost:4000/profile/driver
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZGZiajU1NzAwMDBjOTk4eTN0MHV5ejEiLCJ1c2VyVHlwZSI6IkRSSVZFUiIsImlhdCI6MTc1MzIzNjUyOCwiZXhwIjoxNzUzMjQwMTI4fQ.1ZpwQgAnvFU0QqTxFbWPRl1fOA81k3Llsh5ufwWSOso
+
+{
+  "nickname": "test1010",
+  "career": 5,
+  "shortIntro": "빠르고 안전한 이사",
+  "detailIntro": "경력 5년의 베테랑 기사입니다.",
+  "moveType": ["HOME"],
+  "serviceAreas": [
+    { "region": "SEOUL" },
+    { "region": "BUSAN" }
+  ]
+}

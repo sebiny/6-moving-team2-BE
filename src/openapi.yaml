@@ -1,0 +1,20 @@
+/driver/estimate-requests:
+  get:
+    summary: 기사님이 받은 견적요청 리스트 조회
+    tags:
+      - Driver
+    security:
+      - access-token: []
+    responses:
+      "200":
+        description: 성공적으로 기사님이 받은 견적요청 리스트를 반환
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/EstimateRequest"
+      "401":
+        description: 인증 실패
+      "500":
+        description: 서버 에러

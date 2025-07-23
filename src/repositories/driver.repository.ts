@@ -86,6 +86,24 @@ async function getDriverReviews(id: string, page: number) {
   return reviews;
 }
 
+// 기사님이 받은 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)
+async function getEstimateRequestsForDriver(driverId: string) {
+  // 지정 견적 요청 (DesignatedDriver)만 조회
+  return await prisma.estimateRequest.findMany({
+    where: {
+      designatedDrivers: {
+        some: { driverId }
+      },
+      deletedAt: null
+    },
+    include: {
+      customer: true,
+      fromAddress: true,
+      toAddress: true
+    }
+  });
+}
+
 //기사님 프로필 업데이트
 async function updateDriver(id: string, data: EditDataType) {
   return await prisma.authUser.update({ where: { id }, data });
@@ -95,5 +113,6 @@ export default {
   getAllDrivers,
   getDriverById,
   getDriverReviews,
-  updateDriver
+  updateDriver,
+  getEstimateRequestsForDriver
 };
