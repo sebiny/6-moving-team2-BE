@@ -3,7 +3,6 @@ import jwt, { SignOptions } from "jsonwebtoken";
 import { AuthUser, Customer, Driver, AuthProvider, UserType } from "@prisma/client";
 import authRepository, { AuthUserWithProfile } from "../repositories/auth.repository";
 import { CustomError } from "../utils/customError";
-import { UserType } from "../types/userType";
 import notificationService from "./notification.service";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
