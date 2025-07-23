@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import estimateReqService from "../services/estimateReq.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { CustomError } from "../utils/customError";
+import notificationService from "../services/notification.service";
 
 // 고객 주소 연결
 const linkCustomerAddress = asyncHandler(async (req: Request, res: Response) => {
@@ -31,8 +32,8 @@ const getCustomerAddressesByRole = asyncHandler(async (req: Request, res: Respon
 
 // 일반 견적 요청 생성
 const createEstimateRequest = asyncHandler(async (req: Request, res: Response) => {
-  const { moveType, moveDate, fromAddressId, toAddressId } = req.body;
   const customerId = req.user?.customerId;
+  const { moveType, moveDate, fromAddressId, toAddressId } = req.body;
 
   if (!customerId || !moveType || !moveDate || !fromAddressId || !toAddressId) {
     throw new CustomError(400, "필수 요청 정보가 누락되었습니다.");
@@ -50,6 +51,14 @@ const createEstimateRequest = asyncHandler(async (req: Request, res: Response) =
     toAddressId,
     status: "PENDING"
   });
+
+  //알림 전송
+
+  try {
+    notificationService.createAndSendEstimateReqNotification({ customerId, moveType, fromAddressId, toAddressId });
+  } catch (error) {
+    console.error("알림 전송에 실패했습니다:", error);
+  }
 
   res.status(201).json(request);
 });
