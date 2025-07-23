@@ -87,6 +87,11 @@ async function getDriverReviews(id: string, page: number) {
   return reviews;
 }
 
+//기사님 프로필 업데이트
+async function updateDriver(id: string, data: EditDataType) {
+  return await prisma.authUser.update({ where: { id }, data });
+}
+
 // 기사님이 받은 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)
 async function getEstimateRequestsForDriver(driverId: string) {
   // 지정 견적 요청 (DesignatedDriver)만 조회
@@ -105,9 +110,75 @@ async function getEstimateRequestsForDriver(driverId: string) {
   });
 }
 
-//기사님 프로필 업데이트
-async function updateDriver(id: string, data: EditDataType) {
-  return await prisma.authUser.update({ where: { id }, data });
+async function findEstimateByDriverAndRequest(driverId: string, estimateRequestId: string) {
+  return prisma.estimate.findFirst({
+    where: { driverId, estimateRequestId, deletedAt: null }
+  });
+}
+
+async function createEstimate(data: { driverId: string; estimateRequestId: string; price: number; comment?: string }) {
+  return prisma.estimate.create({ data });
+}
+
+async function rejectEstimate(estimateId: string, reason: string) {
+  return prisma.estimate.update({
+    where: { id: estimateId },
+    data: {
+      status: "REJECTED",
+      rejectReason: reason
+    }
+  });
+}
+
+async function getMyEstimates(driverId: string) {
+  // 기사님이 보낸 모든 견적 리스트 반환
+  return await prisma.estimate.findMany({
+    where: { driverId, deletedAt: null },
+    include: {
+      estimateRequest: true
+    }
+  });
+}
+
+async function getEstimateDetail(driverId: string, estimateId: string) {
+  // 기사 본인이 보낸 견적만 조회, 상세 정보 포함
+  return await prisma.estimate.findFirst({
+    where: { id: estimateId, driverId, deletedAt: null },
+    include: {
+      estimateRequest: {
+        include: {
+          customer: true,
+          fromAddress: true,
+          toAddress: true
+        }
+      }
+    }
+  });
+}
+
+async function getRejectedEstimateRequests(driverId: string) {
+  return await prisma.estimate.findMany({
+    where: {
+      driverId,
+      status: "REJECTED",
+      deletedAt: null
+    },
+    include: {
+      estimateRequest: {
+        include: {
+          customer: {
+            include: {
+              authUser: {
+                select: { name: true }
+              }
+            }
+          },
+          fromAddress: true,
+          toAddress: true
+        }
+      }
+    }
+  });
 }
 
 type DriverWithAuthUserId = {
@@ -156,5 +227,11 @@ export default {
   getDriverReviews,
   updateDriver,
   getEstimateRequestsForDriver,
+  findEstimateByDriverAndRequest,
+  createEstimate,
+  rejectEstimate,
+  getMyEstimates,
+  getEstimateDetail,
+  getRejectedEstimateRequests,
   getDriversByRegion
 };
