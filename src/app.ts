@@ -32,7 +32,7 @@ app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
 app.use("/address", addressRouter);
 app.use("/customer", estimateReqRouter);
-app.use("/", reviewRouter);
+app.use("/customer", reviewRouter);
 
 app.use("/drivers", driverRouter);
 
