@@ -55,16 +55,16 @@ export const getEstimateDetail = async (estimateId: string) => {
 };
 
 // 견적 ID로 기사/고객 ID 조회
-export const getCustomerAndDriverIdbyEstimateId = async (estimateId: string) => {
-  if (!estimateId) throw new CustomError(400, "견적 ID가 누락되었습니다.");
+// export const getCustomerAndDriverIdbyEstimateId = async (estimateId: string) => {
+//   if (!estimateId) throw new CustomError(400, "견적 ID가 누락되었습니다.");
 
-  return await customerEstimateRepository.getCustomerAndDriverIdbyEstimateId(estimateId);
-};
+//   return await customerEstimateRepository.getCustomerAndDriverIdbyEstimateId(estimateId);
+// };
 
 export default {
   getEstimateDetail,
   acceptEstimate,
   getReceivedEstimates,
-  getPendingEstimates,
-  getCustomerAndDriverIdbyEstimateId
+  getPendingEstimates
+  // getCustomerAndDriverIdbyEstimateId
 };
