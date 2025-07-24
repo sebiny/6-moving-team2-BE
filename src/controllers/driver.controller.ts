@@ -3,6 +3,7 @@ import driverService from "../services/driver.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Request, Response } from "express";
 import notificationService from "../services/notification.service";
+import estimateReqService from "../services/estimateReq.service";
 
 const getAllDriversAuth = asyncHandler(async (req: Request, res: Response) => {
   const { keyword, orderBy, region, service, page } = req.query;
@@ -86,6 +87,24 @@ const createEstimate = asyncHandler(async (req, res) => {
     comment: message
   });
 
+  // 알림 전송
+  try {
+    const originalRequest = await estimateReqService.findRequestById(requestId);
+    if (!originalRequest) {
+      // originalRequest가 null이면, 알림 전송 로직을 실행하지 않고 에러를 기록합니다.
+      console.error(`[Notification Error] 유효하지 않은 견적 요청 ID(${requestId})입니다. 알림을 보낼 수 없습니다.`);
+      return;
+    }
+    const { customerId, moveType } = originalRequest;
+    await notificationService.createEstimateProposalNotification({
+      driverId,
+      customerId,
+      requestId,
+      moveType
+    });
+  } catch (error) {
+    console.log("견적 발송 알림을 전송할 수 없습니다.");
+  }
   res.status(201).json(estimate);
 });
 
@@ -137,11 +156,6 @@ const getRejectedEstimateRequests = asyncHandler(async (req: Request, res: Respo
   res.status(200).json(rejectedEstimates);
 });
 
-const createEstimateProposal = asyncHandler(async (req: Request, res: Response) => {
-  const { driverId, customerId, moveType } = req.body;
-  notificationService.createEstimateProposalNotification({ driverId, customerId, moveType });
-});
-
 export default {
   getAllDriversAuth,
   getAllDrivers,
@@ -154,6 +168,5 @@ export default {
   rejectEstimateRequest,
   getMyEstimates,
   getEstimateDetail,
-  getRejectedEstimateRequests,
-  createEstimateProposal
+  getRejectedEstimateRequests
 };

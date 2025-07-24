@@ -43,18 +43,6 @@ async function findActiveEstimateRequest(customerId: string) {
   });
 }
 
-//  출발지 지역 기반 기사 필터링
-
-// async function findDriversByRegion(region: RegionType, district: string) {
-//   return prisma.driverServiceArea.findMany({
-//     where: {
-//       OR: [{ region }, { district }],
-//       driver: { deletedAt: null }
-//     },
-//     select: { driverId: true }
-//   });
-// }
-
 // 지정 기사 수 조회
 async function getDesignatedDriverCount(estimateRequestId: string) {
   return prisma.designatedDriver.count({ where: { estimateRequestId } });
@@ -70,11 +58,23 @@ async function createDesignatedDriver(estimateRequestId: string, driverId: strin
   });
 }
 
+// 견적요청서로 이사정보 조회
+async function findRequestById(requestId: string) {
+  return prisma.estimateRequest.findUnique({
+    where: { id: requestId },
+    select: {
+      moveType: true,
+      customerId: true
+    }
+  });
+}
+
 export default {
   linkCustomerAddress,
   getCustomerAddressesByRole,
   createEstimateRequest,
   findActiveEstimateRequest,
   getDesignatedDriverCount,
-  createDesignatedDriver
+  createDesignatedDriver,
+  findRequestById
 };

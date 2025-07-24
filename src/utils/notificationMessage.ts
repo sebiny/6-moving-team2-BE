@@ -64,7 +64,7 @@ function createEstimateProposalSuccessPlayloadForCustomer(driverName: string | u
     type: $Enums.NotificationType.MESSAGE, // 견적 도착
     payload: {
       driverName,
-      message: `${driverName}님의 ${moveTypeText} 견적이 도착했어요.`,
+      message: `${driverName} 기사님의 ${moveTypeText} 견적이 도착했어요.`,
       timeStamp: new Date().toISOString()
     }
   };
@@ -88,7 +88,7 @@ function createEstimateConfirmPlayloadForDriver(driverName: string | undefined) 
     type: $Enums.NotificationType.ESTIMATE_ACCEPTED, // 견적 선택됨
     payload: {
       driverName,
-      message: `${driverName}님의 견적이 확정되었어요.`,
+      message: `${driverName} 기사님의 견적이 확정되었어요.`,
       timeStamp: new Date().toISOString()
     }
   };
