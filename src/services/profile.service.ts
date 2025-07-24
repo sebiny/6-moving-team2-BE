@@ -250,11 +250,76 @@ async function getDriverProfile(driverId: string) {
   return driver;
 }
 
+//기사 프로필 기본 정보 수정
+async function updateDriverBasicProfile(
+  authUserId: string,
+  data: {
+    name?: string;
+    phone?: string;
+    currentPassword?: string;
+    newPassword?: string;
+    passwordConfirmation?: string;
+  }
+) {
+  if (!authUserId) throw new CustomError(400, "유저 ID가 유효하지 않습니다.");
+
+  // 1. 비밀번호 변경 요청 시 유효성 검사
+  if (data.newPassword) {
+    if (!data.currentPassword) {
+      throw new CustomError(400, "현재 비밀번호를 입력해주세요.");
+    }
+
+    if (data.newPassword !== data.passwordConfirmation) {
+      throw new CustomError(422, "새 비밀번호가 일치하지 않습니다.");
+    }
+
+    const authUser = await authRepository.findById(authUserId);
+    if (!authUser) {
+      throw new CustomError(404, "사용자를 찾을 수 없습니다.");
+    }
+
+    if (!authUser.password) {
+      // 소셜 로그인 유저 등 비밀번호가 없는 경우
+      throw new CustomError(400, "비밀번호가 설정되어 있지 않은 계정입니다.");
+    }
+
+    const isPasswordValid = await bcrypt.compare(data.currentPassword, authUser.password);
+    if (!isPasswordValid) {
+      throw new CustomError(401, "현재 비밀번호가 일치하지 않습니다.");
+    }
+  }
+
+  // 2. authUser 업데이트
+  const authUserUpdateData: {
+    name?: string;
+    phone?: string;
+    password?: string;
+  } = {};
+
+  if (data.name) authUserUpdateData.name = data.name;
+  if (data.phone) authUserUpdateData.phone = data.phone;
+  if (data.newPassword) authUserUpdateData.password = await bcrypt.hash(data.newPassword, 10);
+
+  if (Object.keys(authUserUpdateData).length > 0) {
+    await authRepository.updateAuthUser(authUserId, authUserUpdateData);
+  }
+
+  // 4. 업데이트된 authUser 정보 재조회
+  const updatedAuthUser = await authRepository.findById(authUserId);
+  if (!updatedAuthUser) throw new CustomError(404, "업데이트 후 사용자 정보를 찾을 수 없습니다.");
+
+  // 5. 두 데이터를 합쳐서 반환
+  return {
+    authUser: updatedAuthUser
+  };
+}
+
 export default {
   createCustomerProfile,
   updateCustomerProfile,
   getCustomerProfile,
   createDriverProfile,
   updateDriverProfile,
-  getDriverProfile
+  getDriverProfile,
+  updateDriverBasicProfile
 };
