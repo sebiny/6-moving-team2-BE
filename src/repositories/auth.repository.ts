@@ -30,7 +30,25 @@ async function findById(id: string): Promise<AuthUserWithProfile | null> {
     where: { id },
     include: {
       customer: true,
-      driver: { select: { id: true, nickname: true } }
+      driver: {
+        include: {
+          serviceAreas: {
+            select: {
+              region: true
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ID로 AuthUser의 이름만 조회
+async function findNameById(id: string): Promise<{ name: string } | null> {
+  return prisma.authUser.findUnique({
+    where: { id },
+    select: {
+      name: true
     }
   });
 }
@@ -104,5 +122,6 @@ export default {
   createAuthUser,
   updateAuthUser,
   findAuthUserWithPassword,
-  findAuthUserProfileById
+  findAuthUserProfileById,
+  findNameById
 };

@@ -32,6 +32,13 @@ authRouter.get(
   authController.getUserById
 );
 
+// 로그인된 유저 이름 조회
+authRouter.get(
+  "/me/name",
+  passport.authenticate("access-token", { session: false, failWithError: true }),
+  authController.getMeName
+);
+
 // 액세스 토큰 재발급
 authRouter.post(
   "/refresh-token",

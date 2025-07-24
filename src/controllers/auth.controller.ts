@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import authService, { TokenUserPayload } from "../services/auth.service";
+import authRepository from "../repositories/auth.repository";
 import passport from "../config/passport";
 import { asyncHandler } from "../utils/asyncHandler";
 import { UserType } from "@prisma/client";
@@ -148,6 +149,21 @@ const getMe = asyncHandler(async (req: Request, res: Response) => {
   res.json({ user: req.user });
 });
 
+// 로그인된 유저 이름 조회
+const getMeName = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new CustomError(401, "인증 정보가 없습니다.");
+  }
+  const authUserId = req.user.id;
+  const user = await authRepository.findNameById(authUserId);
+
+  if (!user) {
+    throw new CustomError(404, "사용자를 찾을 수 없습니다.");
+  }
+
+  res.status(200).json({ name: user.name });
+});
+
 // 로그인된 유저 자세한 정보 조회
 const getUserById = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
@@ -182,5 +198,6 @@ export default {
   startSocialLogin,
   socialLoginCallback,
   getUserById,
-  refreshToken
+  refreshToken,
+  getMeName
 };
