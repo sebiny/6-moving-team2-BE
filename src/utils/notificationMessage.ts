@@ -1,10 +1,30 @@
-import { $Enums, MoveType } from "@prisma/client";
+import { $Enums, MoveType, RegionType } from "@prisma/client";
 import { createMoveDayReminderPlayloadType } from "../types/notification.type";
 
 const moveTypeMap: { [key in MoveType]: string } = {
   [MoveType.SMALL]: "소형이사",
   [MoveType.HOME]: "가정이사",
   [MoveType.OFFICE]: "사무실이사"
+};
+
+const regionTypeMap: { [key in RegionType]: string } = {
+  [RegionType.SEOUL]: "서울",
+  [RegionType.BUSAN]: "부산",
+  [RegionType.DAEGU]: "대구",
+  [RegionType.INCHEON]: "인천",
+  [RegionType.GWANGJU]: "광주",
+  [RegionType.DAEJEON]: "대전",
+  [RegionType.ULSAN]: "울산",
+  [RegionType.SEJONG]: "세종",
+  [RegionType.GYEONGGI]: "경기",
+  [RegionType.GANGWON]: "강원",
+  [RegionType.CHUNGBUK]: "충북",
+  [RegionType.CHUNGNAM]: "충남",
+  [RegionType.JEONBUK]: "전북",
+  [RegionType.JEONNAM]: "전남",
+  [RegionType.GYEONGBUK]: "경북",
+  [RegionType.GYEONGNAM]: "경남",
+  [RegionType.JEJU]: "제주"
 };
 
 // 회원가입 축하 메시지 생성
@@ -61,7 +81,7 @@ function createEstimateReqSuccessPayloadForDriver(customerName: string | undefin
 function createEstimateProposalSuccessPlayloadForCustomer(driverName: string | undefined, moveType: MoveType) {
   const moveTypeText = moveTypeMap[moveType] || "이사"; // 한글로 변환
   return {
-    type: $Enums.NotificationType.MESSAGE, // 견적 도착
+    type: $Enums.NotificationType.ESTIMATE_PROPOSAL, // 견적 도착
     payload: {
       driverName,
       message: `${driverName} 기사님의 ${moveTypeText} 견적이 도착했어요.`,
@@ -101,10 +121,13 @@ function createMoveDayReminderPlayload({
   toRegion,
   toDistrict
 }: createMoveDayReminderPlayloadType) {
+  const fromRegionText = regionTypeMap[fromRegion as RegionType]; // 한글로 변환
+  const toRegionText = regionTypeMap[toRegion as RegionType]; // 한글로 변환
+
   return {
     type: $Enums.NotificationType.MOVE_DAY_REMINDER, // 견적 도착
     payload: {
-      message: `오늘은 ${fromRegion}(${fromDistrict}) → ${toRegion}(${toDistrict}) 이사 예정일이예요.`,
+      message: `오늘은 ${fromRegionText}(${fromDistrict}) → ${toRegionText}(${toDistrict}) 이사 예정일이예요.`,
       timeStamp: new Date().toISOString()
     }
   };

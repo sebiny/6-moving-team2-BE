@@ -227,11 +227,12 @@ async function createMoveDayReminderNotification({
   }
 
   const [from, to] = result;
+
   const notificationPayload = notificationMessage.createMoveDayReminderPlayload({
     fromRegion: from.region,
-    fromDistrict: from.district,
+    fromDistrict: from.district ?? "",
     toRegion: to.region,
-    toDistrict: to.district
+    toDistrict: to.district ?? ""
   });
 
   const newNotificationForCustomer = await notificationRepository.createNotification({
