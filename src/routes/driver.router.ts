@@ -16,6 +16,4 @@ driverRouter.get("/:id", driverController.getDriverById);
 
 driverRouter.get("/:id/reviews", driverController.getDriverReviews);
 
-driverRouter.patch("/:id", driverController.updateDriver);
-
 export default driverRouter;

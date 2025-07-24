@@ -52,13 +52,6 @@ const getDriverReviews = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(result);
 });
 
-const updateDriver = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const data = req.body;
-  const result = await driverService.updateDriver(id, data);
-  res.status(200).json(result);
-});
-
 const getEstimateRequestsForDriver = asyncHandler(async (req: Request, res: Response) => {
   // driverId는 인증된 사용자에서 가져옴 (req.user)
   const driverId = req.user?.driverId;
@@ -161,7 +154,6 @@ export default {
   getDriverById,
   getDriverByIdAuth,
   getDriverReviews,
-  updateDriver,
   getEstimateRequestsForDriver,
   createEstimate,
   rejectEstimateRequest,
