@@ -29,6 +29,10 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
+app.get("/health", (req, res) => {
+  res.send("Health Check Success");
+});
+
 app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
 app.use("/address", addressRouter);

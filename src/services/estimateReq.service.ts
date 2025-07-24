@@ -57,10 +57,15 @@ async function getActiveEstimateRequest(customerId: string) {
   return estimateReqRepository.findActiveEstimateRequest(customerId);
 }
 
+async function findRequestById(requestId: string) {
+  return estimateReqRepository.findRequestById(requestId);
+}
+
 export default {
   linkCustomerAddress,
   getCustomerAddressesByRole,
   createEstimateRequest,
   createDesignatedEstimateRequest,
-  getActiveEstimateRequest
+  getActiveEstimateRequest,
+  findRequestById
 };

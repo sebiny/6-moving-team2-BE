@@ -1,17 +1,17 @@
 import prisma from "../config/prisma";
-import { RequestStatus } from "@prisma/client";
+import { EstimateStatus, RequestStatus } from "@prisma/client";
 
 // ＜공통＞ 공통 데이터
 function buildEstimateInclude() {
   return {
     driver: {
-      include: {
+      select: {
+        profileImage: true,
         authUser: {
           select: {
             name: true,
             phone: true,
-            email: true,
-            imageUrl: true
+            email: true
           }
         },
         reviewsReceived: {
@@ -19,37 +19,16 @@ function buildEstimateInclude() {
             rating: true
           }
         },
-        Favorite: true,
+        favorite: true,
         career: true,
         work: true
-      }
-    },
-    estimateRequest: {
-      select: {
-        createdAt: true,
-        moveDate: true,
-        moveType: true,
-        fromAddress: {
-          select: {
-            region: true,
-            district: true,
-            street: true
-          }
-        },
-        toAddress: {
-          select: {
-            region: true,
-            district: true,
-            street: true
-          }
-        }
       }
     }
   };
 }
 
-// ＜공통＞ 리뷰 계산 함수
-function formatEstimate(estimate: any) {
+// ＜공통＞ 리뷰 및 지정 여부 포함한 변환 함수
+function formatEstimateWithDesignation(estimate: any, designatedDriverIds: string[]) {
   const reviewRatings = estimate.driver.reviewsReceived.map((r: any) => r.rating);
   const reviewCount = reviewRatings.length;
   const avgRating =
@@ -63,13 +42,13 @@ function formatEstimate(estimate: any) {
       ...estimate.driver,
       avgRating,
       reviewCount,
-      favoriteCount: estimate.driver.Favorite.length,
+      favoriteCount: estimate.driver.favorite.length,
       career: estimate.driver.career,
       work: estimate.driver.work
-    }
+    },
+    isDesignated: designatedDriverIds.includes(estimate.driverId)
   };
 }
-
 /**
  * 대기 중인 견적 리스트 조회
  */
@@ -81,8 +60,19 @@ async function getPendingEstimatesByCustomerId(customerId: string) {
       deletedAt: null
     },
     include: {
-      fromAddress: true,
-      toAddress: true,
+      fromAddress: {
+        select: {
+          region: true,
+          district: true
+        }
+      },
+      toAddress: {
+        select: {
+          region: true,
+          district: true
+        }
+      },
+      designatedDrivers: { select: { driverId: true } },
       estimates: {
         where: {
           status: "PROPOSED",
@@ -105,18 +95,17 @@ async function getPendingEstimatesByCustomerId(customerId: string) {
   }
 
   const firstRequest = estimateRequests[0];
-  const estimatesList = firstRequest.estimates.map((estimate) => {
-    const formatted = formatEstimate(estimate);
-    delete formatted.estimateRequest;
-    return formatted;
-  });
+  const designatedDriverIds = firstRequest.designatedDrivers.map((d) => d.driverId);
+  const estimatesList = (firstRequest.estimates ?? []).map((estimate) =>
+    formatEstimateWithDesignation(estimate, designatedDriverIds)
+  );
 
   return {
     estimateRequest: {
       id: firstRequest.id,
       moveDate: firstRequest.moveDate,
       moveType: firstRequest.moveType,
-      createdAt: firstRequest.createdAt,
+      requestDate: firstRequest.createdAt,
       fromAddress: firstRequest.fromAddress,
       toAddress: firstRequest.toAddress
     },
@@ -136,8 +125,17 @@ async function getReceivedEstimatesByCustomerId(customerId: string) {
       deletedAt: null
     },
     include: {
-      fromAddress: true,
-      toAddress: true,
+      fromAddress: {
+        select: {
+          street: true
+        }
+      },
+      toAddress: {
+        select: {
+          street: true
+        }
+      },
+      designatedDrivers: { select: { driverId: true } },
       estimates: {
         where: {
           status: { in: ["ACCEPTED", "AUTO_REJECTED"] },
@@ -154,25 +152,21 @@ async function getReceivedEstimatesByCustomerId(customerId: string) {
 
   // 2. 데이터 구조 가공
   return estimateRequests.map((request) => {
+    const designatedDriverIds = request.designatedDrivers.map((d) => d.driverId);
+
     const formattedEstimates = request.estimates
-      .map((estimate) => {
-        const formatted = formatEstimate(estimate);
-        delete formatted.estimateRequest; // 중복 제거
-        return formatted;
-      })
-      .sort((a, b) => {
-        if (a.status === "ACCEPTED") return -1;
-        if (b.status === "ACCEPTED") return 1;
-        return 0;
-      });
+      .map((estimate) => formatEstimateWithDesignation(estimate, designatedDriverIds))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return {
-      estimateRequestId: request.id,
-      createdAt: request.createdAt,
-      moveDate: request.moveDate,
-      moveType: request.moveType,
-      fromAddress: request.fromAddress,
-      toAddress: request.toAddress,
+      estimateRequest: {
+        id: request.id,
+        moveDate: request.moveDate,
+        moveType: request.moveType,
+        requestDate: request.createdAt,
+        fromAddress: request.fromAddress,
+        toAddress: request.toAddress
+      },
       estimateCount: formattedEstimates.length,
       estimates: formattedEstimates
     };
@@ -232,71 +226,63 @@ async function getEstimateDetailById(estimateId: string) {
       id: estimateId,
       deletedAt: null
     },
-    include: buildEstimateInclude()
+    include: {
+      ...buildEstimateInclude(),
+      estimateRequest: {
+        include: {
+          fromAddress: {
+            select: {
+              street: true
+            }
+          },
+          toAddress: {
+            select: {
+              street: true
+            }
+          },
+          designatedDrivers: { select: { driverId: true } }
+        }
+      }
+    }
   });
 
   if (!estimate) return null;
 
-  return formatEstimate(estimate);
-}
+  const designatedDriverIds = estimate.estimateRequest.designatedDrivers.map((d) => d.driverId);
+  const formatted = formatEstimateWithDesignation(estimate, designatedDriverIds);
 
-// (Notification) 고객 id로 이름 조회
-async function getCustomerNameById(customerId: string) {
-  const customerName = await prisma.customer.findUnique({
-    where: {
-      id: customerId
-    }
-  });
-
-  if (!customerId) return null;
-
-  return customerName;
-}
-
-// (Notification) 견적 Id로 고객/기사 Id 조회
-async function getCustomerAndDriverIdbyEstimateId(estimateId: string) {
-  const estimate = await prisma.estimate.findUnique({
-    where: { id: estimateId },
-    select: {
-      driverId: true,
-      estimateRequest: {
-        select: { customerId: true }
-      }
-    }
-  });
-  if (!estimate) throw new Error("견적을 찾을 수 없습니다.");
-
-  return estimate;
-}
-
-// (Notification) 이사 당일 리마인더 리스트 추출
-async function getMoveDayReminderNotificaiton() {
-  const today = new Date();
-  const dateString = today.toISOString().slice(0, 10); // YYYY-MM-DD 형태
-
-  const estimates = await prisma.estimate.findMany({
-    where: {
-      status: "ACCEPTED",
-      estimateRequest: {
-        moveDate: dateString // 연결된 견적요청 모델에 moveDate가 today인 것
-      }
+  return {
+    id: formatted.id,
+    comment: formatted.comment,
+    price: formatted.price,
+    status: formatted.status as EstimateStatus,
+    driver: {
+      profileImage: formatted.driver.profileImage,
+      name: formatted.driver.authUser.name,
+      phone: formatted.driver.authUser.phone,
+      email: formatted.driver.authUser.email,
+      avgRating: formatted.driver.avgRating,
+      reviewCount: formatted.driver.reviewCount,
+      favoriteCount: formatted.driver.favoriteCount,
+      career: formatted.driver.career,
+      work: formatted.driver.work
     },
-    include: {
-      // 유저 · 기사 정보, 견적요청 등 필요시 조인
-      driver: true,
-      estimateRequest: true
-    }
-  });
+    requestDate: estimate.estimateRequest.createdAt,
+    moveType: estimate.estimateRequest.moveType,
+    moveDate: estimate.estimateRequest.moveDate,
+    fromAddress: {
+      street: estimate.estimateRequest.fromAddress.street
+    },
+    toAddress: {
+      street: estimate.estimateRequest.toAddress.street
+    },
+    isDesignated: designatedDriverIds.includes(estimate.driverId)
+  };
 }
-
-// (Notification) 이사 당일 리마인더 실행 로직
 
 export default {
   getEstimateDetailById,
   acceptEstimateById,
   getReceivedEstimatesByCustomerId,
-  getPendingEstimatesByCustomerId,
-  getCustomerNameById,
-  getCustomerAndDriverIdbyEstimateId,
-  getMoveDayReminderNotificaiton
+  getPendingEstimatesByCustomerId
 };
