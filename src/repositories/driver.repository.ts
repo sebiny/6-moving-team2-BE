@@ -92,10 +92,9 @@ async function updateDriver(id: string, data: EditDataType) {
   return await prisma.authUser.update({ where: { id }, data });
 }
 
-// 기사님이 받은 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)
-async function getEstimateRequestsForDriver(driverId: string) {
-  // 지정 견적 요청 (DesignatedDriver)만 조회
-  return await prisma.estimateRequest.findMany({
+// 지정 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)
+async function getDesignatedEstimateRequests(driverId: string) {
+  const requests = await prisma.estimateRequest.findMany({
     where: {
       designatedDrivers: {
         some: { driverId }
@@ -103,11 +102,94 @@ async function getEstimateRequestsForDriver(driverId: string) {
       deletedAt: null
     },
     include: {
-      customer: true,
+      customer: {
+        include: {
+          authUser: {
+            select: { name: true }
+          }
+        }
+      },
       fromAddress: true,
       toAddress: true
     }
   });
+
+  // 지정견적 요청임을 표시
+  return requests.map((request) => ({
+    ...request,
+    isDesignated: true
+  }));
+}
+
+// 서비스 가능 지역 견적 요청 리스트 조회
+async function getAvailableEstimateRequests(driverId: string) {
+  // 1. 기사의 서비스 가능 지역 조회
+  const driverServiceAreas = await prisma.driverServiceArea.findMany({
+    where: { driverId }
+  });
+
+  if (driverServiceAreas.length === 0) {
+    console.log(`❌ 기사 ${driverId}의 서비스 가능 지역이 없습니다.`);
+    return [];
+  }
+
+  // 2. 해당 지역의 일반 요청 조회 (지정되지 않은 요청)
+  const availableRequests = await prisma.estimateRequest.findMany({
+    where: {
+      AND: [
+        {
+          OR: driverServiceAreas.map((area) => ({
+            OR: [{ fromAddress: { region: area.region } }, { toAddress: { region: area.region } }]
+          }))
+        },
+        {
+          // 지정되지 않은 요청만 (DesignatedDriver가 없는 요청)
+          designatedDrivers: {
+            none: {}
+          }
+        },
+        { deletedAt: null }
+      ]
+    },
+    include: {
+      customer: {
+        include: {
+          authUser: {
+            select: { name: true }
+          }
+        }
+      },
+      fromAddress: true,
+      toAddress: true
+    }
+  });
+
+  // 3. 기사가 이미 응답한 요청 제외
+  const driverEstimates = await prisma.estimate.findMany({
+    where: { driverId },
+    select: { estimateRequestId: true }
+  });
+
+  const respondedRequestIds = driverEstimates.map((estimate) => estimate.estimateRequestId);
+
+  const filteredRequests = availableRequests.filter((request) => !respondedRequestIds.includes(request.id));
+
+  // 일반견적 요청임을 표시
+  return filteredRequests.map((request) => ({
+    ...request,
+    isDesignated: false
+  }));
+}
+
+// 모든 견적 요청 리스트 조회 (지정 + 서비스 가능 지역)
+async function getAllEstimateRequests(driverId: string) {
+  const [designatedRequests, availableRequests] = await Promise.all([
+    getDesignatedEstimateRequests(driverId),
+    getAvailableEstimateRequests(driverId)
+  ]);
+
+  // 각각 이미 isDesignated 필드가 포함되어 있으므로 그대로 합치기
+  return [...designatedRequests, ...availableRequests];
 }
 
 async function findEstimateByDriverAndRequest(driverId: string, estimateRequestId: string) {
@@ -226,7 +308,9 @@ export default {
   getDriverById,
   getDriverReviews,
   updateDriver,
-  getEstimateRequestsForDriver,
+  getDesignatedEstimateRequests,
+  getAvailableEstimateRequests,
+  getAllEstimateRequests,
   findEstimateByDriverAndRequest,
   createEstimate,
   rejectEstimate,

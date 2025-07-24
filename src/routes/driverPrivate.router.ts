@@ -6,7 +6,9 @@ const driverPrivateRouter = express.Router();
 
 const requiredAuth = passport.authenticate("access-token", { session: false, failWithError: true });
 
-driverPrivateRouter.get("/estimate-requests", requiredAuth, driverController.getEstimateRequestsForDriver);
+driverPrivateRouter.get("/estimate-requests/designated", requiredAuth, driverController.getDesignatedEstimateRequests);
+driverPrivateRouter.get("/estimate-requests/available", requiredAuth, driverController.getAvailableEstimateRequests);
+driverPrivateRouter.get("/estimate-requests", requiredAuth, driverController.getAllEstimateRequests);
 
 driverPrivateRouter.post("/estimate-requests/:requestId/estimates", requiredAuth, driverController.createEstimate);
 

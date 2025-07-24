@@ -8,10 +8,12 @@
     "studio": "prisma studio",
     "build": "tsc",
     "seed": "ts-node prisma/seed.ts",
+    "seed2": "ts-node prisma/seed2.ts",
     "start": "node --enable-source-maps dist/server.ts"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts",
+    "seed2": "ts-node prisma/seed2.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
