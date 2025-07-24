@@ -87,12 +87,6 @@ async function getDriverReviews(id: string, page: number) {
   return reviews;
 }
 
-<<<<<<< HEAD
-// 기사님이 받은 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)
-async function getEstimateRequestsForDriver(driverId: string) {
-  // 지정 견적 요청 (DesignatedDriver)만 조회
-  return await prisma.estimateRequest.findMany({
-=======
 //기사님 프로필 업데이트
 async function updateDriver(id: string, data: EditDataType) {
   return await prisma.authUser.update({ where: { id }, data });
@@ -101,7 +95,6 @@ async function updateDriver(id: string, data: EditDataType) {
 // 지정 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)
 async function getDesignatedEstimateRequests(driverId: string) {
   const requests = await prisma.estimateRequest.findMany({
->>>>>>> 51ab2c22ff745dfa01b93aa33f6e6af1a9d37051
     where: {
       designatedDrivers: {
         some: { driverId }
@@ -314,14 +307,10 @@ export default {
   getAllDrivers,
   getDriverById,
   getDriverReviews,
-<<<<<<< HEAD
-  getEstimateRequestsForDriver,
-=======
   updateDriver,
   getDesignatedEstimateRequests,
   getAvailableEstimateRequests,
   getAllEstimateRequests,
->>>>>>> 51ab2c22ff745dfa01b93aa33f6e6af1a9d37051
   findEstimateByDriverAndRequest,
   createEstimate,
   rejectEstimate,

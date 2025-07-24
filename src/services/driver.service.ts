@@ -12,10 +12,6 @@ async function getDriverReviews(id: string, page: number) {
   return await driverRepository.getDriverReviews(id, page);
 }
 
-<<<<<<< HEAD
-async function getEstimateRequestsForDriver(driverId: string) {
-  return await driverRepository.getEstimateRequestsForDriver(driverId);
-=======
 async function updateDriver(id: string, data: EditDataType) {
   return await driverRepository.updateDriver(id, data);
 }
@@ -30,7 +26,6 @@ async function getAvailableEstimateRequests(driverId: string) {
 
 async function getAllEstimateRequests(driverId: string) {
   return await driverRepository.getAllEstimateRequests(driverId);
->>>>>>> 51ab2c22ff745dfa01b93aa33f6e6af1a9d37051
 }
 
 async function findEstimateByDriverAndRequest(driverId: string, estimateRequestId: string) {
@@ -61,14 +56,10 @@ export default {
   getAllDrivers,
   getDriverById,
   getDriverReviews,
-<<<<<<< HEAD
-  getEstimateRequestsForDriver,
-=======
   updateDriver,
   getDesignatedEstimateRequests,
   getAvailableEstimateRequests,
   getAllEstimateRequests,
->>>>>>> 51ab2c22ff745dfa01b93aa33f6e6af1a9d37051
   findEstimateByDriverAndRequest,
   createEstimate,
   rejectEstimate,
