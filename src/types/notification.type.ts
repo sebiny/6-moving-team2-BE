@@ -41,6 +41,7 @@ export type createEstimateProposalNotificationType = {
   driverId: string;
   customerId: string;
   moveType: MoveType;
+  requestId: string;
 };
 
 // 견적 확정 알림

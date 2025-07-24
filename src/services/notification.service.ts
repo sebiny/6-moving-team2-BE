@@ -53,14 +53,11 @@ async function createAndSendEstimateReqNotification({
   fromAddressId,
   toAddressId
 }: EstimateReqNotification) {
-  // 1. 고객 정보 먼저 조회하고 유효성 검사 (가장 중요)
+  // 고객 정보 먼저 조회하고 유효성 검사
   const customerAuthUser = await authRepository.findAuthUserProfileById(customerId);
 
-  // ★★★★★ [수정 1] 고객 정보가 없으면 함수를 즉시 종료합니다. ★★★★★
   if (!customerAuthUser) {
-    // 이 오류는 클라이언트가 잘못된 customerId를 보냈거나 DB에 문제가 있는 심각한 상황입니다.
     console.error(`[치명적 오류] 견적 요청 알림 생성 실패: 고객(ID: ${customerId})을 찾을 수 없습니다.`);
-    // 에러를 던지거나 조용히 종료할 수 있습니다. 여기서는 종료를 선택.
     return;
   }
 
@@ -138,25 +135,24 @@ async function createAndSendEstimateReqNotification({
   }
 }
 
-/* 제안한 견적 도착 알림 (기사 -> 고객) */
+/* 견적 발송 알림 (기사 -> 고객) */
 async function createEstimateProposalNotification({
   driverId,
   customerId,
-  moveType
+  moveType,
+  requestId
 }: createEstimateProposalNotificationType) {
-  const customerAuthUser = await authRepository.findAuthUserProfileById(customerId); // 고객 id로 고객 정보 추출
-  const customerName = customerAuthUser?.name; // 고객 정보에서 이름 추출
+  const customerAuthUser = await authRepository.findAuthUserProfileById(customerId);
+  const driverAuthUser = await authRepository.findAuthUserProfileById(driverId);
 
   // 고객에게 알림
   const notificationPayloadForCustomer = notificationMessage.createEstimateProposalSuccessPlayloadForCustomer(
-    customerName,
+    driverAuthUser?.name,
     moveType
   );
 
   if (!customerAuthUser) {
-    // 이 오류는 클라이언트가 잘못된 customerId를 보냈거나 DB에 문제가 있는 심각한 상황입니다.
-    console.error(`[치명적 오류] 견적 요청 알림 생성 실패: 고객(ID: ${customerId})을 찾을 수 없습니다.`);
-    // 에러를 던지거나 조용히 종료할 수 있습니다. 여기서는 종료를 선택.
+    console.error(`[치명적 오류] 견적 발송 알림 생성 실패: 고객(ID: ${customerId})을 찾을 수 없습니다.`);
     return;
   }
 

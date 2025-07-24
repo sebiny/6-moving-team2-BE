@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import notificationService from "../services/notification.service";
 import prisma from "../config/prisma";
+import authRepository from "../repositories/auth.repository";
 
 // 00:00:00 - 당일 이사 중 ACCEPTED인 Estimate 수집
 cron.schedule("0 0 * * *", async () => {
@@ -19,6 +20,7 @@ cron.schedule("0 0 * * *", async () => {
 
   for (const estimate of estimates) {
     // 고객, 기사 등 관련자에게 알림 전송
+
     await notificationService.createMoveDayReminderNotification({
       customerId: estimate.estimateRequest.customerId,
       driverId: estimate.driverId,
