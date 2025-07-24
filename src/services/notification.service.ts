@@ -17,10 +17,10 @@ import authRepository from "../repositories/auth.repository";
  * @param userId - 이벤트를 받을 사용자 ID
  * @param data - 전송할 데이터 (보통 객체 형태)
  */
-function sendSseEvent(userId: string, data: object) {
+function sendSseEvent(userId: string, data: Notification) {
   const emitter = sseEmitters[userId];
   if (emitter) {
-    emitter.write(`data: ${data}`);
+    emitter.write(`data: ${JSON.stringify(data)}\n\n`);
   }
 }
 
