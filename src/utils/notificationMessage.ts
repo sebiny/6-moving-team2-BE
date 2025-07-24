@@ -26,7 +26,7 @@ function createEstimateReqSuccessPayloadForCustomer(customerName: string | undef
     type: $Enums.NotificationType.ESTIMATE_REQUEST, // 견적 요청 타입으로 메시지 생성
     payload: {
       customerName,
-      message: `${customerName}님의 ${moveTypeText} 견적 요청이 전송되었어요.`,
+      message: `${customerName}님의 ${moveTypeText} 견적요청이 전송되었어요.`,
       timeStamp: new Date().toISOString()
     }
   };
@@ -51,7 +51,7 @@ function createEstimateReqSuccessPayloadForDriver(customerName: string | undefin
     type: $Enums.NotificationType.ESTIMATE_REQUEST, // 견적 요청 타입으로 메시지 생성
     payload: {
       customerName,
-      message: `${customerName}님의 ${moveTypeText} 견적 요청이 도착했어요.`,
+      message: `${customerName}님의 ${moveTypeText} 견적요청이 도착했어요.`,
       timeStamp: new Date().toISOString()
     }
   };

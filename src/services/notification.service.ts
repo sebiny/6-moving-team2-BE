@@ -1,6 +1,5 @@
 import { sseEmitters } from "../sse/sseEmitters";
-import notificationRepository from "../repositories/notification.Repository";
-import { CustomError } from "../utils/customError";
+import notificationRepository from "../repositories/notification.repository";
 import notificationMessage from "../utils/notificationMessage";
 import { AuthUser, Notification } from "@prisma/client";
 import driverRepository from "../repositories/driver.repository";
@@ -77,7 +76,6 @@ async function createAndSendEstimateReqNotification({
     moveType
   );
 
-  // ★★★★★ [수정 2] "undefined" 문자열을 사용하는 대신, 검증된 ID를 사용합니다. ★★★★★
   const newNotification = await notificationRepository.createNotification({
     message: notificationPayloadForCustomer.payload.message,
     type: notificationPayloadForCustomer.type,
@@ -89,7 +87,7 @@ async function createAndSendEstimateReqNotification({
 
   sendSseEvent(customerAuthUser.id, newNotification);
 
-  // 4. 기사가 없을 경우 고객에게 추가 알림 전송
+  //  기사가 없을 경우 고객에게 추가 알림 전송
   if (!driversList || driversList.length === 0) {
     console.warn(`해당 지역(${fromRegion.region}, ${toRegion.region})에 등록된 기사가 없습니다.`);
 
@@ -100,18 +98,18 @@ async function createAndSendEstimateReqNotification({
       type: noDriverPayload.type,
       isRead: false,
       path: "",
-      senderId: customerAuthUser.id, // 발신자는 요청한 고객으로 유지
+      senderId: customerAuthUser.id,
       receiverId: customerAuthUser.id
     });
     sendSseEvent(customerAuthUser.id, noDriverNotification);
-    return; // 함수 종료 (기사 알림 전송 생략)
+    return;
   }
 
   // 기사에게 알림
   const notificationPayloadForDriver = notificationMessage.createEstimateReqSuccessPayloadForDriver(
     customerName,
     moveType
-  ); // 고객 이름과 이사 타입으로 메시지 생성
+  );
 
   for (const driver of driversList) {
     if (!driver.authUserId) {
@@ -139,8 +137,7 @@ async function createAndSendEstimateReqNotification({
 async function createEstimateProposalNotification({
   driverId,
   customerId,
-  moveType,
-  requestId
+  moveType
 }: createEstimateProposalNotificationType) {
   const customerAuthUser = await authRepository.findAuthUserProfileById(customerId);
   const driverAuthUser = await authRepository.findAuthUserProfileById(driverId);
