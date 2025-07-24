@@ -1,10 +1,9 @@
 import bcrypt from "bcrypt";
 import jwt, { SignOptions } from "jsonwebtoken";
-import { AuthUser, Customer, Driver, AuthProvider } from "@prisma/client";
+import { AuthUser, Customer, Driver, AuthProvider, UserType } from "@prisma/client";
 import authRepository, { AuthUserWithProfile } from "../repositories/auth.repository";
 import { CustomError } from "../utils/customError";
-import { UserType } from "../types/userType";
-import { notificationService } from "./notification.service";
+import notificationService from "./notification.service";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 if (!JWT_SECRET) {
@@ -59,9 +58,9 @@ async function signUpUser(data: SignUpUserData): Promise<Omit<AuthUser, "passwor
   const { userType, email, phone, password, passwordConfirmation, name } = data;
 
   // 이메일 형식 검사
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) {
-    throw new CustomError(422, "유효하지 않은 이메일 형식입니다.");
+    throw new CustomError(422, "유효하지 않은 이메일 형식입니다. 영문, 숫자, 일부 특수문자만 사용 가능합니다.");
   }
 
   // 전화번호 형식 검사 (대한민국)
@@ -105,19 +104,10 @@ async function signUpUser(data: SignUpUserData): Promise<Omit<AuthUser, "passwor
 
   const { password: _, ...userWithoutPassword } = newUser;
 
-  // 알림 전송
-  // 알림 전송 로직을 try...catch로 감쌈
-  // 요청을 보내면 서버에서 성공한다면, noti 하면 된다. 트랜잭션 하지 말고. .then으로 관리할 것
-  // 실무 방식은..?
-  // 중간과정에서 가공이 필요하다면 별도의 테이블이 합리적
-  // 액션테이블 : 분석, 감사 목적으로 만듦, 기록으로 남김
-  // 알림테이블에서 클라이언트로 보냄,
+  // 알림 전송 로직, 전송에 실패하더라도 회원가입은 성공해야 함
   try {
-    // 알림 전송 (비동기 처리를 위해 await을 붙이거나, 백그라운드 실행)
     notificationService.createAndSendSignUpNotification(newUser);
   } catch (error) {
-    // 알림 전송에 실패하더라도 회원가입은 성공해야 함
-    // 에러를 로깅하여 추후 원인을 파악하고 수정
     console.error("알림 전송 실패:", error);
   }
 
@@ -196,20 +186,23 @@ async function getUserById(id: string): Promise<AuthUserWithProfile | null> {
 }
 
 // 소셜 로그인 유저 조회 또는 생성
-async function findOrCreateOAuthUser(profile: {
-  provider: AuthProvider;
-  providerId: string;
-  email: string | null;
-  displayName: string;
-  profileImageUrl: string | null;
-}): Promise<TokenUserPayload> {
-  const { provider, providerId, email, displayName, profileImageUrl } = profile;
+async function findOrCreateOAuthUser(
+  profile: {
+    provider: AuthProvider;
+    providerId: string;
+    email: string | null;
+    displayName: string;
+    profileImageUrl: string | null;
+  },
+  userType: UserType
+): Promise<TokenUserPayload> {
+  const { provider, providerId, email, displayName } = profile;
 
   if (provider === AuthProvider.LOCAL) {
     throw new CustomError(400, "LOCAL 제공자는 소셜 로그인으로 사용할 수 없습니다.");
   }
 
-  let authUser = await authRepository.findByProviderId(provider, providerId);
+  let authUser = await authRepository.findByProviderId(provider, String(providerId));
 
   if (!authUser) {
     if (!email) {
@@ -225,9 +218,9 @@ async function findOrCreateOAuthUser(profile: {
       email,
       phone: null,
       password: null,
-      userType: UserType.CUSTOMER,
+      userType,
       provider,
-      providerId,
+      providerId: String(providerId),
       name: displayName
     });
   }

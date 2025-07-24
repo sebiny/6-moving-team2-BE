@@ -1,7 +1,7 @@
 import { sseEmitters } from "../sse/sseEmitters";
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
-import { notificationService } from "../services/notification.service";
+import notificationService from "../services/notification.service";
 
 export const connectSse = (req: Request, res: Response) => {
   const userId = req.user?.id;
@@ -33,25 +33,62 @@ export const connectSse = (req: Request, res: Response) => {
 };
 
 // 알림 리스트 조회
-
-export const getAllNotifications = asyncHandler(async (req: Request, res: Response) => {
+export const getMyNotifications = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    // authMiddleware가 있어서 이 경우는 거의 없지만, 방어 코드로 추가
+    console.log(userId);
     res.status(401).json({ message: "인증되지 않은 사용자입니다." });
     return;
   }
 
-  // 서비스 또는 레포지토리를 통해 DB에서 해당 유저의 알림을 조회합니다.
-  const notifications = await notificationService.findAllByUserId(userId);
+  const notifications = await notificationService.findReceivedNotificationsByUserId(userId);
 
   res.status(200).json(notifications);
 });
 
 // 특정 알림 조회
+export const getMyNotification = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const { id } = req.params;
 
-// 알림 리스트 읽음 처리
+  if (!userId) {
+    res.status(401).json({ message: "인증되지 않은 사용자입니다." });
+    return;
+  }
+
+  const notification = await notificationService.findNotificationById(id);
+
+  if (notification === undefined) {
+    return res.status(404).json({ message: "알림이 없거나 권한이 없습니다." });
+  }
+
+  res.status(200).json(notification);
+});
 
 // 특정 알림 읽음 처리
+export const updateMyNotification = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const userId = req.user?.id;
 
-// 특정 알림 삭제 처리
+  if (!userId) {
+    res.status(401).json({ message: "인증되지 않은 사용자입니다." });
+    return;
+  }
+
+  try {
+    const updatedNotification = await notificationService.markNotificationAsRead(id);
+
+    res.status(200).json({
+      message: "알림을 성공적으로 읽음 처리했습니다.",
+      notification: updatedNotification
+    });
+  } catch (error: any) {
+    if (error.name === "NotFoundError") {
+      res.status(404).json({ message: error.message });
+    } else if (error.name === "ForbiddenError") {
+      res.status(403).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: "서버 내부 오류가 발생했습니다." });
+    }
+  }
+});
