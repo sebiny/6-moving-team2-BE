@@ -36,10 +36,6 @@ async function createEstimate(data: { driverId: string; estimateRequestId: strin
   return await driverRepository.createEstimate(data);
 }
 
-async function rejectEstimate(estimateId: string, reason: string) {
-  return await driverRepository.rejectEstimate(estimateId, reason);
-}
-
 async function getMyEstimates(driverId: string) {
   return await driverRepository.getMyEstimates(driverId);
 }
@@ -62,7 +58,6 @@ export default {
   getAllEstimateRequests,
   findEstimateByDriverAndRequest,
   createEstimate,
-  rejectEstimate,
   getMyEstimates,
   getEstimateDetail,
   getRejectedEstimateRequests
