@@ -52,6 +52,10 @@ const getDriverReviews = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(result);
 });
 
+<<<<<<< HEAD
+const getEstimateRequestsForDriver = asyncHandler(async (req: Request, res: Response) => {
+  // driverId는 인증된 사용자에서 가져옴 (req.user)
+=======
 const updateDriver = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const data = req.body;
@@ -60,6 +64,7 @@ const updateDriver = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const getDesignatedEstimateRequests = asyncHandler(async (req: Request, res: Response) => {
+>>>>>>> 51ab2c22ff745dfa01b93aa33f6e6af1a9d37051
   const driverId = req.user?.driverId;
   if (!driverId) {
     return res.status(401).json({ message: "Driver not authenticated" });
@@ -178,10 +183,14 @@ export default {
   getDriverById,
   getDriverByIdAuth,
   getDriverReviews,
+<<<<<<< HEAD
+  getEstimateRequestsForDriver,
+=======
   updateDriver,
   getDesignatedEstimateRequests,
   getAvailableEstimateRequests,
   getAllEstimateRequests,
+>>>>>>> 51ab2c22ff745dfa01b93aa33f6e6af1a9d37051
   createEstimate,
   rejectEstimateRequest,
   getMyEstimates,
