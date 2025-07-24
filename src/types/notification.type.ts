@@ -64,8 +64,8 @@ export type getDriversByRegionType = {
 };
 
 export type createMoveDayReminderPlayloadType = {
-  fromRegion?: string | undefined;
-  fromDistrict?: string | undefined;
-  toRegion?: string | undefined;
-  toDistrict?: string | undefined;
+  fromRegion: string | undefined;
+  fromDistrict: string | undefined;
+  toRegion: string | undefined;
+  toDistrict: string | undefined;
 };

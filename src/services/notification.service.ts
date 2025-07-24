@@ -1,6 +1,5 @@
 import { sseEmitters } from "../sse/sseEmitters";
-import notificationRepository from "../repositories/notification.Repository";
-import { CustomError } from "../utils/customError";
+import notificationRepository from "../repositories/notification.repository";
 import notificationMessage from "../utils/notificationMessage";
 import { AuthUser, Notification } from "@prisma/client";
 import driverRepository from "../repositories/driver.repository";
@@ -18,10 +17,10 @@ import authRepository from "../repositories/auth.repository";
  * @param userId - 이벤트를 받을 사용자 ID
  * @param data - 전송할 데이터 (보통 객체 형태)
  */
-function sendSseEvent(userId: string, data: object) {
+function sendSseEvent(userId: string, data: Notification) {
   const emitter = sseEmitters[userId];
   if (emitter) {
-    emitter.write(`data: ${data}`);
+    emitter.write(`data: ${JSON.stringify(data)}\n\n`);
   }
 }
 
@@ -53,14 +52,11 @@ async function createAndSendEstimateReqNotification({
   fromAddressId,
   toAddressId
 }: EstimateReqNotification) {
-  // 1. 고객 정보 먼저 조회하고 유효성 검사 (가장 중요)
+  // 고객 정보 먼저 조회하고 유효성 검사
   const customerAuthUser = await authRepository.findAuthUserProfileById(customerId);
 
-  // ★★★★★ [수정 1] 고객 정보가 없으면 함수를 즉시 종료합니다. ★★★★★
   if (!customerAuthUser) {
-    // 이 오류는 클라이언트가 잘못된 customerId를 보냈거나 DB에 문제가 있는 심각한 상황입니다.
     console.error(`[치명적 오류] 견적 요청 알림 생성 실패: 고객(ID: ${customerId})을 찾을 수 없습니다.`);
-    // 에러를 던지거나 조용히 종료할 수 있습니다. 여기서는 종료를 선택.
     return;
   }
 
@@ -80,7 +76,6 @@ async function createAndSendEstimateReqNotification({
     moveType
   );
 
-  // ★★★★★ [수정 2] "undefined" 문자열을 사용하는 대신, 검증된 ID를 사용합니다. ★★★★★
   const newNotification = await notificationRepository.createNotification({
     message: notificationPayloadForCustomer.payload.message,
     type: notificationPayloadForCustomer.type,
@@ -92,7 +87,7 @@ async function createAndSendEstimateReqNotification({
 
   sendSseEvent(customerAuthUser.id, newNotification);
 
-  // 4. 기사가 없을 경우 고객에게 추가 알림 전송
+  //  기사가 없을 경우 고객에게 추가 알림 전송
   if (!driversList || driversList.length === 0) {
     console.warn(`해당 지역(${fromRegion.region}, ${toRegion.region})에 등록된 기사가 없습니다.`);
 
@@ -103,18 +98,18 @@ async function createAndSendEstimateReqNotification({
       type: noDriverPayload.type,
       isRead: false,
       path: "",
-      senderId: customerAuthUser.id, // 발신자는 요청한 고객으로 유지
+      senderId: customerAuthUser.id,
       receiverId: customerAuthUser.id
     });
     sendSseEvent(customerAuthUser.id, noDriverNotification);
-    return; // 함수 종료 (기사 알림 전송 생략)
+    return;
   }
 
   // 기사에게 알림
   const notificationPayloadForDriver = notificationMessage.createEstimateReqSuccessPayloadForDriver(
     customerName,
     moveType
-  ); // 고객 이름과 이사 타입으로 메시지 생성
+  );
 
   for (const driver of driversList) {
     if (!driver.authUserId) {
@@ -138,25 +133,23 @@ async function createAndSendEstimateReqNotification({
   }
 }
 
-/* 제안한 견적 도착 알림 (기사 -> 고객) */
+/* 견적 발송 알림 (기사 -> 고객) */
 async function createEstimateProposalNotification({
   driverId,
   customerId,
   moveType
 }: createEstimateProposalNotificationType) {
-  const customerAuthUser = await authRepository.findAuthUserProfileById(customerId); // 고객 id로 고객 정보 추출
-  const customerName = customerAuthUser?.name; // 고객 정보에서 이름 추출
+  const customerAuthUser = await authRepository.findAuthUserProfileById(customerId);
+  const driverAuthUser = await authRepository.findAuthUserProfileById(driverId);
 
   // 고객에게 알림
   const notificationPayloadForCustomer = notificationMessage.createEstimateProposalSuccessPlayloadForCustomer(
-    customerName,
+    driverAuthUser?.name,
     moveType
   );
 
   if (!customerAuthUser) {
-    // 이 오류는 클라이언트가 잘못된 customerId를 보냈거나 DB에 문제가 있는 심각한 상황입니다.
-    console.error(`[치명적 오류] 견적 요청 알림 생성 실패: 고객(ID: ${customerId})을 찾을 수 없습니다.`);
-    // 에러를 던지거나 조용히 종료할 수 있습니다. 여기서는 종료를 선택.
+    console.error(`[치명적 오류] 견적 발송 알림 생성 실패: 고객(ID: ${customerId})을 찾을 수 없습니다.`);
     return;
   }
 
@@ -234,11 +227,12 @@ async function createMoveDayReminderNotification({
   }
 
   const [from, to] = result;
+
   const notificationPayload = notificationMessage.createMoveDayReminderPlayload({
     fromRegion: from.region,
-    fromDistrict: from.district,
+    fromDistrict: from.district ?? "",
     toRegion: to.region,
-    toDistrict: to.district
+    toDistrict: to.district ?? ""
   });
 
   const newNotificationForCustomer = await notificationRepository.createNotification({

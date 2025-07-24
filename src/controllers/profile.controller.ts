@@ -127,11 +127,27 @@ const getDriverProfile = asyncHandler(async (req: Request, res: Response) => {
   res.json(profile);
 });
 
+const updateDriverBasicProfile = asyncHandler(async (req: Request, res: Response) => {
+  const authUserId = req.user?.id;
+  if (!authUserId) throw new CustomError(401, "인증 정보가 없습니다.");
+  const { name, phone, currentPassword, newPassword, passwordConfirmation } = req.body;
+
+  const updated = await profileService.updateDriverBasicProfile(authUserId, {
+    name,
+    phone,
+    currentPassword,
+    newPassword,
+    passwordConfirmation
+  });
+  res.json(updated);
+});
+
 export default {
   createCustomerProfile,
   updateCustomerProfile,
   getCustomerProfile,
   createDriverProfile,
   updateDriverProfile,
-  getDriverProfile
+  getDriverProfile,
+  updateDriverBasicProfile
 };
