@@ -1,5 +1,5 @@
 import prisma from "../config/prisma"; // Prisma 클라이언트 import
-import { $Enums, Notification } from "@prisma/client";
+import { Notification } from "@prisma/client";
 import { CreateNotificationData } from "../types/notification.type";
 
 // 알림 데이터베이스 작업을 담당하는 객체
@@ -55,11 +55,10 @@ async function getReceivedNotifications(userId: string): Promise<Notification[]>
       receiverId: userId
     },
     orderBy: {
-      createdAt: "desc" // 최신순 정렬은 그대로 유지
+      createdAt: "desc"
     }
   });
 
-  // '받은' 알림만 가져왔으므로 별도의 가공 없이 바로 반환합니다.
   return receivedNotifications;
 }
 
@@ -93,16 +92,6 @@ async function markAllAsRead(userId: string) {
     data: { isRead: true }
   });
 }
-
-/**
- * 특정 알림을 삭제합니다.
- * @param notificationId - 알림 ID
- */
-// async function deleteNotification(notificationId: string): Promise<void> {
-//   await prisma.notification.delete({
-//     where: { id: notificationId }
-//   });
-// }
 
 /**
  * 특정 알림의 소유자를 확인하기 위해 알림 정보를 조회합니다.

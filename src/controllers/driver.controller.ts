@@ -99,7 +99,6 @@ const createEstimate = asyncHandler(async (req, res) => {
     await notificationService.createEstimateProposalNotification({
       driverId,
       customerId,
-      requestId,
       moveType
     });
   } catch (error) {

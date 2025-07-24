@@ -19,6 +19,4 @@ notificationRouter.get("/:id", authMiddleware, notificationController.getMyNotif
 // 특정 알림 읽음 처리
 notificationRouter.patch("/:id", authMiddleware, notificationController.updateMyNotification);
 
-// 특정 알림 삭제 처리
-
 export default notificationRouter;
