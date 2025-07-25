@@ -10,7 +10,8 @@ import {
 } from "../types/notification.type";
 import addressRepository from "../repositories/address.repository";
 import authRepository from "../repositories/auth.repository";
-import notificationRepository from "../repositories/notification.Repository";
+import notificationRepository from "../repositories/notification.repository";
+import eventHub from "../sse/eventHub";
 
 /**
  * 특정 사용자에게 SSE 이벤트를 전송합니다.
@@ -253,8 +254,8 @@ async function createMoveDayReminderNotification({
     receiverId: driverAuthUser.id
   });
 
-  sendSseEvent(customerAuthUser.id, newNotificationForCustomer);
-  sendSseEvent(driverAuthUser.id, newNotificationForDriver);
+  eventHub.emit("send_notification", customerAuthUser.id, newNotificationForCustomer);
+  eventHub.emit("send_notification", driverAuthUser.id, newNotificationForDriver);
 }
 
 // 특정 사용자의 모든 알림 목록 조회
