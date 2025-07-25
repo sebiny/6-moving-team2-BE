@@ -9,6 +9,7 @@
     "build": "tsc",
     "seed": "ts-node prisma/seed.ts",
     "seed2": "ts-node prisma/seed2.ts",
+    "seed3": "ts-node prisma/seed3.ts",
     "start": "node --enable-source-maps dist/server.ts"
   },
   "prisma": {

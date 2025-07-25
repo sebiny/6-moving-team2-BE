@@ -37,40 +37,40 @@ const serviceAreas = [
 
 async function main() {
   console.log("🌱 테스트용 시드 데이터 생성 시작...");
-  await prisma.driverEstimateRejection.deleteMany(); // 새로운 모델 먼저 삭제
-  await prisma.designatedDriver.deleteMany();
-  await prisma.estimate.deleteMany();
-  await prisma.estimateRequest.deleteMany();
-  await prisma.customerAddress.deleteMany();
-  await prisma.address.deleteMany();
-  await prisma.driverServiceArea.deleteMany();
-  await prisma.favorite.deleteMany(); // Driver를 참조하는 테이블 먼저 삭제
-  await prisma.notification.deleteMany(); // AuthUser 참조하는 테이블 먼저 삭제
+  // await prisma.driverEstimateRejection.deleteMany(); // 새로운 모델 먼저 삭제
+  // await prisma.designatedDriver.deleteMany();
+  // await prisma.estimate.deleteMany();
+  // await prisma.estimateRequest.deleteMany();
+  // await prisma.customerAddress.deleteMany();
+  // await prisma.address.deleteMany();
+  // await prisma.driverServiceArea.deleteMany();
+  // await prisma.favorite.deleteMany(); // Driver를 참조하는 테이블 먼저 삭제
+  // await prisma.notification.deleteMany(); // AuthUser 참조하는 테이블 먼저 삭제
 
   // 시드용 customer 먼저 삭제
-  await prisma.customer.deleteMany({
-    where: {
-      authUser: {
-        email: { startsWith: "testuser" }
-      }
-    }
-  });
+  // await prisma.customer.deleteMany({
+  //   where: {
+  //     authUser: {
+  //       email: { startsWith: "testuser" }
+  //     }
+  //   }
+  // });
 
   // 시드용 driver 먼저 삭제
-  await prisma.driver.deleteMany({
-    where: {
-      authUser: {
-        email: { startsWith: "driver" }
-      }
-    }
-  });
+  // await prisma.driver.deleteMany({
+  //   where: {
+  //     authUser: {
+  //       email: { startsWith: "driver" }
+  //     }
+  //   }
+  // });
 
   // 마지막으로 authUser 삭제
-  await prisma.authUser.deleteMany({
-    where: {
-      OR: [{ email: { startsWith: "testuser" } }, { email: { startsWith: "driver" } }]
-    }
-  });
+  // await prisma.authUser.deleteMany({
+  //   where: {
+  //     OR: [{ email: { startsWith: "testuser" } }, { email: { startsWith: "driver" } }]
+  //   }
+  // });
 
   // ✅ 고객 5명 생성
   const customerIds: string[] = [];

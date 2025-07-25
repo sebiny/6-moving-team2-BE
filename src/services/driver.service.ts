@@ -58,6 +58,10 @@ async function getRejectedEstimateRequests(driverId: string) {
   return await driverRepository.getRejectedEstimateRequests(driverId);
 }
 
+async function checkResponseLimit(estimateRequestId: string, driverId: string) {
+  return await driverRepository.checkResponseLimit(estimateRequestId, driverId);
+}
+
 export default {
   getAllDrivers,
   getDriverById,
@@ -70,5 +74,6 @@ export default {
   createEstimate,
   getMyEstimates,
   getEstimateDetail,
-  getRejectedEstimateRequests
+  getRejectedEstimateRequests,
+  checkResponseLimit
 };
