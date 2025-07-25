@@ -1,11 +1,21 @@
 import driverRepository, { EditDataType, optionsType } from "../repositories/driver.repository";
+import estimateReqRepository from "../repositories/estimateReq.repository";
 
 async function getAllDrivers(options: optionsType, userId?: string) {
   return await driverRepository.getAllDrivers(options, userId);
 }
 
 async function getDriverById(id: string, userId?: string) {
-  return await driverRepository.getDriverById(id, userId);
+  const data = await driverRepository.getDriverById(id, userId);
+  let isDesignated = false;
+  if (userId) {
+    const activeRequest = await estimateReqRepository.findActiveEstimateRequest(userId);
+    if (activeRequest) {
+      const alreadyDesignated = activeRequest.designatedDrivers?.some((d) => d.driverId === id);
+      if (alreadyDesignated) isDesignated = true;
+    }
+  }
+  return { ...data, isDesignated };
 }
 
 async function getDriverReviews(id: string, page: number) {
