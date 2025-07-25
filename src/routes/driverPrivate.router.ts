@@ -18,11 +18,6 @@ driverPrivateRouter.get("/estimates", requiredAuth, driverController.getMyEstima
 
 driverPrivateRouter.get("/estimates/:estimateId", requiredAuth, driverController.getEstimateDetail);
 
-driverPrivateRouter.get(
-  "/estimate-requests/rejected",
-  requiredAuth,
-  driverController.getRejectedEstimateRequests
-);
-
+driverPrivateRouter.get("/estimate-requests/rejected", requiredAuth, driverController.getRejectedEstimateRequests);
 
 export default driverPrivateRouter;

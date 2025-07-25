@@ -289,11 +289,51 @@ async function rejectEstimate(estimateId: string, reason: string) {
 
 async function getMyEstimates(driverId: string) {
   // 기사님이 보낸 모든 견적 리스트 반환
-  return await prisma.estimate.findMany({
+  const estimates = await prisma.estimate.findMany({
     where: { driverId, deletedAt: null },
     include: {
-      estimateRequest: true
+      estimateRequest: {
+        include: {
+          customer: {
+            include: {
+              authUser: {
+                select: { name: true }
+              }
+            }
+          },
+          fromAddress: true,
+          toAddress: true
+        }
+      }
     }
+  });
+
+  // 견적 완료 상태 판단 로직 추가
+  const currentDate = new Date();
+  return estimates.map((estimate) => {
+    const { estimateRequest } = estimate;
+    const moveDate = new Date(estimateRequest.moveDate);
+
+    // 완료 상태 판단:
+    // 1. 확정 → 이사일 지남 (ACCEPTED 상태이면서 이사일이 지남)
+    // 2. 이사일 그냥 지남 (이사일이 지났지만 아직 확정되지 않음)
+    let completionStatus = null;
+    let isCompleted = false;
+
+    if (estimate.status === "ACCEPTED" && moveDate < currentDate) {
+      completionStatus = "CONFIRMED_AND_PAST";
+      isCompleted = true;
+    } else if (moveDate < currentDate) {
+      completionStatus = "DATE_PAST";
+      isCompleted = true;
+    }
+
+    return {
+      ...estimate,
+      completionStatus,
+      isCompleted,
+      customerName: estimateRequest.customer.authUser.name
+    };
   });
 }
 
