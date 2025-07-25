@@ -48,7 +48,12 @@ async function findDriverByAuthUserId(authUserId: string): Promise<Driver | null
 
 // 기사 프로필 생성
 async function createDriverProfile(data: Prisma.DriverCreateInput): Promise<Driver> {
-  return prisma.driver.create({ data });
+  return prisma.driver.create({
+    data,
+    include: {
+      serviceAreas: true
+    }
+  });
 }
 
 // 기사 프로필 수정

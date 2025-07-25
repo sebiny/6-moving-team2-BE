@@ -68,6 +68,22 @@ async function updateCustomerProfile(
 ) {
   if (!authUserId) throw new CustomError(400, "유저 ID가 유효하지 않습니다.");
 
+  // 이름 유효성 검사 (2~5자의 한글)
+  if (data.name) {
+    const nameRegex = /^[가-힣]{2,5}$/;
+    if (!nameRegex.test(data.name)) {
+      throw new CustomError(422, "이름은 2~5자의 한글만 사용 가능합니다.");
+    }
+  }
+
+  // 전화번호 형식 검사 (대한민국)
+  if (data.phone) {
+    const phoneRegex = /^010?\d{4}?\d{4}$/;
+    if (!phoneRegex.test(data.phone)) {
+      throw new CustomError(422, "유효하지 않은 전화번호 형식입니다. 숫자만 입력해 주세요.");
+    }
+  }
+
   // 1. 비밀번호 변경 요청 시 유효성 검사
   if (data.newPassword) {
     if (!data.currentPassword) {
@@ -262,6 +278,22 @@ async function updateDriverBasicProfile(
   }
 ) {
   if (!authUserId) throw new CustomError(400, "유저 ID가 유효하지 않습니다.");
+
+  // 이름 유효성 검사 (2~5자의 한글)
+  if (data.name) {
+    const nameRegex = /^[가-힣]{2,5}$/;
+    if (!nameRegex.test(data.name)) {
+      throw new CustomError(422, "이름은 2~5자의 한글만 사용 가능합니다.");
+    }
+  }
+
+  // 전화번호 형식 검사 (대한민국)
+  if (data.phone) {
+    const phoneRegex = /^010?\d{4}?\d{4}$/;
+    if (!phoneRegex.test(data.phone)) {
+      throw new CustomError(422, "유효하지 않은 전화번호 형식입니다. 숫자만 입력해 주세요.");
+    }
+  }
 
   // 1. 비밀번호 변경 요청 시 유효성 검사
   if (data.newPassword) {

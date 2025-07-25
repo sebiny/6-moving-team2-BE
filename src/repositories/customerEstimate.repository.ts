@@ -280,9 +280,87 @@ async function getEstimateDetailById(estimateId: string) {
   };
 }
 
+/**
+ * (Notification) 고객 id로 이름 조회
+ */
+async function getCustomerNameById(customerId: string) {
+  if (!customerId) return null;
+
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: {
+      authUser: {
+        select: { name: true }
+      }
+    }
+  });
+
+  return customer?.authUser?.name || null;
+}
+
+/**
+ * (Notification) 견적 Id로 고객/기사 Id 조회
+ */
+async function getCustomerAndDriverIdbyEstimateId(estimateId: string) {
+  const estimate = await prisma.estimate.findUnique({
+    where: { id: estimateId },
+    select: {
+      driverId: true,
+      estimateRequest: {
+        select: { customerId: true }
+      }
+    }
+  });
+
+  if (!estimate) throw new Error("견적을 찾을 수 없습니다.");
+
+  return {
+    driverId: estimate.driverId,
+    customerId: estimate.estimateRequest.customerId
+  };
+}
+
+/**
+ * (Notification) 이사 당일 리마인더 리스트 추출
+ */
+async function getMoveDayReminderNotificaiton() {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+  const estimates = await prisma.estimate.findMany({
+    where: {
+      status: "ACCEPTED",
+      estimateRequest: {
+        moveDate: today,
+        deletedAt: null
+      }
+    },
+    include: {
+      driver: {
+        select: {
+          id: true,
+          authUser: { select: { name: true, email: true } }
+        }
+      },
+      estimateRequest: {
+        select: {
+          customerId: true,
+          moveDate: true
+        }
+      }
+    }
+  });
+
+  return estimates;
+}
+
+// (Notification) 이사 당일 리마인더 실행 로직
+
 export default {
   getEstimateDetailById,
   acceptEstimateById,
   getReceivedEstimatesByCustomerId,
-  getPendingEstimatesByCustomerId
+  getPendingEstimatesByCustomerId,
+  getCustomerNameById,
+  getCustomerAndDriverIdbyEstimateId,
+  getMoveDayReminderNotificaiton
 };
