@@ -1,10 +1,20 @@
 import express from "express";
 import profileController from "../controllers/profile.controller";
 import passport from "../config/passport";
+import uploadMiddleware from "../middlewares/uploadMiddleware";
 
 const profileRouter = express.Router();
 
 const authMiddleware = passport.authenticate("access-token", { session: false, failWithError: true });
+
+// POST /profile/image : 프로필 이미지 업로드 (단일 파일)
+// form-data에서 'profileImage'라는 필드 이름으로 파일을 보내야 함함
+profileRouter.post(
+  "/image",
+  authMiddleware,
+  uploadMiddleware.single("profileImage"),
+  profileController.uploadProfileImage
+);
 
 // POST /profile/customer: 고객 프로필 생성
 profileRouter.post("/customer", authMiddleware, profileController.createCustomerProfile);

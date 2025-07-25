@@ -95,6 +95,7 @@ async function updateDriver(id: string, data: EditDataType) {
 
 // 지정 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)
 async function getDesignatedEstimateRequests(driverId: string) {
+  // 1. 모든 지정 견적 요청 조회
   const requests = await prisma.estimateRequest.findMany({
     where: {
       designatedDrivers: {
@@ -115,17 +116,31 @@ async function getDesignatedEstimateRequests(driverId: string) {
     }
   });
 
-  // 기사가 반려한 견적 요청 제외
+  // 2. 기사님이 반려한 요청 조회
   const driverRejections = await prisma.driverEstimateRejection.findMany({
     where: { driverId },
     select: { estimateRequestId: true }
   });
+  const rejectedRequestIds = driverRejections.map((r) => r.estimateRequestId);
 
-  const rejectedRequestIds = driverRejections.map((rejection) => rejection.estimateRequestId);
+  // 3. 기사님이 이미 견적을 보낸 요청 조회 (PROPOSED or ACCEPTED)
+  const driverEstimates = await prisma.estimate.findMany({
+    where: {
+      driverId,
+      status: {
+        in: ["PROPOSED", "ACCEPTED"]
+      }
+    },
+    select: { estimateRequestId: true }
+  });
+  const respondedRequestIds = driverEstimates.map((e) => e.estimateRequestId);
 
-  const filteredRequests = requests.filter((request) => !rejectedRequestIds.includes(request.id));
+  // 4. 반려 + 응답한 요청 제외
+  const filteredRequests = requests.filter(
+    (request) => !rejectedRequestIds.includes(request.id) && !respondedRequestIds.includes(request.id)
+  );
 
-  // 지정견적 요청임을 표시
+  // 5. isDesignated: true 표시
   return filteredRequests.map((request) => ({
     ...request,
     isDesignated: true
@@ -226,19 +241,39 @@ async function findEstimateByDriverAndRequest(driverId: string, estimateRequestI
 
 async function createEstimate(data: { driverId: string; estimateRequestId: string; price: number; comment?: string }) {
   return prisma.$transaction(async (tx) => {
-    // 기사 응답 수 확인
-    const count = await tx.estimate.count({
-      where: {
-        estimateRequestId: data.estimateRequestId,
-        deletedAt: null
-      }
+    // 지정 요청인지 확인
+    const designatedDrivers = await tx.designatedDriver.findMany({
+      where: { estimateRequestId: data.estimateRequestId }
     });
 
-    if (count >= 5) {
-      throw new CustomError(400, "이미 최대 응답 가능 기사님 수를 초과했습니다.");
+    const isDesignatedRequest = designatedDrivers.length > 0;
+    const limit = isDesignatedRequest ? 3 : 5; // 지정 요청: 3개, 일반 요청: 5개
+
+    // 현재 응답 수 계산 (견적 + 반려)
+    const [estimateCount, rejectionCount] = await Promise.all([
+      tx.estimate.count({
+        where: { estimateRequestId: data.estimateRequestId, deletedAt: null }
+      }),
+      tx.driverEstimateRejection.count({
+        where: { estimateRequestId: data.estimateRequestId }
+      })
+    ]);
+
+    const currentCount = estimateCount + rejectionCount;
+
+    if (currentCount >= limit) {
+      throw new CustomError(
+        400,
+        isDesignatedRequest ? "지정된 모든 기사님이 응답하셨습니다." : "이미 최대 응답 가능 기사님 수를 초과했습니다."
+      );
     }
 
-    return tx.estimate.create({ data });
+    return tx.estimate.create({
+      data: {
+        ...data,
+        status: "PROPOSED"
+      }
+    });
   });
 }
 
@@ -254,11 +289,51 @@ async function rejectEstimate(estimateId: string, reason: string) {
 
 async function getMyEstimates(driverId: string) {
   // 기사님이 보낸 모든 견적 리스트 반환
-  return await prisma.estimate.findMany({
+  const estimates = await prisma.estimate.findMany({
     where: { driverId, deletedAt: null },
     include: {
-      estimateRequest: true
+      estimateRequest: {
+        include: {
+          customer: {
+            include: {
+              authUser: {
+                select: { name: true }
+              }
+            }
+          },
+          fromAddress: true,
+          toAddress: true
+        }
+      }
     }
+  });
+
+  // 견적 완료 상태 판단 로직 추가
+  const currentDate = new Date();
+  return estimates.map((estimate) => {
+    const { estimateRequest } = estimate;
+    const moveDate = new Date(estimateRequest.moveDate);
+
+    // 완료 상태 판단:
+    // 1. 확정 → 이사일 지남 (ACCEPTED 상태이면서 이사일이 지남)
+    // 2. 이사일 그냥 지남 (이사일이 지났지만 아직 확정되지 않음)
+    let completionStatus = null;
+    let isCompleted = false;
+
+    if (estimate.status === "ACCEPTED" && moveDate < currentDate) {
+      completionStatus = "CONFIRMED_AND_PAST";
+      isCompleted = true;
+    } else if (moveDate < currentDate) {
+      completionStatus = "DATE_PAST";
+      isCompleted = true;
+    }
+
+    return {
+      ...estimate,
+      completionStatus,
+      isCompleted,
+      customerName: estimateRequest.customer.authUser.name
+    };
   });
 }
 
@@ -301,6 +376,41 @@ async function getRejectedEstimateRequests(driverId: string) {
       }
     }
   });
+}
+
+// 응답 수 제한 확인 (일반 요청: 5명, 지정 요청: 지정 기사 수)
+async function checkResponseLimit(estimateRequestId: string, driverId: string) {
+  // 지정 요청인지 확인
+  const designatedDrivers = await prisma.designatedDriver.findMany({
+    where: { estimateRequestId }
+  });
+
+  const isDesignatedRequest = designatedDrivers.length > 0;
+  const limit = isDesignatedRequest ? designatedDrivers.length : 5;
+
+  // 현재 응답 수 계산 (견적 + 반려)
+  const [estimateCount, rejectionCount] = await Promise.all([
+    prisma.estimate.count({
+      where: { estimateRequestId, deletedAt: null }
+    }),
+    prisma.driverEstimateRejection.count({
+      where: { estimateRequestId }
+    })
+  ]);
+
+  const currentCount = estimateCount + rejectionCount;
+  const canRespond = currentCount < limit;
+
+  return {
+    canRespond,
+    limit,
+    currentCount,
+    message: canRespond
+      ? "응답 가능합니다."
+      : isDesignatedRequest
+        ? "지정된 모든 기사님이 응답하셨습니다."
+        : "최대 5명까지 응답 가능합니다."
+  };
 }
 
 type DriverWithAuthUserId = {
@@ -357,5 +467,6 @@ export default {
   getMyEstimates,
   getEstimateDetail,
   getRejectedEstimateRequests,
+  checkResponseLimit,
   getDriversByRegion
 };
