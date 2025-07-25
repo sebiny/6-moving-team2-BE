@@ -239,7 +239,12 @@ async function findEstimateByDriverAndRequest(driverId: string, estimateRequestI
 }
 
 async function createEstimate(data: { driverId: string; estimateRequestId: string; price: number; comment?: string }) {
-  return prisma.estimate.create({ data });
+  return prisma.estimate.create({
+    data: {
+      ...data,
+      status: "PROPOSED"
+    }
+  });
 }
 
 async function rejectEstimate(estimateId: string, reason: string) {
@@ -303,6 +308,41 @@ async function getRejectedEstimateRequests(driverId: string) {
   });
 }
 
+// 응답 수 제한 확인 (일반 요청: 5명, 지정 요청: 지정 기사 수)
+async function checkResponseLimit(estimateRequestId: string, driverId: string) {
+  // 지정 요청인지 확인
+  const designatedDrivers = await prisma.designatedDriver.findMany({
+    where: { estimateRequestId }
+  });
+
+  const isDesignatedRequest = designatedDrivers.length > 0;
+  const limit = isDesignatedRequest ? designatedDrivers.length : 5;
+
+  // 현재 응답 수 계산 (견적 + 반려)
+  const [estimateCount, rejectionCount] = await Promise.all([
+    prisma.estimate.count({
+      where: { estimateRequestId, deletedAt: null }
+    }),
+    prisma.driverEstimateRejection.count({
+      where: { estimateRequestId }
+    })
+  ]);
+
+  const currentCount = estimateCount + rejectionCount;
+  const canRespond = currentCount < limit;
+
+  return {
+    canRespond,
+    limit,
+    currentCount,
+    message: canRespond
+      ? "응답 가능합니다."
+      : isDesignatedRequest
+        ? "지정된 모든 기사님이 응답하셨습니다."
+        : "최대 5명까지 응답 가능합니다."
+  };
+}
+
 type DriverWithAuthUserId = {
   id: string; // Driver의 ID
   authUserId: string; // Driver와 연결된 AuthUser의 ID
@@ -357,5 +397,6 @@ export default {
   getMyEstimates,
   getEstimateDetail,
   getRejectedEstimateRequests,
+  checkResponseLimit,
   getDriversByRegion
 };

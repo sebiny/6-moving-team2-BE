@@ -93,9 +93,33 @@ const createEstimate = asyncHandler(async (req, res) => {
 
   if (!driverId) return res.status(401).json({ message: "Driver not authenticated" });
 
+  // 견적 요청 상태 검증
+  const estimateRequest = await estimateReqService.findRequestById(requestId);
+  if (!estimateRequest) {
+    return res.status(404).json({ message: "견적 요청을 찾을 수 없습니다." });
+  }
+
+  // PENDING 상태가 아닌 경우 견적을 받을 수 없음
+  if (estimateRequest.status !== "PENDING") {
+    return res.status(400).json({
+      message: "이 견적 요청은 더 이상 견적을 받을 수 없습니다.",
+      status: estimateRequest.status
+    });
+  }
+
   // 중복 응답 방지
   const exists = await driverService.findEstimateByDriverAndRequest(driverId, requestId);
   if (exists) return res.status(409).json({ message: "이미 견적을 보냈습니다." });
+
+  // 응답 수 제한 확인
+  const responseLimit = await driverService.checkResponseLimit(requestId, driverId);
+  if (!responseLimit.canRespond) {
+    return res.status(400).json({
+      message: responseLimit.message,
+      limit: responseLimit.limit,
+      currentCount: responseLimit.currentCount
+    });
+  }
 
   const estimate = await driverService.createEstimate({
     driverId,
@@ -112,7 +136,7 @@ const createEstimate = asyncHandler(async (req, res) => {
       console.error(`[Notification Error] 유효하지 않은 견적 요청 ID(${requestId})입니다. 알림을 보낼 수 없습니다.`);
       return;
     }
-    const { customerId, moveType } = originalRequest;
+    const { customerId, moveType } = estimateRequest;
     await notificationService.createEstimateProposalNotification({
       driverId,
       customerId,
@@ -137,19 +161,37 @@ const rejectEstimateRequest = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "견적 요청을 찾을 수 없습니다." });
   }
 
-  // 2. 이미 견적을 보냈는지 확인 (견적을 보낸 후에는 반려할 수 없음)
+  // 2. 견적 요청 상태 검증 (PENDING 상태가 아닌 경우 반려할 수 없음)
+  if (estimateRequest.status !== "PENDING") {
+    return res.status(400).json({
+      message: "이 견적 요청은 더 이상 반려할 수 없습니다.",
+      status: estimateRequest.status
+    });
+  }
+
+  // 3. 이미 견적을 보냈는지 확인 (견적을 보낸 후에는 반려할 수 없음)
   const existingEstimate = await driverService.findEstimateByDriverAndRequest(driverId, requestId);
   if (existingEstimate) {
     return res.status(409).json({ message: "이미 견적을 보내셨습니다. 반려할 수 없습니다." });
   }
 
-  // 3. 이미 반려했는지 확인
+  // 4. 이미 반려했는지 확인
   const alreadyRejected = await estimateReqService.checkIfAlreadyRejected(driverId, requestId);
   if (alreadyRejected) {
     return res.status(409).json({ message: "이미 반려한 요청입니다." });
   }
 
-  // 4. 견적 요청 반려 처리
+  // 5. 응답 수 제한 확인 (반려도 응답으로 간주)
+  const responseLimit = await driverService.checkResponseLimit(requestId, driverId);
+  if (!responseLimit.canRespond) {
+    return res.status(400).json({
+      message: responseLimit.message,
+      limit: responseLimit.limit,
+      currentCount: responseLimit.currentCount
+    });
+  }
+
+  // 6. 견적 요청 반려 처리
   const result = await estimateReqService.rejectEstimateRequest(driverId, requestId, reason);
 
   res.status(200).json({
