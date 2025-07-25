@@ -1,6 +1,7 @@
 import { MoveType, RegionType } from "@prisma/client";
 import prisma from "../config/prisma";
 import { getDriversByRegionType } from "../types/notification.type";
+import { CustomError } from "../utils/customError";
 
 export type EditDataType = {
   name?: string;
@@ -224,7 +225,21 @@ async function findEstimateByDriverAndRequest(driverId: string, estimateRequestI
 }
 
 async function createEstimate(data: { driverId: string; estimateRequestId: string; price: number; comment?: string }) {
-  return prisma.estimate.create({ data });
+  return prisma.$transaction(async (tx) => {
+    // 기사 응답 수 확인
+    const count = await tx.estimate.count({
+      where: {
+        estimateRequestId: data.estimateRequestId,
+        deletedAt: null
+      }
+    });
+
+    if (count >= 5) {
+      throw new CustomError(400, "이미 최대 응답 가능 기사님 수를 초과했습니다.");
+    }
+
+    return tx.estimate.create({ data });
+  });
 }
 
 async function rejectEstimate(estimateId: string, reason: string) {
