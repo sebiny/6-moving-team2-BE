@@ -1,11 +1,21 @@
 import driverRepository, { EditDataType, optionsType } from "../repositories/driver.repository";
+import estimateReqRepository from "../repositories/estimateReq.repository";
 
 async function getAllDrivers(options: optionsType, userId?: string) {
   return await driverRepository.getAllDrivers(options, userId);
 }
 
 async function getDriverById(id: string, userId?: string) {
-  return await driverRepository.getDriverById(id, userId);
+  const data = await driverRepository.getDriverById(id, userId);
+  let isDesignated = false;
+  if (userId) {
+    const activeRequest = await estimateReqRepository.findActiveEstimateRequest(userId);
+    if (activeRequest) {
+      const alreadyDesignated = activeRequest.designatedDrivers?.some((d) => d.driverId === id);
+      if (alreadyDesignated) isDesignated = true;
+    }
+  }
+  return { ...data, isDesignated };
 }
 
 async function getDriverReviews(id: string, page: number) {
@@ -16,8 +26,16 @@ async function updateDriver(id: string, data: EditDataType) {
   return await driverRepository.updateDriver(id, data);
 }
 
-async function getEstimateRequestsForDriver(driverId: string) {
-  return await driverRepository.getEstimateRequestsForDriver(driverId);
+async function getDesignatedEstimateRequests(driverId: string) {
+  return await driverRepository.getDesignatedEstimateRequests(driverId);
+}
+
+async function getAvailableEstimateRequests(driverId: string) {
+  return await driverRepository.getAvailableEstimateRequests(driverId);
+}
+
+async function getAllEstimateRequests(driverId: string) {
+  return await driverRepository.getAllEstimateRequests(driverId);
 }
 
 async function findEstimateByDriverAndRequest(driverId: string, estimateRequestId: string) {
@@ -26,10 +44,6 @@ async function findEstimateByDriverAndRequest(driverId: string, estimateRequestI
 
 async function createEstimate(data: { driverId: string; estimateRequestId: string; price: number; comment?: string }) {
   return await driverRepository.createEstimate(data);
-}
-
-async function rejectEstimate(estimateId: string, reason: string) {
-  return await driverRepository.rejectEstimate(estimateId, reason);
 }
 
 async function getMyEstimates(driverId: string) {
@@ -49,10 +63,11 @@ export default {
   getDriverById,
   getDriverReviews,
   updateDriver,
-  getEstimateRequestsForDriver,
+  getDesignatedEstimateRequests,
+  getAvailableEstimateRequests,
+  getAllEstimateRequests,
   findEstimateByDriverAndRequest,
   createEstimate,
-  rejectEstimate,
   getMyEstimates,
   getEstimateDetail,
   getRejectedEstimateRequests

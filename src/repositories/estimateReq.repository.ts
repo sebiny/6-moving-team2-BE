@@ -32,12 +32,15 @@ async function findActiveEstimateRequest(customerId: string) {
     where: {
       customerId,
       deletedAt: null,
-      moveDate: {
-        gt: new Date()
-      },
-      status: {
-        in: ["PENDING", "APPROVED"]
-      }
+      OR: [
+        { status: "PENDING" },
+        {
+          status: "APPROVED",
+          moveDate: {
+            gt: new Date()
+          }
+        }
+      ]
     },
     include: { designatedDrivers: true } // 지정 요청 기사 목록 포함
   });
@@ -69,6 +72,30 @@ async function findRequestById(requestId: string) {
   });
 }
 
+// 이미 반려했는지 확인
+async function checkIfAlreadyRejected(driverId: string, estimateRequestId: string) {
+  const rejection = await prisma.driverEstimateRejection.findUnique({
+    where: {
+      estimateRequestId_driverId: {
+        estimateRequestId,
+        driverId
+      }
+    }
+  });
+  return !!rejection;
+}
+
+// 견적 요청 반려 처리
+async function rejectEstimateRequest(driverId: string, estimateRequestId: string, reason: string) {
+  return prisma.driverEstimateRejection.create({
+    data: {
+      driverId,
+      estimateRequestId,
+      reason
+    }
+  });
+}
+
 export default {
   linkCustomerAddress,
   getCustomerAddressesByRole,
@@ -76,5 +103,7 @@ export default {
   findActiveEstimateRequest,
   getDesignatedDriverCount,
   createDesignatedDriver,
-  findRequestById
+  findRequestById,
+  checkIfAlreadyRejected,
+  rejectEstimateRequest
 };

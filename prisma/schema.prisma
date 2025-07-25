@@ -170,6 +170,7 @@ model Driver {
   serviceAreas       DriverServiceArea[] // 활동 가능 지역
   estimates          Estimate[] // 견적 응답 목록
   reviewsReceived    Review[] // 받은 리뷰
+  estimateRejections DriverEstimateRejection[] // 견적 요청 반려 기록
 
   averageRating Float      @default(0)
   favorite      Favorite[] // 소문자로 변경
@@ -249,12 +250,13 @@ model EstimateRequest {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  estimates         Estimate[] // 기사 응답들
-  review            Review? // 연결된 리뷰
-  designatedDrivers DesignatedDriver[] // 고객이 지정 요청한 기사 목록
-  customer          Customer           @relation(fields: [customerId], references: [id])
-  fromAddress       Address            @relation("RequestFrom", fields: [fromAddressId], references: [id])
-  toAddress         Address            @relation("RequestTo", fields: [toAddressId], references: [id])
+  estimates          Estimate[] // 기사 응답들
+  review             Review? // 연결된 리뷰
+  designatedDrivers  DesignatedDriver[] // 고객이 지정 요청한 기사 목록
+  estimateRejections DriverEstimateRejection[] // 기사들의 반려 기록
+  customer           Customer                  @relation(fields: [customerId], references: [id])
+  fromAddress        Address                   @relation("RequestFrom", fields: [fromAddressId], references: [id])
+  toAddress          Address                   @relation("RequestTo", fields: [toAddressId], references: [id])
 }
 
 model DesignatedDriver {
@@ -349,4 +351,20 @@ model LanguagePreference {
 
   customer Customer? @relation("CustomerLanguage")
   driver   Driver?   @relation("DriverLanguage")
+}
+
+// 기사 견적 요청 반려 기록
+model DriverEstimateRejection {
+  id                String   @id @default(cuid())
+  estimateRequestId String
+  driverId          String
+  reason            String?
+  createdAt         DateTime @default(now())
+
+  estimateRequest EstimateRequest @relation(fields: [estimateRequestId], references: [id])
+  driver          Driver          @relation(fields: [driverId], references: [id])
+
+  @@unique([estimateRequestId, driverId])
+  @@index([driverId])
+  @@index([estimateRequestId])
 }
