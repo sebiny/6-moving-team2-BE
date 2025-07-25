@@ -10,7 +10,7 @@ import {
 } from "../types/notification.type";
 import addressRepository from "../repositories/address.repository";
 import authRepository from "../repositories/auth.repository";
-import notificationRepository from "../repositories/notification.repository";
+import notificationRepository from "../repositories/notification.Repository";
 
 /**
  * 특정 사용자에게 SSE 이벤트를 전송합니다.

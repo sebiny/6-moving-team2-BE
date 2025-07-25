@@ -37,7 +37,7 @@ app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
 app.use("/address", addressRouter);
 app.use("/customer", estimateReqRouter);
-app.use("/", reviewRouter);
+app.use("/reviews", reviewRouter);
 
 app.use("/drivers", driverRouter); // 공개 API
 app.use("/driver", driverPrivateRouter); // 로그인된 기사용 API

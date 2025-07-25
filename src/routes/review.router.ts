@@ -1,9 +1,23 @@
-// routes/review.routes.ts
+// src/routes/review.router.ts
 import express from "express";
 import reviewController from "../controllers/review.controller";
+import passport from "../config/passport";
 
 const router = express.Router();
 
-router.route("/reviewable").get(reviewController.getAllCompletedEstimate);
-router.route("/reviews").post(reviewController.createReview);
+// JWT 인증 미들웨어
+const authMiddleware = passport.authenticate("access-token", {
+  session: false,
+  failWithError: true
+});
+
+// 작성 가능한 리뷰(견적)
+router.get("/reviewable", authMiddleware, reviewController.getAllCompletedEstimate);
+
+// 리뷰 작성
+router.post("/", authMiddleware, reviewController.createReview);
+
+// 내가 쓴 리뷰
+router.get("/mine", authMiddleware, reviewController.getMyReviews);
+
 export default router;
