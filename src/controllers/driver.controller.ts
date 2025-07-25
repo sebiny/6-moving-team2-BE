@@ -131,21 +131,31 @@ const rejectEstimateRequest = asyncHandler(async (req, res) => {
 
   if (!driverId) return res.status(401).json({ message: "Driver not authenticated" });
 
-  // 이미 해당 기사님이 이 요청에 대해 견적(Estimate)을 제출했는지 확인
-  const estimate = await driverService.findEstimateByDriverAndRequest(driverId, requestId);
-  if (!estimate) {
-    return res.status(404).json({ message: "기사님의 견적이 존재하지 않습니다." });
+  // 1. 견적 요청이 존재하는지 확인
+  const estimateRequest = await estimateReqService.findRequestById(requestId);
+  if (!estimateRequest) {
+    return res.status(404).json({ message: "견적 요청을 찾을 수 없습니다." });
   }
 
-  // 이미 반려된 경우 방지
-  if (estimate.status === "REJECTED") {
-    return res.status(409).json({ message: "이미 반려 처리된 견적입니다." });
+  // 2. 이미 견적을 보냈는지 확인 (견적을 보낸 후에는 반려할 수 없음)
+  const existingEstimate = await driverService.findEstimateByDriverAndRequest(driverId, requestId);
+  if (existingEstimate) {
+    return res.status(409).json({ message: "이미 견적을 보내셨습니다. 반려할 수 없습니다." });
   }
 
-  // 견적 상태와 반려사유 업데이트
-  const updated = await driverService.rejectEstimate(estimate.id, reason);
+  // 3. 이미 반려했는지 확인
+  const alreadyRejected = await estimateReqService.checkIfAlreadyRejected(driverId, requestId);
+  if (alreadyRejected) {
+    return res.status(409).json({ message: "이미 반려한 요청입니다." });
+  }
 
-  res.status(200).json(updated);
+  // 4. 견적 요청 반려 처리
+  const result = await estimateReqService.rejectEstimateRequest(driverId, requestId, reason);
+
+  res.status(200).json({
+    message: "견적 요청이 반려되었습니다.",
+    data: result
+  });
 });
 
 const getMyEstimates = asyncHandler(async (req, res) => {

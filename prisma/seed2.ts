@@ -37,12 +37,14 @@ const serviceAreas = [
 
 async function main() {
   console.log("🌱 테스트용 시드 데이터 생성 시작...");
+  await prisma.driverEstimateRejection.deleteMany(); // 새로운 모델 먼저 삭제
   await prisma.designatedDriver.deleteMany();
   await prisma.estimate.deleteMany();
   await prisma.estimateRequest.deleteMany();
   await prisma.customerAddress.deleteMany();
   await prisma.address.deleteMany();
   await prisma.driverServiceArea.deleteMany();
+  await prisma.favorite.deleteMany(); // Driver를 참조하는 테이블 먼저 삭제
   await prisma.notification.deleteMany(); // AuthUser 참조하는 테이블 먼저 삭제
 
   // 시드용 customer 먼저 삭제
@@ -76,7 +78,7 @@ async function main() {
     const authUser = await prisma.authUser.create({
       data: {
         email: randomEmail(i),
-        password: await hashPassword(`testpw${i}1234`),
+        password: await hashPassword(`Test${i}@123`),
         phone: maskPhone(randomPhone()),
         userType: UserType.CUSTOMER,
         name: randomName[i],
@@ -167,7 +169,7 @@ async function main() {
     const authUser = await prisma.authUser.create({
       data: {
         email: `driver${i}@test.com`,
-        password: await hashPassword(`driver${i}1234`),
+        password: await hashPassword(`Driver${i}@123`),
         phone: maskPhone(randomPhone()),
         userType: UserType.DRIVER,
         name: driverNames[i],
@@ -222,29 +224,18 @@ async function main() {
     );
   }
 
-  // 특정 기사 ID (제공된 ID 사용)
-  const targetDriverId = "cmdfbrp3y0000c9owxbqqrtwi";
-
-  // 해당 기사가 존재하는지 확인
-  const existingDriver = await prisma.driver.findUnique({
+  // 타겟 기사는 기사1 (driverIds[0])
+  const targetDriverId = driverIds[0];
+  const targetDriver = await prisma.driver.findUnique({
     where: { id: targetDriverId }
   });
 
-  if (!existingDriver) {
-    console.log(`❌ 기사 ID ${targetDriverId}를 찾을 수 없습니다.`);
-    console.log(`💡 기존 기사 목록:`);
-    const allDrivers = await prisma.driver.findMany({
-      select: { id: true, nickname: true }
-    });
-    allDrivers.forEach((driver) => {
-      console.log(`   - ${driver.id}: ${driver.nickname}`);
-    });
-    return;
-  }
+  console.log(`✅ 타겟 기사 설정: ${targetDriver?.nickname} (${targetDriverId})`);
+  console.log(`🔑 기사1 로그인 정보:`);
+  console.log(`   이메일: driver0@test.com`);
+  console.log(`   비밀번호: Driver0@123`);
 
-  console.log(`✅ 타겟 기사 확인: ${existingDriver.nickname} (${targetDriverId})`);
-
-  // ✅ 첫 번째 견적 요청을 특정 기사에게 지정
+  // ✅ 첫 번째 견적 요청을 타겟 기사(기사1)에게 지정
   const firstRequest = await prisma.estimateRequest.findFirst({
     where: { status: RequestStatus.PENDING }
   });
@@ -257,37 +248,6 @@ async function main() {
       }
     });
     console.log(`✅ 첫 번째 견적 요청을 지정 기사에게 연결: ${firstRequest.id} (지정기사: ${targetDriverId})`);
-  }
-
-  // ✅ 특정 고객의 견적에 기사 4명이 견적 제안
-  const targetCustomerId = "cmdgopcrz0000v9la8kzcqukw";
-
-  // 해당 고객의 견적 요청 찾기
-  const targetCustomerRequest = await prisma.estimateRequest.findFirst({
-    where: {
-      customerId: targetCustomerId,
-      status: RequestStatus.PENDING
-    }
-  });
-
-  if (targetCustomerRequest) {
-    // 각 기사가 해당 견적에 견적 제안
-    for (let i = 0; i < driverIds.length; i++) {
-      await prisma.estimate.create({
-        data: {
-          estimateRequestId: targetCustomerRequest.id,
-          driverId: driverIds[i],
-          price: 100000 + i * 50000, // 각기 다른 가격
-          comment: `안녕하세요! ${driverNames[i]}입니다. 신속하고 안전한 이사 서비스를 제공하겠습니다.`,
-          status: EstimateStatus.PROPOSED
-        }
-      });
-      console.log(
-        `✅ 기사 ${i + 1} 견적 제안: ${driverNames[i]} → ${targetCustomerRequest.id} (${100000 + i * 50000}원)`
-      );
-    }
-  } else {
-    console.log(`❌ 고객 ID ${targetCustomerId}의 견적 요청을 찾을 수 없습니다.`);
   }
 
   console.log("🎉 테스트용 시드 데이터 생성 완료!");

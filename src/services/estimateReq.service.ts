@@ -61,11 +61,23 @@ async function findRequestById(requestId: string) {
   return estimateReqRepository.findRequestById(requestId);
 }
 
+// 이미 반려했는지 확인
+async function checkIfAlreadyRejected(driverId: string, estimateRequestId: string) {
+  return estimateReqRepository.checkIfAlreadyRejected(driverId, estimateRequestId);
+}
+
+// 견적 요청 반려 처리
+async function rejectEstimateRequest(driverId: string, estimateRequestId: string, reason: string) {
+  return estimateReqRepository.rejectEstimateRequest(driverId, estimateRequestId, reason);
+}
+
 export default {
   linkCustomerAddress,
   getCustomerAddressesByRole,
   createEstimateRequest,
   createDesignatedEstimateRequest,
   getActiveEstimateRequest,
-  findRequestById
+  findRequestById,
+  checkIfAlreadyRejected,
+  rejectEstimateRequest
 };
