@@ -354,11 +354,9 @@ async function getEstimateDetail(driverId: string, estimateId: string) {
 }
 
 async function getRejectedEstimateRequests(driverId: string) {
-  return await prisma.estimate.findMany({
+  return await prisma.driverEstimateRejection.findMany({
     where: {
-      driverId,
-      status: "REJECTED",
-      deletedAt: null
+      driverId
     },
     include: {
       estimateRequest: {
@@ -374,6 +372,9 @@ async function getRejectedEstimateRequests(driverId: string) {
           toAddress: true
         }
       }
+    },
+    orderBy: {
+      createdAt: 'desc'
     }
   });
 }
