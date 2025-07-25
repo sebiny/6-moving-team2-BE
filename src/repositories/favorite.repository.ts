@@ -1,15 +1,58 @@
 import prisma from "../config/prisma";
 
+type FavoriteDriverWithDetails = {
+  id: string;
+  customerId: string;
+  driverId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+  driver: {
+    id: string;
+    nickname: string;
+    shortIntro: string;
+    detailIntro: string;
+    moveType: string[];
+    career: number;
+    work: number;
+    profileImage: string | null;
+    authUser: {
+      name: string;
+    };
+    _count: {
+      reviewsReceived: number;
+      favorite: number;
+    };
+  };
+};
+
 //찜한 기사님 불러오기
-async function getAllFavoriteDrivers(userId: string, page: number, pageSize: number) {
-  const skip = (page - 1) * pageSize;
-  const favoriteDrivers = await prisma.favorite.findMany({
+async function getAllFavoriteDrivers(userId: string, page?: number | null, pageSize?: number | null) {
+  const options: any = {
     where: { customerId: userId },
-    skip: skip,
-    take: pageSize,
-    include: { driver: { include: { _count: { select: { reviewsReceived: true, favorite: true } } } } }
-  });
-  const data = favoriteDrivers.map((favorite) => {
+    include: {
+      driver: {
+        include: {
+          authUser: true,
+          _count: {
+            select: {
+              reviewsReceived: true,
+              favorite: true
+            }
+          }
+        }
+      }
+    }
+  };
+
+  if (page && pageSize) {
+    options.skip = (page - 1) * pageSize;
+    options.take = pageSize;
+  }
+
+  const favoriteDrivers = (await prisma.favorite.findMany(options)) as FavoriteDriverWithDetails[];
+
+  return favoriteDrivers.map((favorite) => {
     const { driver } = favorite;
     return {
       ...driver,
@@ -17,8 +60,6 @@ async function getAllFavoriteDrivers(userId: string, page: number, pageSize: num
       favoriteCount: driver._count.favorite
     };
   });
-
-  return data;
 }
 
 //찜하기
