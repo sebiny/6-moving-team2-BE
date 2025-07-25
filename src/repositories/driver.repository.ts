@@ -94,6 +94,7 @@ async function updateDriver(id: string, data: EditDataType) {
 
 // 지정 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)
 async function getDesignatedEstimateRequests(driverId: string) {
+  // 1. 모든 지정 견적 요청 조회
   const requests = await prisma.estimateRequest.findMany({
     where: {
       designatedDrivers: {
@@ -114,17 +115,31 @@ async function getDesignatedEstimateRequests(driverId: string) {
     }
   });
 
-  // 기사가 반려한 견적 요청 제외
+  // 2. 기사님이 반려한 요청 조회
   const driverRejections = await prisma.driverEstimateRejection.findMany({
     where: { driverId },
     select: { estimateRequestId: true }
   });
+  const rejectedRequestIds = driverRejections.map((r) => r.estimateRequestId);
 
-  const rejectedRequestIds = driverRejections.map((rejection) => rejection.estimateRequestId);
+  // 3. 기사님이 이미 견적을 보낸 요청 조회 (PROPOSED or ACCEPTED)
+  const driverEstimates = await prisma.estimate.findMany({
+    where: {
+      driverId,
+      status: {
+        in: ["PROPOSED", "ACCEPTED"]
+      }
+    },
+    select: { estimateRequestId: true }
+  });
+  const respondedRequestIds = driverEstimates.map((e) => e.estimateRequestId);
 
-  const filteredRequests = requests.filter((request) => !rejectedRequestIds.includes(request.id));
+  // 4. 반려 + 응답한 요청 제외
+  const filteredRequests = requests.filter(
+    (request) => !rejectedRequestIds.includes(request.id) && !respondedRequestIds.includes(request.id)
+  );
 
-  // 지정견적 요청임을 표시
+  // 5. isDesignated: true 표시
   return filteredRequests.map((request) => ({
     ...request,
     isDesignated: true
