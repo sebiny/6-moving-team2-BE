@@ -344,7 +344,13 @@ async function getEstimateDetail(driverId: string, estimateId: string) {
     include: {
       estimateRequest: {
         include: {
-          customer: true,
+          customer: {
+            include: {
+              authUser: {
+                select: { name: true }
+              }
+            }
+          },
           fromAddress: true,
           toAddress: true
         }
@@ -374,7 +380,7 @@ async function getRejectedEstimateRequests(driverId: string) {
       }
     },
     orderBy: {
-      createdAt: 'desc'
+      createdAt: "desc"
     }
   });
 }
