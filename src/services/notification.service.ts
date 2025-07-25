@@ -1,5 +1,5 @@
 import { sseEmitters } from "../sse/sseEmitters";
-import notificationRepository from "../repositories/notification.repository";
+import notificationRepository from "../repositories/notification.Repository";
 import notificationMessage from "../utils/notificationMessage";
 import { AuthUser, Notification } from "@prisma/client";
 import driverRepository from "../repositories/driver.repository";
