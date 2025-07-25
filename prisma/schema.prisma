@@ -41,7 +41,7 @@ enum RequestStatus {
   PENDING // (시스템상)고객이 이사요청서를 작성한 직후, 견적 기다리는상태
   APPROVED // (고객) 고객이 기사님의견적중 하나견적을 수락함
   COMPLETED // (관리자/기사님수동) 실제 이사가 완료됨
-  REJECTED // (관리자/지정기사) 관리자/기사가 고객요청서를 반려한 상태
+  REJECTED // (관리자/지정기사) 관리자/기사가 고객요청서를 반려한 상태(기사님이 고객의 견적 요청서 자체를 반려하는 경우)
   CANCELLED // (고객) 고객이 이사요청을 직접 취소
   EXPIRED // (시스템) 견적수락기한이 지나 자동 만료
 }
@@ -50,7 +50,7 @@ enum RequestStatus {
 enum EstimateStatus {
   PROPOSED // (기사) 기사님이 기사견적을 보낸 직후 / 기사 제안 상태
   ACCEPTED // (고객) 고객이 해당 견적을 선택함
-  REJECTED // (기사) 기사님이 직접 반려처리함
+  REJECTED // (기사) 기사님이 직접 반려처리함(기사님이 자신이 제안한 견적을 직접 반려하는 경우)
   AUTO_REJECTED // (시스템) 고객이 다른견적을 수락했기 때문에 자동 반려됨
 }
 
@@ -155,18 +155,18 @@ model Customer {
 
 // 기사님 상세 정보
 model Driver {
-  id                 String              @id @default(cuid())
-  authUserId         String              @unique // AuthUser와 연결
-  nickname           String              @unique // 닉네임
+  id                 String                    @id @default(cuid())
+  authUserId         String                    @unique // AuthUser와 연결
+  nickname           String                    @unique // 닉네임
   profileImage       String? // 프로필 이미지
   shortIntro         String // 간단 소개 필수값으로 변경
   detailIntro        String // 상세 소개 필수값으로 변경
   moveType           MoveType[] // 제공 서비스 필수값으로 변경
   career             Int //String에서 Int로 타입만 변경 필수값으로 변경
-  work               Int                 @default(0) //추가
+  work               Int                       @default(0) //추가
   deletedAt          DateTime? // 소프트 삭제
   designatedRequests DesignatedDriver[] // 지정 요청받은 견적 요청 목록
-  authUser           AuthUser            @relation(fields: [authUserId], references: [id])
+  authUser           AuthUser                  @relation(fields: [authUserId], references: [id])
   serviceAreas       DriverServiceArea[] // 활동 가능 지역
   estimates          Estimate[] // 견적 응답 목록
   reviewsReceived    Review[] // 받은 리뷰
