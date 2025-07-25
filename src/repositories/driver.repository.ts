@@ -114,8 +114,18 @@ async function getDesignatedEstimateRequests(driverId: string) {
     }
   });
 
+  // 기사가 반려한 견적 요청 제외
+  const driverRejections = await prisma.driverEstimateRejection.findMany({
+    where: { driverId },
+    select: { estimateRequestId: true }
+  });
+
+  const rejectedRequestIds = driverRejections.map((rejection) => rejection.estimateRequestId);
+
+  const filteredRequests = requests.filter((request) => !rejectedRequestIds.includes(request.id));
+
   // 지정견적 요청임을 표시
-  return requests.map((request) => ({
+  return filteredRequests.map((request) => ({
     ...request,
     isDesignated: true
   }));
@@ -164,15 +174,30 @@ async function getAvailableEstimateRequests(driverId: string) {
     }
   });
 
-  // 3. 기사가 이미 응답한 요청 제외
+  // 3. 기사가 이미 응답하거나 반려한 요청 제외
   const driverEstimates = await prisma.estimate.findMany({
+    where: {
+      driverId,
+      OR: [
+        { status: "PROPOSED" }, // 제안한 견적
+        { status: "REJECTED" } // 반려한 견적
+      ]
+    },
+    select: { estimateRequestId: true }
+  });
+
+  // 4. 기사가 반려한 견적 요청 제외
+  const driverRejections = await prisma.driverEstimateRejection.findMany({
     where: { driverId },
     select: { estimateRequestId: true }
   });
 
   const respondedRequestIds = driverEstimates.map((estimate) => estimate.estimateRequestId);
+  const rejectedRequestIds = driverRejections.map((rejection) => rejection.estimateRequestId);
 
-  const filteredRequests = availableRequests.filter((request) => !respondedRequestIds.includes(request.id));
+  const filteredRequests = availableRequests.filter(
+    (request) => !respondedRequestIds.includes(request.id) && !rejectedRequestIds.includes(request.id)
+  );
 
   // 일반견적 요청임을 표시
   return filteredRequests.map((request) => ({
