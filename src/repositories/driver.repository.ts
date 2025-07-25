@@ -1,6 +1,7 @@
 import { MoveType, RegionType } from "@prisma/client";
 import prisma from "../config/prisma";
 import { getDriversByRegionType } from "../types/notification.type";
+import { CustomError } from "../utils/customError";
 
 export type EditDataType = {
   name?: string;
@@ -239,11 +240,40 @@ async function findEstimateByDriverAndRequest(driverId: string, estimateRequestI
 }
 
 async function createEstimate(data: { driverId: string; estimateRequestId: string; price: number; comment?: string }) {
-  return prisma.estimate.create({
-    data: {
-      ...data,
-      status: "PROPOSED"
+  return prisma.$transaction(async (tx) => {
+    // 지정 요청인지 확인
+    const designatedDrivers = await tx.designatedDriver.findMany({
+      where: { estimateRequestId: data.estimateRequestId }
+    });
+
+    const isDesignatedRequest = designatedDrivers.length > 0;
+    const limit = isDesignatedRequest ? 3 : 5; // 지정 요청: 3개, 일반 요청: 5개
+
+    // 현재 응답 수 계산 (견적 + 반려)
+    const [estimateCount, rejectionCount] = await Promise.all([
+      tx.estimate.count({
+        where: { estimateRequestId: data.estimateRequestId, deletedAt: null }
+      }),
+      tx.driverEstimateRejection.count({
+        where: { estimateRequestId: data.estimateRequestId }
+      })
+    ]);
+
+    const currentCount = estimateCount + rejectionCount;
+
+    if (currentCount >= limit) {
+      throw new CustomError(
+        400,
+        isDesignatedRequest ? "지정된 모든 기사님이 응답하셨습니다." : "이미 최대 응답 가능 기사님 수를 초과했습니다."
+      );
     }
+
+    return tx.estimate.create({
+      data: {
+        ...data,
+        status: "PROPOSED"
+      }
+    });
   });
 }
 

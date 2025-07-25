@@ -32,12 +32,15 @@ async function findActiveEstimateRequest(customerId: string) {
     where: {
       customerId,
       deletedAt: null,
-      moveDate: {
-        gt: new Date()
-      },
-      status: {
-        in: ["PENDING", "APPROVED"]
-      }
+      OR: [
+        { status: "PENDING" },
+        {
+          status: "APPROVED",
+          moveDate: {
+            gt: new Date()
+          }
+        }
+      ]
     },
     include: { designatedDrivers: true } // 지정 요청 기사 목록 포함
   });

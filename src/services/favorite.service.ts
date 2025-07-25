@@ -1,6 +1,6 @@
 import favoriteRepository from "../repositories/favorite.repository";
 
-async function getAllFavoriteDrivers(userId: string, page: number, pageSize: number) {
+async function getAllFavoriteDrivers(userId: string, page?: number | null, pageSize?: number | null) {
   return await favoriteRepository.getAllFavoriteDrivers(userId, page, pageSize);
 }
 
