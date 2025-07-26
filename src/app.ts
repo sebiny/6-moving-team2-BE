@@ -17,6 +17,8 @@ import { errorHandler } from "./middlewares/errorHandler";
 import notificationRouter from "./routes/notification.router";
 import customerEstimateRouter from "./routes/customerEstimate.router";
 import driverPrivateRouter from "./routes/driverPrivate.router";
+import cron from "node-cron";
+import { sendMoveDayReminders } from "./utils/moveReminder";
 
 const app = express();
 app.use(
@@ -52,6 +54,11 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(yaml.parse(fs.readFileSync(path.join(path.resolve(), "openapi.yaml"), "utf-8")))
 );
+
+// 00:00:00 - 당일 이사 중 ACCEPTED인 Estimate 수집
+cron.schedule("0 0 * * *", sendMoveDayReminders, {
+  timezone: "Asia/Seoul" // 시간대(Timezone)를 명시하는 것이 좋습니다.
+});
 
 app.use(errorHandler as express.ErrorRequestHandler);
 
