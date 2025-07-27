@@ -1,52 +1,124 @@
+import { skip } from "@prisma/client/runtime/library";
 import prisma from "../config/prisma";
 import { CreateReviewInput, ReviewInput } from "../types/review.type";
 import { CustomError } from "../utils/customError";
 
 //작성가능한 견적(리뷰)
-async function findAllCompletedEstimateRequest(customerId: string) {
-  return prisma.estimateRequest.findMany({
-    where: {
-      customerId,
-      status: "APPROVED",
-      review: null
-    },
-    select: {
-      id: true,
-      moveType: true,
-      moveDate: true,
-      fromAddress: {
-        select: {
-          region: true,
-          district: true
-        }
+async function findAllCompletedEstimateRequest(customerId: string, page: number) {
+  const PAGE_SIZE = 3;
+  const skip = (page - 1) * PAGE_SIZE;
+  const [reviewableEstimates, totalCount] = await Promise.all([
+    prisma.estimateRequest.findMany({
+      where: {
+        customerId,
+        status: "APPROVED",
+        review: null
       },
-      toAddress: {
-        select: {
-          region: true,
-          district: true
-        }
-      },
-      estimates: {
-        where: {
-          status: "ACCEPTED"
+      select: {
+        id: true,
+        moveType: true,
+        moveDate: true,
+        fromAddress: {
+          select: {
+            region: true,
+            district: true
+          }
         },
-        select: {
-          id: true,
-          price: true,
-          driver: {
-            select: {
-              id: true,
-              nickname: true,
-              profileImage: true,
-              shortIntro: true
+        toAddress: {
+          select: {
+            region: true,
+            district: true
+          }
+        },
+        estimates: {
+          where: {
+            status: "ACCEPTED"
+          },
+          select: {
+            id: true,
+            price: true,
+            driver: {
+              select: {
+                id: true,
+                nickname: true,
+                profileImage: true,
+                shortIntro: true
+              }
             }
           }
         }
+      },
+      skip: skip,
+      take: PAGE_SIZE
+    }),
+    prisma.estimateRequest.count({
+      where: {
+        customerId,
+        status: "APPROVED",
+        review: null
       }
-    }
-  });
+    })
+  ]);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  return { reviewableEstimates, totalCount, totalPages };
 }
 
+//내가 쓴 리뷰 가져오기
+async function getMyReviews(customerId: string, page: number) {
+  const PAGE_SIZE = 3;
+  const skip = (page - 1) * PAGE_SIZE;
+
+  const [reviews, totalCount] = await Promise.all([
+    prisma.review.findMany({
+      where: { customerId },
+      select: {
+        id: true,
+        rating: true,
+        content: true,
+        driver: {
+          select: {
+            averageRating: true,
+            nickname: true,
+            profileImage: true,
+            shortIntro: true
+          }
+        },
+        request: {
+          select: {
+            moveDate: true,
+            moveType: true,
+            fromAddress: {
+              select: {
+                region: true,
+                district: true
+              }
+            },
+            toAddress: {
+              select: {
+                region: true,
+                district: true
+              }
+            }
+          }
+        }
+      },
+      skip: skip,
+      take: PAGE_SIZE
+    }),
+    prisma.review.count({
+      where: { customerId }
+    })
+  ]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  return {
+    reviews,
+    totalCount,
+    totalPages
+  };
+}
 //리뷰 작성하기
 async function createReview(data: CreateReviewInput) {
   return prisma.review.create({ data });
@@ -92,43 +164,6 @@ async function findAllByDriver(driverId: string) {
   return prisma.review.findMany({
     where: { driverId },
     select: { rating: true }
-  });
-}
-
-//내가 쓴 리뷰 가져오기
-async function getMyReviews(customerId: string) {
-  return prisma.review.findMany({
-    where: { customerId },
-    select: {
-      id: true,
-      rating: true,
-      content: true,
-      driver: {
-        select: {
-          averageRating: true,
-          nickname: true,
-          profileImage: true,
-          shortIntro: true
-        }
-      },
-      request: {
-        select: {
-          moveDate: true,
-          fromAddress: {
-            select: {
-              region: true,
-              district: true
-            }
-          },
-          toAddress: {
-            select: {
-              region: true,
-              district: true
-            }
-          }
-        }
-      }
-    }
   });
 }
 

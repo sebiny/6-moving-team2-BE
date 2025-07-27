@@ -6,14 +6,30 @@ import { CustomError } from "../utils/customError";
 // 작성 가능한 견적(리뷰)
 const getAllCompletedEstimate = asyncHandler(async (req: Request, res: Response) => {
   const customerId = req.user?.customerId;
-  console.log(customerId);
+  const page = Number(req.query.page) || 1;
   if (!customerId) throw new CustomError(400, "고객 정보를 확인할 수 없습니다.");
 
-  const estimates = await reviewService.getAllCompleted(customerId);
-  if (!estimates || estimates.length === 0) {
+  const result = await reviewService.getAllCompleted(customerId, Number(page));
+
+  if (!result.reviewableEstimates || result.reviewableEstimates.length === 0) {
     throw new CustomError(404, "작성 가능한 리뷰가 없습니다.");
   }
-  res.status(200).json(estimates);
+
+  res.status(200).json(result);
+});
+
+// 내가 쓴 리뷰 가져오기
+const getMyReviews = asyncHandler(async (req: Request, res: Response) => {
+  const customerId = req.user?.customerId;
+  const { page } = req.query;
+  if (!customerId) throw new CustomError(400, "고객 정보를 확인할 수 없습니다.");
+
+  const result = await reviewService.getMyReviews(customerId, Number(page));
+  if (!result.reviews || result.reviews.length === 0) {
+    throw new CustomError(404, "작성한 리뷰가 없습니다.");
+  }
+
+  res.status(200).json(result); // result는 { reviews, totalCount, totalPages }
 });
 
 // 리뷰 작성하기
@@ -56,19 +72,6 @@ const deleteReview = asyncHandler(async (req: Request, res: Response) => {
     console.error("리뷰 삭제 중 에러:", error.message, error);
     throw new CustomError(500, "리뷰 삭제 실패 (서버 내부 오류)");
   }
-});
-
-// 내가 쓴 리뷰 가져오기
-const getMyReviews = asyncHandler(async (req: Request, res: Response) => {
-  const customerId = req.user?.customerId;
-  if (!customerId) throw new CustomError(400, "고객 정보를 확인할 수 없습니다.");
-
-  const reviews = await reviewService.getMyReviews(customerId);
-  if (!reviews || reviews.length === 0) {
-    throw new CustomError(404, "작성한 리뷰가 없습니다.");
-  }
-
-  res.status(200).json(reviews);
 });
 
 export default {
