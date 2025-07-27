@@ -4,8 +4,13 @@ import { CreateReviewInput, ReviewInput } from "../types/review.type";
 import { CustomError } from "../utils/customError";
 
 //작성 가능한 견적(리뷰)
-async function getAllCompleted(customerId: string) {
-  return reviewRepository.findAllCompletedEstimateRequest(customerId);
+async function getAllCompleted(customerId: string, page: number) {
+  return reviewRepository.findAllCompletedEstimateRequest(customerId, page);
+}
+
+//내가 쓴 리뷰
+async function getMyReviews(customerId: string, page: number) {
+  return reviewRepository.getMyReviews(customerId, page);
 }
 
 //리뷰 작성
@@ -56,8 +61,4 @@ async function deleteReview(reviewId: string, customerId: string) {
   return;
 }
 
-//내가 쓴 리뷰
-async function getMyReviews(customerId: string) {
-  return reviewRepository.getMyReviews(customerId);
-}
 export default { getAllCompleted, createReview, getMyReviews, deleteReview };
