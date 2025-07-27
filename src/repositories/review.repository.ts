@@ -1,50 +1,124 @@
+import { skip } from "@prisma/client/runtime/library";
 import prisma from "../config/prisma";
-import { CreateReviewInput } from "../types/review.type";
+import { CreateReviewInput, ReviewInput } from "../types/review.type";
+import { CustomError } from "../utils/customError";
 
 //작성가능한 견적(리뷰)
-async function findAllCompletedEstimateRequest(customerId: string) {
-  return prisma.estimateRequest.findMany({
-    where: {
-      customerId,
-      status: "APPROVED"
-    },
-    select: {
-      id: true,
-      moveType: true,
-      moveDate: true,
-      fromAddress: {
-        select: {
-          region: true,
-          district: true
-        }
+async function findAllCompletedEstimateRequest(customerId: string, page: number) {
+  const PAGE_SIZE = 3;
+  const skip = (page - 1) * PAGE_SIZE;
+  const [reviewableEstimates, totalCount] = await Promise.all([
+    prisma.estimateRequest.findMany({
+      where: {
+        customerId,
+        status: "APPROVED",
+        review: null
       },
-      toAddress: {
-        select: {
-          region: true,
-          district: true
-        }
-      },
-      estimates: {
-        where: {
-          status: "ACCEPTED"
+      select: {
+        id: true,
+        moveType: true,
+        moveDate: true,
+        fromAddress: {
+          select: {
+            region: true,
+            district: true
+          }
         },
-        select: {
-          id: true,
-          price: true,
-          driver: {
-            select: {
-              id: true,
-              nickname: true,
-              profileImage: true,
-              shortIntro: true
+        toAddress: {
+          select: {
+            region: true,
+            district: true
+          }
+        },
+        estimates: {
+          where: {
+            status: "ACCEPTED"
+          },
+          select: {
+            id: true,
+            price: true,
+            driver: {
+              select: {
+                id: true,
+                nickname: true,
+                profileImage: true,
+                shortIntro: true
+              }
             }
           }
         }
+      },
+      skip: skip,
+      take: PAGE_SIZE
+    }),
+    prisma.estimateRequest.count({
+      where: {
+        customerId,
+        status: "APPROVED",
+        review: null
       }
-    }
-  });
+    })
+  ]);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  return { reviewableEstimates, totalCount, totalPages };
 }
 
+//내가 쓴 리뷰 가져오기
+async function getMyReviews(customerId: string, page: number) {
+  const PAGE_SIZE = 3;
+  const skip = (page - 1) * PAGE_SIZE;
+
+  const [reviews, totalCount] = await Promise.all([
+    prisma.review.findMany({
+      where: { customerId },
+      select: {
+        id: true,
+        rating: true,
+        content: true,
+        driver: {
+          select: {
+            averageRating: true,
+            nickname: true,
+            profileImage: true,
+            shortIntro: true
+          }
+        },
+        request: {
+          select: {
+            moveDate: true,
+            moveType: true,
+            fromAddress: {
+              select: {
+                region: true,
+                district: true
+              }
+            },
+            toAddress: {
+              select: {
+                region: true,
+                district: true
+              }
+            }
+          }
+        }
+      },
+      skip: skip,
+      take: PAGE_SIZE
+    }),
+    prisma.review.count({
+      where: { customerId }
+    })
+  ]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  return {
+    reviews,
+    totalCount,
+    totalPages
+  };
+}
 //리뷰 작성하기
 async function createReview(data: CreateReviewInput) {
   return prisma.review.create({ data });
@@ -59,37 +133,37 @@ async function findByCustomerAndEstimate(customerId: string, estimateRequestId: 
   });
 }
 
-//내가 쓴 리뷰 가져오기
-async function getMyReviews(customerId: string) {
-  return prisma.review.findMany({
+//리뷰 삭제
+async function deleteReviewById(reviewId: string, customerId: string) {
+  // 리뷰 먼저 찾고
+  const review = await prisma.review.findUnique({
+    where: { id: reviewId }
+  });
+
+  if (!review || review.customerId !== customerId) {
+    throw new CustomError(403, "삭제 권한이 없습니다.");
+  }
+
+  // 그다음 삭제
+  await prisma.review.delete({
+    where: { id: reviewId }
+  });
+}
+async function findReviewById(reviewId: string, customerId: string) {
+  return prisma.review.findUnique({
+    where: { id: reviewId },
     select: {
-      rating: true,
-      content: true,
-      driver: {
-        select: {
-          nickname: true,
-          profileImage: true,
-          shortIntro: true
-        }
-      },
-      request: {
-        select: {
-          moveDate: true,
-          fromAddress: {
-            select: {
-              region: true,
-              district: true
-            }
-          },
-          toAddress: {
-            select: {
-              region: true,
-              district: true
-            }
-          }
-        }
-      }
+      driverId: true,
+      customerId: true
     }
+  });
+}
+
+//기사님 모든 리뷰 불러오기
+async function findAllByDriver(driverId: string) {
+  return prisma.review.findMany({
+    where: { driverId },
+    select: { rating: true }
   });
 }
 
@@ -97,7 +171,10 @@ export default {
   findAllCompletedEstimateRequest,
   createReview,
   getMyReviews,
-  findByCustomerAndEstimate
+  findByCustomerAndEstimate,
+  findAllByDriver,
+  deleteReviewById,
+  findReviewById
 };
 
 // EstimateRequest의 status가 COMLPETED면은 가져오기
