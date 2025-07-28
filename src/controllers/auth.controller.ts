@@ -161,7 +161,7 @@ const getMeName = asyncHandler(async (req: Request, res: Response) => {
     throw new CustomError(404, "사용자를 찾을 수 없습니다.");
   }
 
-  res.status(200).json({ name: user.name });
+  res.status(200).json({ name: user.name, profileImage: user.profileImage });
 });
 
 // 로그인된 유저 자세한 정보 조회
