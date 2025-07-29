@@ -37,6 +37,7 @@ async function findAllCompletedEstimateRequest(customerId: string, page: number)
           select: {
             id: true,
             price: true,
+            isDesignated: true,
             driver: {
               select: {
                 id: true,
@@ -88,6 +89,14 @@ async function getMyReviews(customerId: string, page: number) {
           select: {
             moveDate: true,
             moveType: true,
+            estimates: {
+              where: {
+                status: "ACCEPTED"
+              },
+              select: {
+                isDesignated: true
+              }
+            },
             fromAddress: {
               select: {
                 region: true,
