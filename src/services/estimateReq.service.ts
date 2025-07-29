@@ -16,12 +16,19 @@ async function getCustomerAddressesByRole(customerId: string, role: string) {
 
 // 일반 견적 요청 생성
 async function createEstimateRequest(data: CreateEstimateRequestInput) {
-  const { customerId } = data;
+  const { customerId, fromAddressId, toAddressId, moveDate } = data;
 
-  // 진행 중인 요청 확인
+  if (fromAddressId === toAddressId) {
+    throw new CustomError(400, "출발지와 도착지는 서로 달라야 합니다.");
+  }
+
+  if (moveDate < new Date()) {
+    throw new CustomError(400, "이전 날짜로 이사를 요청할 수 없습니다.");
+  }
+
   const active = await estimateReqRepository.findActiveEstimateRequest(customerId);
   if (active) {
-    throw new CustomError(409, "현재 진행 중인 이사 견적이 있습니다.");
+    throw new CustomError(409, "진행 중인 이사 견적이 있습니다.");
   }
 
   return estimateReqRepository.createEstimateRequest(data);
