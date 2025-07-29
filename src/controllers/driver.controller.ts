@@ -107,6 +107,16 @@ const createEstimate = asyncHandler(async (req, res) => {
     });
   }
 
+  // 완료된 견적 요청인지 확인 (이사일이 지난 경우)
+  const currentDate = new Date();
+  const moveDate = new Date(estimateRequest.moveDate);
+  if (moveDate < currentDate) {
+    return res.status(400).json({
+      message: "이사일이 지난 견적 요청에는 견적을 보낼 수 없습니다.",
+      moveDate: estimateRequest.moveDate
+    });
+  }
+
   // 중복 응답 방지
   const exists = await driverService.findEstimateByDriverAndRequest(driverId, requestId);
   if (exists) return res.status(409).json({ message: "이미 견적을 보냈습니다." });
@@ -166,6 +176,16 @@ const rejectEstimateRequest = asyncHandler(async (req, res) => {
     return res.status(400).json({
       message: "이 견적 요청은 더 이상 반려할 수 없습니다.",
       status: estimateRequest.status
+    });
+  }
+
+  // 완료된 견적 요청인지 확인 (이사일이 지난 경우)
+  const currentDate = new Date();
+  const moveDate = new Date(estimateRequest.moveDate);
+  if (moveDate < currentDate) {
+    return res.status(400).json({
+      message: "이사일이 지난 견적 요청에는 반려할 수 없습니다.",
+      moveDate: estimateRequest.moveDate
     });
   }
 
