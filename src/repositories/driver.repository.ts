@@ -36,10 +36,7 @@ async function getAllDrivers(options: optionsType, userId?: string) {
 
   const drivers = await prisma.driver.findMany({
     where: {
-      OR: [
-        { nickname: { contains: keyword, mode: "insensitive" } },
-        { shortIntro: { contains: keyword, mode: "insensitive" } }
-      ],
+      OR: [{ nickname: { contains: keyword, mode: "insensitive" } }],
       ...(service && { moveType: { has: service } }),
       ...(region && { serviceAreas: { some: { region } } })
     },
