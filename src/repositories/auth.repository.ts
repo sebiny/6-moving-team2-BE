@@ -44,13 +44,27 @@ async function findById(id: string): Promise<AuthUserWithProfile | null> {
 }
 
 // ID로 AuthUser의 이름만 조회
-async function findNameById(id: string): Promise<{ name: string } | null> {
-  return prisma.authUser.findUnique({
+async function findNameById(id: string): Promise<{ name: string; profileImage: string | null } | null> {
+  const user = await prisma.authUser.findUnique({
     where: { id },
     select: {
-      name: true
+      name: true,
+      customer: {
+        select: {
+          profileImage: true
+        }
+      },
+      driver: {
+        select: {
+          profileImage: true
+        }
+      }
     }
   });
+  if (!user) return null;
+
+  const profileImage = user.customer?.profileImage || user.driver?.profileImage || null;
+  return { name: user.name, profileImage };
 }
 
 // 소셜 로그인 providerId로 조회
