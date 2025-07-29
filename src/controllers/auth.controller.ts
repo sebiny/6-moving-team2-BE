@@ -150,7 +150,7 @@ const getMe = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // 로그인된 유저 이름 조회
-const getMeName = asyncHandler(async (req: Request, res: Response) => {
+const getMeName = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   if (!req.user) {
     throw new CustomError(401, "인증 정보가 없습니다.");
   }
@@ -158,7 +158,7 @@ const getMeName = asyncHandler(async (req: Request, res: Response) => {
   const user = await authRepository.findNameById(authUserId);
 
   if (!user) {
-    throw new CustomError(404, "사용자를 찾을 수 없습니다.");
+    return next(new CustomError(404, "사용자를 찾을 수 없습니다."));
   }
 
   res.status(200).json({ name: user.name, profileImage: user.profileImage });

@@ -4,10 +4,8 @@ import profileService from "../services/profile.service";
 import { CustomError } from "../utils/customError";
 import { UserType, MoveType, RegionType } from "@prisma/client";
 
-// profile.service 모듈을 모의(mock) 처리합니다.
 jest.mock("../services/profile.service");
 
-// 모의 처리된 모듈에 대한 타입 단언을 수행합니다.
 const mockedProfileService = profileService as jest.Mocked<typeof profileService>;
 
 describe("ProfileController", () => {
@@ -16,7 +14,6 @@ describe("ProfileController", () => {
   let mockNext: NextFunction;
 
   beforeEach(() => {
-    // 각 테스트가 실행되기 전에 모의 객체를 초기화합니다.
     jest.clearAllMocks();
 
     mockRequest = {
@@ -32,9 +29,8 @@ describe("ProfileController", () => {
     mockNext = jest.fn();
   });
 
-  // uploadProfileImage 함수 테스트
   describe("uploadProfileImage", () => {
-    it("이미지 업로드 성공 시 201 상태 코드와 이미지 URL을 반환해야 합니다.", async () => {
+    test("이미지 업로드 성공 시 201 상태 코드와 이미지 URL을 반환해야 합니다.", async () => {
       mockRequest.file = { location: "http://example.com/image.jpg" };
 
       await profileController.uploadProfileImage(mockRequest as Request, mockResponse as Response, mockNext);
@@ -47,7 +43,7 @@ describe("ProfileController", () => {
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it("업로드된 파일이 없는 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
+    test("업로드된 파일이 없는 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
       mockRequest.file = undefined;
 
       await profileController.uploadProfileImage(mockRequest as Request, mockResponse as Response, mockNext);
@@ -56,11 +52,10 @@ describe("ProfileController", () => {
     });
   });
 
-  // createCustomerProfile 함수 테스트
   describe("createCustomerProfile", () => {
     const customerProfileData = {
       profileImage: "image.jpg",
-      moveType: [MoveType.PACKING],
+      moveType: [MoveType.OFFICE],
       currentArea: "Seoul"
     };
     const serviceResult = {
@@ -69,7 +64,7 @@ describe("ProfileController", () => {
       refreshToken: "new-refresh-token"
     };
 
-    it("고객 프로필 생성 성공 시 토큰과 함께 프로필 정보를 반환해야 합니다.", async () => {
+    test("고객 프로필 생성 성공 시 토큰과 함께 프로필 정보를 반환해야 합니다.", async () => {
       mockRequest.user = { id: "user-id", userType: UserType.CUSTOMER };
       mockRequest.body = customerProfileData;
       mockedProfileService.createCustomerProfile.mockResolvedValue(serviceResult as any);
@@ -91,7 +86,7 @@ describe("ProfileController", () => {
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it("인증되지 않은 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
+    test("인증되지 않은 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
       mockRequest.user = undefined;
 
       await profileController.createCustomerProfile(mockRequest as Request, mockResponse as Response, mockNext);
@@ -100,12 +95,11 @@ describe("ProfileController", () => {
     });
   });
 
-  // updateCustomerProfile 함수 테스트
   describe("updateCustomerProfile", () => {
     const updateData = { name: "New Name" };
     const updatedProfile = { authUser: { id: "user-id", name: "New Name" } };
 
-    it("고객 프로필 수정 성공 시 수정된 데이터를 반환해야 합니다.", async () => {
+    test("고객 프로필 수정 성공 시 수정된 데이터를 반환해야 합니다.", async () => {
       mockRequest.user = { id: "user-id", userType: UserType.CUSTOMER };
       mockRequest.body = updateData;
       mockedProfileService.updateCustomerProfile.mockResolvedValue(updatedProfile as any);
@@ -117,7 +111,7 @@ describe("ProfileController", () => {
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it("인증되지 않은 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
+    test("인증되지 않은 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
       mockRequest.user = undefined;
 
       await profileController.updateCustomerProfile(mockRequest as Request, mockResponse as Response, mockNext);
@@ -126,7 +120,6 @@ describe("ProfileController", () => {
     });
   });
 
-  // createDriverProfile 함수 테스트
   describe("createDriverProfile", () => {
     const driverProfileData = {
       profileImage: "driver.jpg",
@@ -143,7 +136,7 @@ describe("ProfileController", () => {
       refreshToken: "new-refresh-token"
     };
 
-    it("기사 프로필 생성 성공 시 토큰과 함께 프로필 정보를 반환해야 합니다.", async () => {
+    test("기사 프로필 생성 성공 시 토큰과 함께 프로필 정보를 반환해야 합니다.", async () => {
       mockRequest.user = { id: "user-id", userType: UserType.DRIVER };
       mockRequest.body = driverProfileData;
       mockedProfileService.createDriverProfile.mockResolvedValue(serviceResult as any);
@@ -164,14 +157,21 @@ describe("ProfileController", () => {
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
+
+    test("인증되지 않은 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
+      mockRequest.user = undefined;
+
+      await profileController.createDriverProfile(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(new CustomError(401, "인증 정보가 없습니다."));
+    });
   });
 
-  // updateDriverProfile 함수 테스트
   describe("updateDriverProfile", () => {
     const updateData = { nickname: "Even Better Driver" };
     const updatedProfile = { id: "driver-profile-id", nickname: "Even Better Driver" };
 
-    it("기사 프로필 수정 성공 시 수정된 데이터를 반환해야 합니다.", async () => {
+    test("기사 프로필 수정 성공 시 수정된 데이터를 반환해야 합니다.", async () => {
       mockRequest.user = { id: "user-id", userType: UserType.DRIVER };
       mockRequest.body = updateData;
       mockedProfileService.updateDriverProfile.mockResolvedValue(updatedProfile as any);
@@ -182,14 +182,21 @@ describe("ProfileController", () => {
       expect(mockResponse.json).toHaveBeenCalledWith(updatedProfile);
       expect(mockNext).not.toHaveBeenCalled();
     });
+
+    test("인증되지 않은 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
+      mockRequest.user = undefined;
+
+      await profileController.updateDriverProfile(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(new CustomError(401, "인증 정보가 없습니다."));
+    });
   });
 
-  // updateDriverBasicProfile 함수 테스트
   describe("updateDriverBasicProfile", () => {
     const updateData = { name: "Driver New Name" };
     const updatedProfile = { authUser: { id: "user-id", name: "Driver New Name" } };
 
-    it("기사 기본 정보 수정 성공 시 수정된 데이터를 반환해야 합니다.", async () => {
+    test("기사 기본 정보 수정 성공 시 수정된 데이터를 반환해야 합니다.", async () => {
       mockRequest.user = { id: "user-id", userType: UserType.DRIVER };
       mockRequest.body = updateData;
       mockedProfileService.updateDriverBasicProfile.mockResolvedValue(updatedProfile as any);
@@ -199,6 +206,14 @@ describe("ProfileController", () => {
       expect(mockedProfileService.updateDriverBasicProfile).toHaveBeenCalledWith("user-id", expect.any(Object));
       expect(mockResponse.json).toHaveBeenCalledWith(updatedProfile);
       expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    test("인증되지 않은 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
+      mockRequest.user = undefined;
+
+      await profileController.updateDriverBasicProfile(mockRequest as Request, mockResponse as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(new CustomError(401, "인증 정보가 없습니다."));
     });
   });
 });
