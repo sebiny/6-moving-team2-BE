@@ -92,12 +92,13 @@ async function updateDriver(id: string, data: EditDataType) {
 
 // 지정 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)
 async function getDesignatedEstimateRequests(driverId: string) {
-  // 1. 모든 지정 견적 요청 조회
+  // 1. 모든 지정 견적 요청 조회 (완료되지 않은 것만)
   const requests = await prisma.estimateRequest.findMany({
     where: {
       designatedDrivers: {
         some: { driverId }
       },
+      status: { not: "COMPLETED" }, // 완료된 견적 제외
       deletedAt: null
     },
     include: {
@@ -112,6 +113,8 @@ async function getDesignatedEstimateRequests(driverId: string) {
       toAddress: true
     }
   });
+
+  console.log(`지정 견적 요청 조회: ${requests.length}개 (완료 제외)`);
 
   // 2. 기사님이 반려한 요청 조회
   const driverRejections = await prisma.driverEstimateRejection.findMany({
@@ -156,7 +159,7 @@ async function getAvailableEstimateRequests(driverId: string) {
     return [];
   }
 
-  // 2. 해당 지역의 일반 요청 조회 (지정되지 않은 요청)
+  // 2. 해당 지역의 일반 요청 조회 (지정되지 않은 요청, 완료되지 않은 것만)
   const availableRequests = await prisma.estimateRequest.findMany({
     where: {
       AND: [
@@ -171,6 +174,7 @@ async function getAvailableEstimateRequests(driverId: string) {
             none: {}
           }
         },
+        { status: { not: "COMPLETED" } }, // 완료된 견적 제외
         { deletedAt: null }
       ]
     },
@@ -302,22 +306,29 @@ async function getMyEstimates(driverId: string) {
           toAddress: true
         }
       }
+    },
+    orderBy: {
+      createdAt: "desc" // 최신순 정렬
     }
   });
 
-  // 견적 완료 상태 판단 로직 추가
+  // 견적 완료 상태 판단 로직
   const currentDate = new Date();
   return estimates.map((estimate) => {
     const { estimateRequest } = estimate;
     const moveDate = new Date(estimateRequest.moveDate);
 
     // 완료 상태 판단:
-    // 1. 확정 → 이사일 지남 (ACCEPTED 상태이면서 이사일이 지남)
-    // 2. 이사일 그냥 지남 (이사일이 지났지만 아직 확정되지 않음)
+    // 1. 스케줄러가 업데이트한 COMPLETED 상태 (우선순위)
+    // 2. ACCEPTED 상태이면서 이사일이 지남
+    // 3. 이사일이 지났지만 아직 확정되지 않음
     let completionStatus = null;
     let isCompleted = false;
 
-    if (estimate.status === "ACCEPTED" && moveDate < currentDate) {
+    if (estimateRequest.status === "COMPLETED") {
+      completionStatus = "COMPLETED";
+      isCompleted = true;
+    } else if (estimate.status === "ACCEPTED" && moveDate < currentDate) {
       completionStatus = "CONFIRMED_AND_PAST";
       isCompleted = true;
     } else if (moveDate < currentDate) {
