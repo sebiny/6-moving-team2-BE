@@ -93,6 +93,11 @@ const createEstimate = asyncHandler(async (req, res) => {
 
   if (!driverId) return res.status(401).json({ message: "Driver not authenticated" });
 
+  // price 검증
+  if (!price || price <= 0 || isNaN(price)) {
+    return res.status(400).json({ message: "유효한 견적가를 입력해주세요." });
+  }
+
   // 견적 요청 상태 검증
   const estimateRequest = await estimateReqService.findRequestById(requestId);
   if (!estimateRequest) {

@@ -5,11 +5,11 @@ export const updateCompletedEstimates = async (req: Request, res: Response, next
   try {
     const currentDate = new Date();
 
-    // 이사일이 지난 APPROVED 견적들을 COMPLETED로 변경
+    // 이사일이 지난 APPROVED 또는 PENDING 견적들을 COMPLETED로 변경
     const updateResult = await prisma.estimateRequest.updateMany({
       where: {
-        status: "APPROVED",
-        moveDate: { lt: currentDate },
+        status: { in: ["APPROVED", "PENDING"] },
+        moveDate: { lt: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()) }, // 오늘 자정 이전
         deletedAt: null
       },
       data: { status: "COMPLETED" }
