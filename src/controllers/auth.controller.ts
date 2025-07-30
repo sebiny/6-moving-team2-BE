@@ -44,13 +44,17 @@ const signUp = asyncHandler(async (req: Request, res: Response) => {
 
 // 로그인
 const logIn = asyncHandler(async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password, userType } = req.body;
 
-  if (!email || !password) {
-    throw new CustomError(422, "이메일과 비밀번호를 입력해주세요.");
+  if (!email || !password || !userType) {
+    throw new CustomError(422, "이메일, 비밀번호, 사용자 타입을 모두 입력해주세요.");
   }
 
-  const { accessToken, refreshToken, user } = await authService.signInUser(email, password);
+  if (![UserType.CUSTOMER, UserType.DRIVER].includes(userType)) {
+    throw new CustomError(422, "userType은 'CUSTOMER' 또는 'DRIVER' 여야 합니다.");
+  }
+
+  const { accessToken, refreshToken, user } = await authService.signInUser(email, password, userType);
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,

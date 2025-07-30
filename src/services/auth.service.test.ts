@@ -80,6 +80,7 @@ describe("AuthService", () => {
   describe("signInUser", () => {
     const email = "test@example.com";
     const password = "password123!";
+    const userType = UserType.CUSTOMER;
     const authUser = {
       id: "user-id",
       email,
@@ -96,7 +97,7 @@ describe("AuthService", () => {
       (mockedBcrypt.compare as jest.Mock).mockResolvedValue(true);
       (mockedJwt.sign as jest.Mock).mockReturnValueOnce(tokens.accessToken).mockReturnValueOnce(tokens.refreshToken);
 
-      const result = await authService.signInUser(email, password);
+      const result = await authService.signInUser(email, password, userType);
 
       expect(mockedAuthRepository.findByEmail).toHaveBeenCalledWith(email);
       expect(mockedBcrypt.compare).toHaveBeenCalledWith(password, authUser.password);
@@ -108,7 +109,7 @@ describe("AuthService", () => {
     test("사용자를 찾을 수 없는 경우 CustomError를 던져야 합니다.", async () => {
       mockedAuthRepository.findByEmail.mockResolvedValue(null);
 
-      await expect(authService.signInUser(email, password)).rejects.toThrow(
+      await expect(authService.signInUser(email, password, userType)).rejects.toThrow(
         new CustomError(401, "이메일 또는 비밀번호가 일치하지 않습니다.")
       );
     });
@@ -117,8 +118,33 @@ describe("AuthService", () => {
       mockedAuthRepository.findByEmail.mockResolvedValue(authUser as any);
       (mockedBcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(authService.signInUser(email, password)).rejects.toThrow(
+      await expect(authService.signInUser(email, password, userType)).rejects.toThrow(
         new CustomError(401, "이메일 또는 비밀번호가 일치하지 않습니다.")
+      );
+    });
+
+    test("비밀번호가 일치하지만 고객이 기사로 로그인 시도 시 CustomError를 던져야 합니다.", async () => {
+      // authUser는 CUSTOMER 타입
+      mockedAuthRepository.findByEmail.mockResolvedValue(authUser as any);
+      (mockedBcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      await expect(authService.signInUser(email, password, UserType.DRIVER)).rejects.toThrow(
+        new CustomError(403, "고객 페이지에서 로그인해주세요.")
+      );
+    });
+
+    test("비밀번호가 일치하지만 기사가 고객으로 로그인 시도 시 CustomError를 던져야 합니다.", async () => {
+      const driverAuthUser = {
+        ...authUser,
+        userType: UserType.DRIVER,
+        customer: null,
+        driver: { id: "driver-id" }
+      };
+      mockedAuthRepository.findByEmail.mockResolvedValue(driverAuthUser as any);
+      (mockedBcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      await expect(authService.signInUser(email, password, UserType.CUSTOMER)).rejects.toThrow(
+        new CustomError(403, "기사 페이지에서 로그인해주세요.")
       );
     });
 
@@ -126,7 +152,7 @@ describe("AuthService", () => {
       const userWithoutPassword = { ...authUser, password: null };
       mockedAuthRepository.findByEmail.mockResolvedValue(userWithoutPassword as any);
 
-      await expect(authService.signInUser(email, password)).rejects.toThrow(
+      await expect(authService.signInUser(email, password, userType)).rejects.toThrow(
         new CustomError(401, "이메일 또는 비밀번호가 일치하지 않습니다.")
       );
     });

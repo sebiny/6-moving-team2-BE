@@ -77,7 +77,8 @@ describe("AuthController", () => {
     test("로그인 성공 시 리프레시 토큰을 쿠키에 설정하고, 액세스 토큰과 유저 정보를 반환해야 합니다.", async () => {
       mockRequest.body = {
         email: "test@example.com",
-        password: "password123"
+        password: "password123",
+        userType: UserType.CUSTOMER
       };
       const loginResult = {
         accessToken: "fake-access-token",
@@ -94,7 +95,7 @@ describe("AuthController", () => {
 
       await authController.logIn(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockedAuthService.signInUser).toHaveBeenCalledWith("test@example.com", "password123");
+      expect(mockedAuthService.signInUser).toHaveBeenCalledWith("test@example.com", "password123", UserType.CUSTOMER);
       expect(mockResponse.cookie).toHaveBeenCalledWith("refreshToken", loginResult.refreshToken, {
         httpOnly: true,
         path: "/",
@@ -105,13 +106,21 @@ describe("AuthController", () => {
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    test("이메일이나 비밀번호가 누락된 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
-      mockRequest.body = { email: "test@example.com" };
+    test("이메일, 비밀번호, 사용자 타입 중 하나라도 누락된 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
+      mockRequest.body = { email: "test@example.com", password: "password123" };
 
       await authController.logIn(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockNext).toHaveBeenCalledWith(new CustomError(422, "이메일과 비밀번호를 입력해주세요."));
+      expect(mockNext).toHaveBeenCalledWith(new CustomError(422, "이메일, 비밀번호, 사용자 타입을 모두 입력해주세요."));
     });
+  });
+
+  test("userType이 유효하지 않은 경우 CustomError와 함께 next를 호출해야 합니다.", async () => {
+    mockRequest.body = { email: "test@example.com", password: "password123", userType: "INVALID_TYPE" };
+
+    await authController.logIn(mockRequest as Request, mockResponse as Response, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(new CustomError(422, "userType은 'CUSTOMER' 또는 'DRIVER' 여야 합니다."));
   });
 
   describe("logOut", () => {

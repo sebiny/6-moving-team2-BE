@@ -115,16 +115,28 @@ async function signUpUser(data: SignUpUserData): Promise<Omit<AuthUser, "passwor
 }
 
 // 로그인
-async function signInUser(email: string, passwordInput: string): Promise<SignInResponse> {
+async function signInUser(email: string, passwordInput: string, userType: UserType): Promise<SignInResponse> {
   const authUser = await authRepository.findByEmail(email);
 
+  // 1. 유저 존재 여부 및 비밀번호 설정 여부 확인
   if (!authUser || !authUser.password) {
     throw new CustomError(401, "이메일 또는 비밀번호가 일치하지 않습니다.");
   }
 
+  // 2. 비밀번호 일치 여부 확인
   const isPasswordValid = await bcrypt.compare(passwordInput, authUser.password);
   if (!isPasswordValid) {
     throw new CustomError(401, "이메일 또는 비밀번호가 일치하지 않습니다.");
+  }
+
+  // 3. 사용자 유형 일치 여부 확인
+  if (authUser.userType !== userType) {
+    if (authUser.userType === UserType.CUSTOMER) {
+      throw new CustomError(403, "고객 페이지에서 로그인해주세요.");
+    } else {
+      // authUser.userType === UserType.DRIVER
+      throw new CustomError(403, "기사 페이지에서 로그인해주세요.");
+    }
   }
 
   const payload: TokenUserPayload = {
