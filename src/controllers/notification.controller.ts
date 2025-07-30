@@ -14,7 +14,8 @@ export const connectSse = (req: Request, res: Response) => {
   res.set({
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
-    Connection: "keep-alive"
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no"
   });
   res.flushHeaders();
 
@@ -24,12 +25,19 @@ export const connectSse = (req: Request, res: Response) => {
   const pingInterval = setInterval(() => {
     res.write("event: ping\n");
     res.write(`data: keepalive\n\n`);
-  }, 1000 * 120); // 2분(120초)마다 ping (타임아웃보다 짧게)
+  }, 1000 * 90); // 2분(120초)마다 ping (타임아웃보다 짧게)
 
-  req.on("close", () => {
+  // 연결 종료 처리
+  const cleanup = () => {
     clearInterval(pingInterval);
     delete sseEmitters[userId];
-  });
+    console.log(`SSE 연결 정리됨: ${userId}`);
+  };
+
+  req.on("close", cleanup);
+  req.on("error", cleanup);
+  res.on("close", cleanup);
+  res.on("error", cleanup);
 };
 
 // 알림 리스트 조회
