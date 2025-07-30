@@ -5,7 +5,6 @@ import prisma from "../config/prisma";
 import authRepository from "./auth.repository";
 import { AuthProvider, UserType } from "@prisma/client";
 
-// Prisma 클라이언트를 모의(mock) 처리합니다.
 jest.mock("../config/prisma", () => ({
   __esModule: true,
   default: mockDeep<typeof prisma>()
@@ -21,9 +20,8 @@ describe("AuthRepository", () => {
     mockReset(mockPrisma);
   });
 
-  // findByEmail 함수 테스트
   describe("findByEmail", () => {
-    it("주어진 이메일로 AuthUser를 프로필과 함께 찾아야 합니다.", async () => {
+    test("주어진 이메일로 AuthUser를 프로필과 함께 찾아야 합니다.", async () => {
       const expectedUser = { id: authUserId, email, customer: { id: "cust-1" }, driver: null };
       mockPrisma.authUser.findUnique.mockResolvedValue(expectedUser as any);
 
@@ -40,9 +38,8 @@ describe("AuthRepository", () => {
     });
   });
 
-  // findById 함수 테스트
   describe("findById", () => {
-    it("주어진 ID로 AuthUser를 프로필과 함께 찾아야 합니다.", async () => {
+    test("주어진 ID로 AuthUser를 프로필과 함께 찾아야 합니다.", async () => {
       const expectedUser = { id: authUserId, email, customer: { id: "cust-1" }, driver: null };
       mockPrisma.authUser.findUnique.mockResolvedValue(expectedUser as any);
 
@@ -67,9 +64,8 @@ describe("AuthRepository", () => {
     });
   });
 
-  // findNameById 함수 테스트
   describe("findNameById", () => {
-    it("고객 프로필 이미지가 있을 때 이름과 이미지 URL을 반환해야 합니다.", async () => {
+    test("고객 프로필 이미지가 있을 때 이름과 이미지 URL을 반환해야 합니다.", async () => {
       const userWithCustomerImage = {
         name: "테스트고객",
         customer: { profileImage: "customer.jpg" },
@@ -84,7 +80,7 @@ describe("AuthRepository", () => {
       expect(result).toEqual(expectedResult);
     });
 
-    it("기사 프로필 이미지가 있을 때 이름과 이미지 URL을 반환해야 합니다.", async () => {
+    test("기사 프로필 이미지가 있을 때 이름과 이미지 URL을 반환해야 합니다.", async () => {
       const userWithDriverImage = {
         name: "테스트기사",
         customer: null,
@@ -98,16 +94,15 @@ describe("AuthRepository", () => {
       expect(result).toEqual(expectedResult);
     });
 
-    it("사용자를 찾을 수 없을 때 null을 반환해야 합니다.", async () => {
+    test("사용자를 찾을 수 없을 때 null을 반환해야 합니다.", async () => {
       mockPrisma.authUser.findUnique.mockResolvedValue(null);
       const result = await authRepository.findNameById(authUserId);
       expect(result).toBeNull();
     });
   });
 
-  // findByProviderId 함수 테스트
   describe("findByProviderId", () => {
-    it("주어진 provider와 providerId로 AuthUser를 찾아야 합니다.", async () => {
+    test("주어진 provider와 providerId로 AuthUser를 찾아야 합니다.", async () => {
       const provider = AuthProvider.KAKAO;
       const providerId = "kakao-123";
       const expectedUser = { id: authUserId, provider, providerId };
@@ -123,9 +118,8 @@ describe("AuthRepository", () => {
     });
   });
 
-  // findAuthUserWithPassword 함수 테스트
   describe("findAuthUserWithPassword", () => {
-    it("주어진 ID로 비밀번호를 포함한 AuthUser를 찾아야 합니다.", async () => {
+    test("주어진 ID로 비밀번호를 포함한 AuthUser를 찾아야 합니다.", async () => {
       const expectedUser = { id: authUserId, password: "hashedPassword" };
       mockPrisma.authUser.findUnique.mockResolvedValue(expectedUser as any);
 
@@ -138,9 +132,8 @@ describe("AuthRepository", () => {
     });
   });
 
-  // createAuthUser 함수 테스트
   describe("createAuthUser", () => {
-    it("주어진 데이터로 AuthUser를 생성해야 합니다.", async () => {
+    test("주어진 데이터로 AuthUser를 생성해야 합니다.", async () => {
       const userData = { email, password: "hashedPassword", name: "New User", userType: UserType.CUSTOMER };
       const expectedUser = { id: "new-user-id", ...userData };
       mockPrisma.authUser.create.mockResolvedValue(expectedUser as any);
@@ -152,9 +145,8 @@ describe("AuthRepository", () => {
     });
   });
 
-  // updateAuthUser 함수 테스트
   describe("updateAuthUser", () => {
-    it("주어진 데이터로 AuthUser를 수정해야 합니다.", async () => {
+    test("주어진 데이터로 AuthUser를 수정해야 합니다.", async () => {
       const updateData = { name: "Updated Name" };
       mockPrisma.authUser.update.mockResolvedValue(undefined as any);
 
@@ -167,9 +159,8 @@ describe("AuthRepository", () => {
     });
   });
 
-  // findAuthUserProfileById 함수 테스트
   describe("findAuthUserProfileById", () => {
-    it("주어진 프로필 ID로 AuthUser의 ID와 이름을 찾아야 합니다.", async () => {
+    test("주어진 프로필 ID로 AuthUser의 ID와 이름을 찾아야 합니다.", async () => {
       const profileId = "profile-id-1";
       const expectedUser = { id: authUserId, name: "Test User" };
       mockPrisma.authUser.findMany.mockResolvedValue([expectedUser] as any);

@@ -5,7 +5,6 @@ import prisma from "../config/prisma";
 import profileRepository from "./profile.repository";
 import { MoveType, RegionType } from "@prisma/client";
 
-// Prisma 클라이언트를 모의(mock) 처리합니다.
 jest.mock("../config/prisma", () => ({
   __esModule: true,
   default: mockDeep<typeof prisma>()
@@ -18,13 +17,11 @@ describe("ProfileRepository", () => {
   const driverId = "driver-id-1";
 
   beforeEach(() => {
-    // 각 테스트 전에 모의 객체를 초기화합니다.
     mockReset(mockPrisma);
   });
 
-  // findCustomerByAuthUserId 함수 테스트
   describe("findCustomerByAuthUserId", () => {
-    it("주어진 authUserId로 고객 프로필을 찾아야 합니다.", async () => {
+    test("주어진 authUserId로 고객 프로필을 찾아야 합니다.", async () => {
       const expectedProfile = { id: "customer-1", authUserId };
       mockPrisma.customer.findUnique.mockResolvedValue(expectedProfile as any);
 
@@ -38,9 +35,8 @@ describe("ProfileRepository", () => {
     });
   });
 
-  // createCustomerProfile 함수 테스트
   describe("createCustomerProfile", () => {
-    it("주어진 데이터로 고객 프로필을 생성해야 합니다.", async () => {
+    test("주어진 데이터로 고객 프로필을 생성해야 합니다.", async () => {
       const profileData = { currentArea: "Seoul" };
       const expectedProfile = { id: "customer-1", ...profileData };
       mockPrisma.customer.create.mockResolvedValue(expectedProfile as any);
@@ -52,9 +48,8 @@ describe("ProfileRepository", () => {
     });
   });
 
-  // updateCustomerProfile 함수 테스트
   describe("updateCustomerProfile", () => {
-    it("주어진 데이터로 고객 프로필을 수정해야 합니다.", async () => {
+    test("주어진 데이터로 고객 프로필을 수정해야 합니다.", async () => {
       const updateData = { profileImage: "new-image.jpg" };
       const expectedProfile = { id: "customer-1", authUserId, ...updateData };
       mockPrisma.customer.update.mockResolvedValue(expectedProfile as any);
@@ -70,9 +65,8 @@ describe("ProfileRepository", () => {
     });
   });
 
-  // findDriverByAuthUserId 함수 테스트
   describe("findDriverByAuthUserId", () => {
-    it("주어진 authUserId로 기사 프로필을 찾아야 합니다.", async () => {
+    test("주어진 authUserId로 기사 프로필을 찾아야 합니다.", async () => {
       const expectedProfile = { id: driverId, authUserId, nickname: "Best Driver" };
       mockPrisma.driver.findUnique.mockResolvedValue(expectedProfile as any);
 
@@ -86,9 +80,8 @@ describe("ProfileRepository", () => {
     });
   });
 
-  // createDriverProfile 함수 테스트
   describe("createDriverProfile", () => {
-    it("주어진 데이터로 기사 프로필을 생성해야 합니다.", async () => {
+    test("주어진 데이터로 기사 프로필을 생성해야 합니다.", async () => {
       const profileData = { nickname: "Best Driver", career: 5 };
       const expectedProfile = { id: driverId, ...profileData };
       mockPrisma.driver.create.mockResolvedValue(expectedProfile as any);
@@ -103,9 +96,8 @@ describe("ProfileRepository", () => {
     });
   });
 
-  // updateDriverProfile 함수 테스트
   describe("updateDriverProfile", () => {
-    it("주어진 데이터로 기사 프로필을 수정해야 합니다.", async () => {
+    test("주어진 데이터로 기사 프로필을 수정해야 합니다.", async () => {
       const updateData = { nickname: "Even Better Driver" };
       const expectedProfile = { id: driverId, authUserId, ...updateData };
       mockPrisma.driver.update.mockResolvedValue(expectedProfile as any);
@@ -120,9 +112,8 @@ describe("ProfileRepository", () => {
     });
   });
 
-  // deleteDriverServiceAreas 함수 테스트
   describe("deleteDriverServiceAreas", () => {
-    it("주어진 driverId에 해당하는 모든 서비스 지역을 삭제해야 합니다.", async () => {
+    test("주어진 driverId에 해당하는 모든 서비스 지역을 삭제해야 합니다.", async () => {
       mockPrisma.driverServiceArea.deleteMany.mockResolvedValue({ count: 2 });
 
       await profileRepository.deleteDriverServiceAreas(driverId);
@@ -133,9 +124,8 @@ describe("ProfileRepository", () => {
     });
   });
 
-  // createDriverServiceAreas 함수 테스트
   describe("createDriverServiceAreas", () => {
-    it("주어진 데이터로 여러 서비스 지역을 한 번에 생성해야 합니다.", async () => {
+    test("주어진 데이터로 여러 서비스 지역을 한 번에 생성해야 합니다.", async () => {
       const serviceAreasData = [
         { driverId, region: RegionType.SEOUL, district: "Gangnam" },
         { driverId, region: RegionType.BUSAN, district: "Haeundae" }

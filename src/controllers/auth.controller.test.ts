@@ -6,12 +6,10 @@ import passport from "passport";
 import { CustomError } from "../utils/customError";
 import { UserType } from "@prisma/client";
 
-// 의존성 모의 처리
 jest.mock("../services/auth.service");
 jest.mock("../repositories/auth.repository");
 jest.mock("passport");
 
-// 모의 처리된 모듈에 대한 타입 단언
 const mockedAuthService = authService as jest.Mocked<typeof authService>;
 const mockedAuthRepository = authRepository as jest.Mocked<typeof authRepository>;
 const mockedPassport = passport as jest.Mocked<typeof passport>;
@@ -39,7 +37,7 @@ describe("AuthController", () => {
     test("회원가입 성공 시 201 상태 코드와 결과를 반환해야 합니다.", async () => {
       mockRequest.body = {
         userType: UserType.CUSTOMER,
-        name: "Test User",
+        name: "테스트",
         email: "test@example.com",
         phone: "01012345678",
         password: "password123",
@@ -49,7 +47,7 @@ describe("AuthController", () => {
         id: "new-user-id",
         email: "test@example.com",
         phone: "01012345678",
-        name: "Test User",
+        name: "테스트",
         userType: UserType.CUSTOMER,
         provider: "LOCAL",
         providerId: null,
@@ -87,7 +85,7 @@ describe("AuthController", () => {
         user: {
           id: "user-id",
           userType: UserType.CUSTOMER,
-          name: "Test User",
+          name: "테스트",
           email: "test@example.com",
           phone: "01012345678"
         }
@@ -156,7 +154,7 @@ describe("AuthController", () => {
     test("인증된 사용자의 이름과 프로필 이미지를 반환해야 합니다.", async () => {
       const userPayload = { id: "user-id", userType: UserType.CUSTOMER, customerId: "cust-id" };
       mockRequest.user = userPayload;
-      const repoResult = { name: "Test User", profileImage: "image.jpg" };
+      const repoResult = { name: "테스트", profileImage: "image.jpg" };
       mockedAuthRepository.findNameById.mockResolvedValue(repoResult);
 
       await authController.getMeName(mockRequest as Request, mockResponse as Response, mockNext);
@@ -186,7 +184,7 @@ describe("AuthController", () => {
         id: "user-id",
         email: "test@example.com",
         password: "hashedpassword",
-        name: "Test User"
+        name: "테스트"
       };
       const { password, ...publicUser } = serviceResult;
       mockedAuthService.getUserById.mockResolvedValue(serviceResult as any);

@@ -6,25 +6,21 @@ import notificationService from "../services/notification.service";
 import { CustomError } from "../utils/customError";
 import { AuthProvider, UserType } from "@prisma/client";
 
-// 의존성 모듈들을 모의(mock) 처리합니다.
 jest.mock("bcrypt");
 jest.mock("jsonwebtoken");
 jest.mock("../repositories/auth.repository");
 jest.mock("../services/notification.service");
 
-// 모의 처리된 모듈에 대한 타입 단언을 수행합니다.
 const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 const mockedJwt = jwt as jest.Mocked<typeof jwt>;
 const mockedAuthRepository = authRepository as jest.Mocked<typeof authRepository>;
 const mockedNotificationService = notificationService as jest.Mocked<typeof notificationService>;
 
 describe("AuthService", () => {
-  // 각 테스트가 실행되기 전에 모든 모의(mock)를 초기화합니다.
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // signUpUser 함수 테스트
   describe("signUpUser", () => {
     const validUserData = {
       userType: UserType.CUSTOMER,
@@ -35,12 +31,12 @@ describe("AuthService", () => {
       passwordConfirmation: "password123!"
     };
 
-    it("회원가입 성공 시 비밀번호를 제외한 유저 정보를 반환해야 합니다.", async () => {
+    test("회원가입 성공 시 비밀번호를 제외한 유저 정보를 반환해야 합니다.", async () => {
       const hashedPassword = "hashedPassword";
       const newUser = { id: "user-id", ...validUserData, password: hashedPassword, provider: AuthProvider.LOCAL };
 
       mockedAuthRepository.findByEmail.mockResolvedValue(null);
-      mockedBcrypt.hash.mockResolvedValue(hashedPassword);
+      (mockedBcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
       mockedAuthRepository.createAuthUser.mockResolvedValue(newUser as any);
 
       const result = await authService.signUpUser(validUserData);
@@ -58,7 +54,7 @@ describe("AuthService", () => {
       expect(result.email).toBe(validUserData.email);
     });
 
-    it("이미 사용 중인 이메일인 경우 CustomError를 던져야 합니다.", async () => {
+    test("이미 사용 중인 이메일인 경우 CustomError를 던져야 합니다.", async () => {
       mockedAuthRepository.findByEmail.mockResolvedValue({ id: "existing-user-id" } as any);
 
       await expect(authService.signUpUser(validUserData)).rejects.toThrow(
@@ -66,14 +62,14 @@ describe("AuthService", () => {
       );
     });
 
-    it("비밀번호와 비밀번호 확인이 일치하지 않는 경우 CustomError를 던져야 합니다.", async () => {
+    test("비밀번호와 비밀번호 확인이 일치하지 않는 경우 CustomError를 던져야 합니다.", async () => {
       const invalidUserData = { ...validUserData, passwordConfirmation: "wrongPassword" };
       await expect(authService.signUpUser(invalidUserData)).rejects.toThrow(
         new CustomError(422, "비밀번호가 일치하지 않습니다.")
       );
     });
 
-    it("유효하지 않은 이메일 형식인 경우 CustomError를 던져야 합니다.", async () => {
+    test("유효하지 않은 이메일 형식인 경우 CustomError를 던져야 합니다.", async () => {
       const invalidUserData = { ...validUserData, email: "invalid-email" };
       await expect(authService.signUpUser(invalidUserData)).rejects.toThrow(
         new CustomError(422, "유효하지 않은 이메일 형식입니다. 영문, 숫자, 일부 특수문자만 사용 가능합니다.")
@@ -81,7 +77,6 @@ describe("AuthService", () => {
     });
   });
 
-  // signInUser 함수 테스트
   describe("signInUser", () => {
     const email = "test@example.com";
     const password = "password123!";
@@ -95,11 +90,11 @@ describe("AuthService", () => {
       customer: { id: "customer-id" }
     };
 
-    it("로그인 성공 시 토큰과 사용자 정보를 반환해야 합니다.", async () => {
+    test("로그인 성공 시 토큰과 사용자 정보를 반환해야 합니다.", async () => {
       const tokens = { accessToken: "access-token", refreshToken: "refresh-token" };
       mockedAuthRepository.findByEmail.mockResolvedValue(authUser as any);
-      mockedBcrypt.compare.mockResolvedValue(true);
-      mockedJwt.sign.mockReturnValueOnce(tokens.accessToken).mockReturnValueOnce(tokens.refreshToken);
+      (mockedBcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (mockedJwt.sign as jest.Mock).mockReturnValueOnce(tokens.accessToken).mockReturnValueOnce(tokens.refreshToken);
 
       const result = await authService.signInUser(email, password);
 
@@ -110,7 +105,7 @@ describe("AuthService", () => {
       expect(result.user.id).toBe(authUser.id);
     });
 
-    it("사용자를 찾을 수 없는 경우 CustomError를 던져야 합니다.", async () => {
+    test("사용자를 찾을 수 없는 경우 CustomError를 던져야 합니다.", async () => {
       mockedAuthRepository.findByEmail.mockResolvedValue(null);
 
       await expect(authService.signInUser(email, password)).rejects.toThrow(
@@ -118,16 +113,16 @@ describe("AuthService", () => {
       );
     });
 
-    it("비밀번호가 일치하지 않는 경우 CustomError를 던져야 합니다.", async () => {
+    test("비밀번호가 일치하지 않는 경우 CustomError를 던져야 합니다.", async () => {
       mockedAuthRepository.findByEmail.mockResolvedValue(authUser as any);
-      mockedBcrypt.compare.mockResolvedValue(false);
+      (mockedBcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(authService.signInUser(email, password)).rejects.toThrow(
         new CustomError(401, "이메일 또는 비밀번호가 일치하지 않습니다.")
       );
     });
 
-    it("소셜 로그인 유저처럼 비밀번호가 없는 경우 CustomError를 던져야 합니다.", async () => {
+    test("소셜 로그인 유저처럼 비밀번호가 없는 경우 CustomError를 던져야 합니다.", async () => {
       const userWithoutPassword = { ...authUser, password: null };
       mockedAuthRepository.findByEmail.mockResolvedValue(userWithoutPassword as any);
 
@@ -137,14 +132,12 @@ describe("AuthService", () => {
     });
   });
 
-  // generateTokens 함수 테스트
   describe("generateTokens", () => {
-    it("주어진 payload로 액세스 토큰과 리프레시 토큰을 생성해야 합니다.", () => {
+    test("주어진 payload로 액세스 토큰과 리프레시 토큰을 생성해야 합니다.", () => {
       const payload: TokenUserPayload = { id: "user-id", userType: UserType.CUSTOMER };
       const tokens = { accessToken: "access-token", refreshToken: "refresh-token" };
 
-      // jwt.sign이 두 번 호출될 때 각각 다른 값을 반환하도록 설정
-      mockedJwt.sign.mockReturnValueOnce(tokens.accessToken).mockReturnValueOnce(tokens.refreshToken);
+      (mockedJwt.sign as jest.Mock).mockReturnValueOnce(tokens.accessToken).mockReturnValueOnce(tokens.refreshToken);
 
       const result = authService.generateTokens(payload);
 
@@ -154,26 +147,23 @@ describe("AuthService", () => {
     });
   });
 
-  // generateNewAccessToken 함수 테스트
   describe("generateNewAccessToken", () => {
-    it("주어진 payload로 새로운 액세스 토큰을 생성해야 합니다.", () => {
+    test("주어진 payload로 새로운 액세스 토큰을 생성해야 합니다.", () => {
       const payload: TokenUserPayload = { id: "user-id", userType: UserType.CUSTOMER };
       const newAccessToken = "new-access-token";
 
-      // generateTokens 내부에서 jwt.sign이 호출되므로, 그 결과를 모의 처리
-      mockedJwt.sign.mockReturnValueOnce(newAccessToken);
+      (mockedJwt.sign as jest.Mock).mockReturnValueOnce(newAccessToken);
 
       const result = authService.generateNewAccessToken(payload);
 
       expect(result).toBe(newAccessToken);
-      // generateTokens는 access, refresh 두 개를 만들지만, 이 함수는 access만 반환
+
       expect(mockedJwt.sign).toHaveBeenCalledTimes(2);
     });
   });
 
-  // handleSocialLogin 함수 테스트
   describe("handleSocialLogin", () => {
-    it("소셜 로그인 성공 시 토큰과 사용자 정보를 반환해야 합니다.", async () => {
+    test("소셜 로그인 성공 시 토큰과 사용자 정보를 반환해야 합니다.", async () => {
       const userPayload: TokenUserPayload = { id: "user-id", userType: UserType.DRIVER, driverId: "driver-id" };
       const authUser = {
         id: "user-id",
@@ -186,7 +176,7 @@ describe("AuthService", () => {
       const tokens = { accessToken: "social-access-token", refreshToken: "social-refresh-token" };
 
       mockedAuthRepository.findById.mockResolvedValue(authUser as any);
-      mockedJwt.sign.mockReturnValueOnce(tokens.accessToken).mockReturnValueOnce(tokens.refreshToken);
+      (mockedJwt.sign as jest.Mock).mockReturnValueOnce(tokens.accessToken).mockReturnValueOnce(tokens.refreshToken);
 
       const result = await authService.handleSocialLogin(userPayload);
 
@@ -195,7 +185,7 @@ describe("AuthService", () => {
       expect(result.user.name).toBe("소셜유저");
     });
 
-    it("사용자를 찾을 수 없는 경우 CustomError를 던져야 합니다.", async () => {
+    test("사용자를 찾을 수 없는 경우 CustomError를 던져야 합니다.", async () => {
       const userPayload: TokenUserPayload = { id: "non-existent-user", userType: UserType.CUSTOMER };
       mockedAuthRepository.findById.mockResolvedValue(null);
 
@@ -205,7 +195,6 @@ describe("AuthService", () => {
     });
   });
 
-  // findOrCreateOAuthUser 함수 테스트
   describe("findOrCreateOAuthUser", () => {
     const socialProfile = {
       provider: AuthProvider.KAKAO,
@@ -215,7 +204,7 @@ describe("AuthService", () => {
       profileImageUrl: null
     };
 
-    it("기존 소셜 유저가 존재하면 해당 유저 정보를 반환해야 합니다.", async () => {
+    test("기존 소셜 유저가 존재하면 해당 유저 정보를 반환해야 합니다.", async () => {
       const existingUser = { id: "existing-user-id", userType: UserType.CUSTOMER };
       mockedAuthRepository.findByProviderId.mockResolvedValue(existingUser as any);
 
@@ -229,7 +218,7 @@ describe("AuthService", () => {
       expect(result.id).toBe(existingUser.id);
     });
 
-    it("새로운 소셜 유저인 경우 유저를 생성하고 정보를 반환해야 합니다.", async () => {
+    test("새로운 소셜 유저인 경우 유저를 생성하고 정보를 반환해야 합니다.", async () => {
       const newUser = { id: "new-user-id", userType: UserType.CUSTOMER, ...socialProfile };
       mockedAuthRepository.findByProviderId.mockResolvedValue(null);
       mockedAuthRepository.findByEmail.mockResolvedValue(null);
@@ -247,7 +236,7 @@ describe("AuthService", () => {
       expect(result.id).toBe(newUser.id);
     });
 
-    it("새로운 소셜 유저이지만 이메일이 이미 다른 계정으로 가입된 경우 CustomError를 던져야 합니다.", async () => {
+    test("새로운 소셜 유저이지만 이메일이 이미 다른 계정으로 가입된 경우 CustomError를 던져야 합니다.", async () => {
       const existingLocalUser = { id: "local-user-id", provider: AuthProvider.LOCAL };
       mockedAuthRepository.findByProviderId.mockResolvedValue(null);
       mockedAuthRepository.findByEmail.mockResolvedValue(existingLocalUser as any);
@@ -257,7 +246,7 @@ describe("AuthService", () => {
       );
     });
 
-    it("소셜 프로필에 이메일이 없는 경우 CustomError를 던져야 합니다.", async () => {
+    test("소셜 프로필에 이메일이 없는 경우 CustomError를 던져야 합니다.", async () => {
       const profileWithoutEmail = { ...socialProfile, email: null };
       mockedAuthRepository.findByProviderId.mockResolvedValue(null);
 

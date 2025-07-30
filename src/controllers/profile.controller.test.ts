@@ -96,8 +96,8 @@ describe("ProfileController", () => {
   });
 
   describe("updateCustomerProfile", () => {
-    const updateData = { name: "New Name" };
-    const updatedProfile = { authUser: { id: "user-id", name: "New Name" } };
+    const updateData = { name: "뉴테스트" };
+    const updatedProfile = { authUser: { id: "user-id", name: "뉴테스트" } };
 
     test("고객 프로필 수정 성공 시 수정된 데이터를 반환해야 합니다.", async () => {
       mockRequest.user = { id: "user-id", userType: UserType.CUSTOMER };
@@ -123,10 +123,10 @@ describe("ProfileController", () => {
   describe("createDriverProfile", () => {
     const driverProfileData = {
       profileImage: "driver.jpg",
-      nickname: "Best Driver",
+      nickname: "BestDriver",
       career: 5,
-      shortIntro: "I am the best.",
-      detailIntro: "I am the best driver in the world.",
+      shortIntro: "전 최고에요",
+      detailIntro: "맡겨주시면 신속하게 옮겨드립니다.",
       moveType: [MoveType.OFFICE],
       serviceAreas: [{ region: RegionType.SEOUL, district: "Gangnam" }]
     };
@@ -193,8 +193,8 @@ describe("ProfileController", () => {
   });
 
   describe("updateDriverBasicProfile", () => {
-    const updateData = { name: "Driver New Name" };
-    const updatedProfile = { authUser: { id: "user-id", name: "Driver New Name" } };
+    const updateData = { name: "Driver 뉴테스트" };
+    const updatedProfile = { authUser: { id: "user-id", name: "기사테스트" } };
 
     test("기사 기본 정보 수정 성공 시 수정된 데이터를 반환해야 합니다.", async () => {
       mockRequest.user = { id: "user-id", userType: UserType.DRIVER };
