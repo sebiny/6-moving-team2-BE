@@ -1,8 +1,7 @@
-// 알림 호출에 실패가 떠서 일단 제거하고 한 상태입니다. 추후 시도해보겠습니다.
-
 import { Request, Response, NextFunction } from "express";
 import controller from "../../src/controllers/customerEstimate.controller";
 import customerEstimateService from "../../src/services/customerEstimate.service";
+import notificationService from "../../src/services/notification.service";
 import { CustomError } from "../../src/utils/customError";
 
 jest.mock("../../src/services/customerEstimate.service", () => ({
@@ -31,9 +30,13 @@ const mockResponse = () => {
   return res;
 };
 
-const mockNext: NextFunction = jest.fn();
+describe("customerEstimate.controller", () => {
+  let mockNext: NextFunction;
 
-describe("고객 견적 컨트롤러 (customerEstimate.controller)", () => {
+  beforeEach(() => {
+    mockNext = jest.fn();
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -42,11 +45,22 @@ describe("고객 견적 컨트롤러 (customerEstimate.controller)", () => {
     it("고객 ID가 없으면 CustomError를 next로 전달한다.", async () => {
       const req = mockRequest({}, {}, {});
       const res = mockResponse();
-      const next = jest.fn();
 
-      await controller.getPendingEstimates(req, res, next);
+      await controller.getPendingEstimates(req, res, mockNext);
 
-      expect(next).toHaveBeenCalledWith(expect.any(CustomError));
+      expect(mockNext).toHaveBeenCalledWith(expect.any(CustomError));
+    });
+
+    it("대기 중인 견적을 정상적으로 반환한다.", async () => {
+      (customerEstimateService.getPendingEstimates as jest.Mock).mockResolvedValue("pending");
+
+      const req = mockRequest({}, {}, { customerId: "cust-1" });
+      const res = mockResponse();
+
+      await controller.getPendingEstimates(req, res, mockNext);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith("pending");
     });
   });
 
@@ -60,8 +74,8 @@ describe("고객 견적 컨트롤러 (customerEstimate.controller)", () => {
       expect(mockNext).toHaveBeenCalledWith(expect.any(CustomError));
     });
 
-    it("받았던 견적 데이터를 정상적으로 반환한다.", async () => {
-      (customerEstimateService.getReceivedEstimates as jest.Mock).mockResolvedValue("받은 견적 데이터");
+    it("받았던 견적을 정상적으로 반환한다.", async () => {
+      (customerEstimateService.getReceivedEstimates as jest.Mock).mockResolvedValue("received");
 
       const req = mockRequest({}, {}, { customerId: "cust-2" });
       const res = mockResponse();
@@ -69,38 +83,61 @@ describe("고객 견적 컨트롤러 (customerEstimate.controller)", () => {
       await controller.getReceivedEstimates(req, res, mockNext);
 
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith("받은 견적 데이터");
+      expect(res.json).toHaveBeenCalledWith("received");
     });
   });
 
   describe("견적 확정 (acceptEstimate)", () => {
-    it("견적 확정 성공 시 성공 메시지를 반환한다.", async () => {
-      (customerEstimateService.acceptEstimate as jest.Mock).mockResolvedValue("견적 확정 완료");
+    it("견적 확정 시 성공 메시지를 반환하고 알림을 전송한다.", async () => {
+      (customerEstimateService.acceptEstimate as jest.Mock).mockResolvedValue("accepted");
+      (customerEstimateService.getCustomerAndDriverIdbyEstimateId as jest.Mock).mockResolvedValue({
+        driverId: "drv-1",
+        customerId: "cust-1"
+      });
 
       const req = mockRequest({}, { estimateId: "est-1" }, {});
       const res = mockResponse();
-      const next = jest.fn();
 
-      await controller.acceptEstimate(req, res, next);
+      await controller.acceptEstimate(req, res, mockNext);
+
+      // 알림 호출은 비동기적으로 이루어지므로 기다림
+      await new Promise(setImmediate);
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         message: "견적이 성공적으로 확정되었습니다.",
-        data: "견적 확정 완료"
+        data: "accepted"
       });
+      expect(notificationService.createEstimateConfirmNotification).toHaveBeenCalledWith({
+        driverId: "drv-1",
+        customerId: "cust-1",
+        estimateId: "est-1"
+      });
+    });
+
+    it("서비스에서 CustomError가 발생하면 에러 응답을 반환한다.", async () => {
+      (customerEstimateService.acceptEstimate as jest.Mock).mockRejectedValue(new CustomError(400, "에러"));
+
+      const req = mockRequest({}, { estimateId: "est-2" }, {});
+      const res = mockResponse();
+
+      await controller.acceptEstimate(req, res, mockNext);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: "에러" });
     });
   });
 
   describe("견적 상세 조회 (getEstimateDetail)", () => {
-    it("견적 상세 데이터를 정상적으로 반환한다.", async () => {
-      (customerEstimateService.getEstimateDetail as jest.Mock).mockResolvedValue("견적 상세 데이터");
+    it("견적 상세 정보를 반환한다.", async () => {
+      (customerEstimateService.getEstimateDetail as jest.Mock).mockResolvedValue("detail");
 
       const req = mockRequest({}, { estimateId: "est-3" }, {});
       const res = mockResponse();
 
       await controller.getEstimateDetail(req, res, mockNext);
 
-      expect(res.json).toHaveBeenCalledWith("견적 상세 데이터");
+      expect(res.json).toHaveBeenCalledWith("detail");
     });
   });
 });
