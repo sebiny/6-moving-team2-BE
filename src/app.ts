@@ -24,7 +24,7 @@ import { sendMoveDayReminders } from "./utils/moveReminder";
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://6-moving-team2-fe-sepia.vercel.app"],
+    origin: ["http://localhost:3000", "https://6-moving-team2-fe-sepia.vercel.app", "https://www.moving-2.click"],
     credentials: true
   })
 );
