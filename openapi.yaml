@@ -10,6 +10,7 @@ tags:
   - name: Address
   - name: Customer
   - name: Driver
+  - name: Notification
 
 paths:
   /address:
@@ -187,6 +188,103 @@ paths:
                 status: "PENDING"
                 fromAddressId: "addr-123"
                 toAddressId: "addr-456"
+  /notification:
+    get:
+      summary: 알림 목록 조회
+      tags: [Notification]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: 알림 목록 조회 성공
+          content:
+            application/json:
+              example:
+                - id: "cmdpjx8d60005o8f6vt5zd8q7"
+                  message: '요정구님의 <span style="color: #F9502E">소형이사</span> 견적요청이 전송되었어요.'
+                  path: ""
+                  type: "ESTIMATE_REQUEST"
+                  isRead: false
+                  createdAt: "2025-07-30T05:21:21.541Z"
+                  updatedAt: null
+                  deletedAt: null
+                  receiverId: "cmdpiq0dk0003o853egxsqmw8"
+                  senderId: "cmdpiq0dk0003o853egxsqmw8"
+                - id: "cmdpj4l0d0002o8ae7cz0ao8e"
+                  message: '<span style="color: #F9502E">요정구</span>님, 무빙 회원가입을 축하합니다!'
+                  path: ""
+                  type: "WELCOME"
+                  isRead: true
+                  createdAt: "2025-07-30T05:21:21.541Z"
+                  updatedAt: "2025-07-30T05:21:46.182Z"
+                  deletedAt: null
+                  receiverId: "cmdpiq0dk0003o853egxsqmw8"
+                  senderId: "cmdpiq0dk0003o853egxsqmw8"
+        "500":
+          description: 서버 에러
+          content:
+            application/json:
+              example:
+                message: "서버 내부 오류가 발생했습니다."
+
+  /notification/:id:
+    get:
+      summary: 특정 알림 조회
+      tags: [Notification]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: 알림 조회 성공
+          content:
+            application/json:
+              example:
+                - id: "cmdpjx8d60005o8f6vt5zd8q7"
+                  message: '요정구님의 <span style="color: #F9502E">소형이사</span> 견적요청이 전송되었어요.'
+                  path: ""
+                  type: "ESTIMATE_REQUEST"
+                  isRead: false
+                  createdAt: "2025-07-30T05:21:21.541Z"
+                  updatedAt: null
+                  deletedAt: null
+                  receiverId: "cmdpiq0dk0003o853egxsqmw8"
+                  senderId: "cmdpiq0dk0003o853egxsqmw8"
+        "500":
+          description: 서버 에러
+          content:
+            application/json:
+              example:
+                message: "서버 내부 오류가 발생했습니다."
+
+    patch:
+      summary: 특정 알림 읽음 처리
+      tags: [Notification]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: 알림 읽음 처리 성공
+          content:
+            application/json:
+              example:
+                message: "알림을 성공적으로 읽음 처리했습니다."
+                notification:
+                  - id: "cmdpjx8d60005o8f6vt5zd8q7"
+                    message: '요정구님의 <span style="color: #F9502E">소형이사</span> 견적요청이 전송되었어요.'
+                    path: ""
+                    type: "ESTIMATE_REQUEST"
+                    isRead: true
+                    createdAt: "2025-07-30T05:21:21.541Z"
+                    updatedAt: "2025-07-31T05:21:21.541Z"
+                    deletedAt: null
+                    receiverId: "cmdpiq0dk0003o853egxsqmw8"
+                    senderId: "cmdpiq0dk0003o853egxsqmw8"
+        "500":
+          description: 서버 에러
+          content:
+            application/json:
+              example:
+                message: "서버 내부 오류가 발생했습니다."
 
 components:
   schemas:
