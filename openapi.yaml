@@ -1,667 +1,295 @@
 openapi: 3.0.3
 info:
-  title: Swagger Petstore - OpenAPI 3.0
+  title: Moving API
   version: 1.0.0
+
 servers:
-  - url: http://localhost:3001
+  - url: http://localhost:4000
+
 tags:
-  - name: Arti
-  - name: Product
-  - name: Comment
+  - name: Address
+  - name: Customer
+  - name: Driver
 
 paths:
-  /arti:
+  /address:
     post:
-      tags:
-        - Article
-      description: 게시글 생성 API
-      operationId: createArticle
+      summary: 주소 등록
+      tags: [Address]
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateArticleRequest"
+              $ref: "#/components/schemas/CreateAddressInput"
       responses:
         "201":
-          description: 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Article"
+          description: 주소 등록 성공
         "400":
-          description: Validation failed
-
-    get:
-      tags:
-        - Article
-      description: 게시글 목록 조회 API
-      operationId: getArticleList
-      parameters:
-        - name: cursor
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-          example: 0
-        - name: take
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            minimum: 1
-            maximum: 10
-          example: 10
-        - name: orderBy
-          in: query
-          required: false
-          schema:
-            type: string
-            enum:
-              - recent
-          example: recent
-        - name: word
-          in: query
-          required: false
-          schema:
-            type: string
-          example: "검색어"
-      responses:
-        "200":
-          description: 성공
+          description: 필수 정보 누락
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/GetArticleListResponse"
+              example:
+                message: "필수 주소 정보가 누락되었습니다."
+        "500":
+          description: 서버 에러
+          content:
+            application/json:
+              example:
+                message: "서버 내부 오류가 발생했습니다."
 
-  /articles/{articleId}:
+  /customer/address:
+    post:
+      summary: 고객 주소 연결
+      tags: [Address]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkCustomerAddressInput"
+      responses:
+        "201":
+          description: 연결 성공
+        "400":
+          description: 필수 정보 누락
+          content:
+            application/json:
+              example:
+                message: "필수 주소 정보가 누락되었습니다."
+
     get:
-      tags:
-        - Article
-      description: 게시글 조회 API
-      operationId: getArticle
+      summary: 고객 주소 조회(role 기준)
+      tags: [Address]
+      security:
+        - access-token: []
       parameters:
-        - name: articleId
-          in: path
+        - in: query
+          name: role
           required: true
           schema:
-            type: integer
-          example: 1
+            type: string
+            enum: [FROM, TO, EXTRA]
       responses:
         "200":
-          description: 성공
+          description: 고객 주소 리스트 반환
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Article"
-        "404":
-          description: Not found
+                  $ref: "#/components/schemas/CustomerAddress"
+              example:
+                - id: "cusaddr-123"
+                  role: "FROM"
+                  address:
+                    postalCode: "12345"
+                    street: "서울특별시 강남구 테헤란로 123"
+                    detail: "301호"
+                    region: "SEOUL"
+                    district: "강남구"
+          "400":
+            description: 필수 정보 누락
+            content:
+              application/json:
+                example:
+                  message: "필수 요청 정보가 누락되었습니다."
 
-    patch:
-      tags:
-        - Article
-      description: "게시글 수정 API"
-      operationId: updateArticle
-      parameters:
-        - name: articleId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateArticleRequest"
-      responses:
-        "200":
-          description: 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Article"
-        "400":
-          description: Validation failed
-        "404":
-          description: Not found
-
-    delete:
-      tags:
-        - Article
-      description: "게시글 삭제 API"
-      operationId: deleteArticle
-      parameters:
-        - name: articleId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
-      responses:
-        "204":
-          description: 성공
-        "404":
-          description: Not found
-
-  /articles/{articleId}/comments:
+  /customer/estimate-request:
     post:
-      tags:
-        - Article
-      description: 댓글 생성 API
-      operationId: createArticleComment
-      parameters:
-        - name: articleId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
+      summary: 견적 요청 생성
+      tags: [Customer]
+      security:
+        - access-token: []
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateArticleCommentRequest"
-
+              $ref: "#/components/schemas/CreateEstimateRequestInput"
       responses:
         "201":
-          description: 성공
+          description: 견적 요청 성공
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/Comment"
+              example:
+                id: "esti-abc123"
+                customerId: "cust-xyz789"
+                moveType: "HOME"
+                moveDate: "2025-08-15T00:00:00.000Z"
+                status: "PENDING"
+                fromAddressId: "addr-001"
+                toAddressId: "addr-002"
+                createdAt: "2025-07-30T10:20:00.000Z"
+
         "400":
-          description: Validation failed
-        "404":
-          description: Not found
-
-    get:
-      tags:
-        - Article
-      description: 댓글 목록 조회 API
-      operationId: getArticleCommentList
-      parameters:
-        - name: articleId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
-        - name: cursor
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-          example: 0
-        - name: take
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            minimum: 1
-            maximum: 10
-          example: 10
-      responses:
-        "200":
-          description: 성공
+          description: 유효하지 않은 입력
           content:
             application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GetArticleCommentListResponse"
-        "404":
-          description: Not found'
+              example:
+                message: "출발지와 도착지는 서로 달라야 합니다."
+        "409":
+          description: 중복 요청
+          content:
+            application/json:
+              example:
+                message: "진행 중인 이사 견적이 있습니다."
 
-  /products:
+  /customer/estimate-request/designated:
     post:
-      tags:
-        - Product
-      description: 상품 생성 API
-      operationId: createProduct
+      summary: 지정 견적 요청
+      tags: [Customer]
+      security:
+        - access-token: []
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateProductRequest"
+              $ref: "#/components/schemas/CreateDesignatedEstimateRequestInput"
       responses:
         "201":
-          description: 성공
+          description: 지정 요청 성공
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/Product"
+              example:
+                message: "지정 견적 요청 완료"
         "400":
-          description: Validation failed
+          description: 유효하지 않은 입력
+          content:
+            application/json:
+              example:
+                message: "진행 중인 일반 견적 요청이 없습니다."
+        "409":
+          description: 중복 지정 요청
+          content:
+            application/json:
+              example:
+                message: "이미 지정된 기사님입니다."
 
+  /customer/estimate-request/active:
     get:
-      tags:
-        - Product
-      description: 상품 목록 조회 API
-      operationId: getProductList
-      parameters:
-        - name: skip
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-          example: 0
-        - name: take
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            minimum: 1
-            maximum: 10
-          example: 10
-        - name: orderBy
-          in: query
-          required: false
-          schema:
-            type: string
-            enum:
-              - recent
-          example: recent
-        - name: word
-          in: query
-          required: false
-          schema:
-            type: string
-          example: "검색어"
+      summary: 활성 견적 요청 조회
+      tags: [Customer]
+      security:
+        - access-token: []
       responses:
         "200":
-          description: 성공
+          description: 활성 요청 반환
           content:
             application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Product"
-
-  /products/{productId}:
-    get:
-      tags:
-        - Product
-      description: 상품 조회 API
-      operationId: getProduct
-      parameters:
-        - name: productId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
-      responses:
-        "200":
-          description: 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Product"
-        "404":
-          description: Not found
-
-    patch:
-      tags:
-        - Product
-      description: "상품 수정 API"
-      operationId: updateProduct
-      parameters:
-        - name: productId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateProductRequest"
-      responses:
-        "200":
-          description: 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Product"
-        "400":
-          description: Validation failed
-        "404":
-          description: Not found
-
-    delete:
-      tags:
-        - Product
-      description: "상품 삭제 API"
-      operationId: deleteProduct
-      parameters:
-        - name: productId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
-      responses:
-        "204":
-          description: 성공
-        "404":
-          description: Not found
-
-  /products/{productId}/comments:
-    post:
-      tags:
-        - Product
-      description: 댓글 생성 API
-      operationId: createProductComment
-      parameters:
-        - name: productId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateProductCommentRequest"
-      responses:
-        "201":
-          description: 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Comment"
-        "400":
-          description: Validation failed
-        "404":
-          description: Not found
-
-    get:
-      tags:
-        - Product
-      description: 댓글 목록 조회 API
-      operationId: getProductCommentList
-      parameters:
-        - name: productId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
-        - name: cursor
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-            minimum: 0
-          example: 0
-        - name: take
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 10
-            minimum: 1
-            maximum: 10
-          example: 10
-      responses:
-        "200":
-          description: 성공
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GetProductCommentListResponse"
-        "404":
-          description: Not found
-
-  /comments/{commentId}:
-    patch:
-      tags:
-        - Comment
-      description: "댓글 수정 API"
-      operationId: updateComment
-      parameters:
-        - name: commentId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateCommentRequest"
-      responses:
-        "200":
-          description: 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Comment"
-        "400":
-          description: Validation failed
-        "404":
-          description: Not found
-
-    delete:
-      tags:
-        - Comment
-      description: "댓글 삭제 API"
-      operationId: deleteComment
-      parameters:
-        - name: commentId
-          in: path
-          required: true
-          schema:
-            type: integer
-          example: 1
-      responses:
-        "204":
-          description: 성공
-        "404":
-          description: Not found
+              example:
+                id: "esti-abc123"
+                moveType: "SMALL"
+                moveDate: "2025-08-10T00:00:00.000Z"
+                status: "PENDING"
+                fromAddressId: "addr-123"
+                toAddressId: "addr-456"
 
 components:
   schemas:
-    CreateArticleRequest:
+    CreateAddressInput:
       type: object
-      required:
-        - title
-        - content
+      required: [postalCode, street, region, district]
       properties:
-        title:
+        postalCode:
           type: string
-          example: "게시글 제목"
-        content:
+        street:
           type: string
-          example: "게시글 내용"
+        detail:
+          type: string
+        region:
+          type: string
+          enum:
+            [
+              SEOUL,
+              BUSAN,
+              DAEGU,
+              INCHEON,
+              GWANGJU,
+              DAEJEON,
+              ULSAN,
+              SEJONG,
+              GYEONGGI,
+              GANGWON,
+              CHUNGBUK,
+              CHUNGNAM,
+              JEONBUK,
+              JEONNAM,
+              GYEONGBUK,
+              GYEONGNAM,
+              JEJU
+            ]
+        district:
+          type: string
 
-    GetArticleListResponse:
+    LinkCustomerAddressInput:
       type: object
+      required: [addressId, role]
       properties:
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Article"
-        nextCursor:
-          type: integer
-          example: 10
-        hasMore:
-          type: boolean
-          example: true
+        addressId:
+          type: string
+        role:
+          type: string
+          enum: [FROM, TO, EXTRA]
+        customLabel:
+          type: string
 
-    UpdateArticleRequest:
+    CreateEstimateRequestInput:
       type: object
+      required: [moveType, moveDate, fromAddressId, toAddressId]
       properties:
-        title:
+        moveType:
           type: string
-          example: "게시글 제목"
-        content:
+          enum: [SMALL, HOME, OFFICE]
+        moveDate:
           type: string
-          example: "게시글 내용"
+          format: date-time
+        fromAddressId:
+          type: string
+        toAddressId:
+          type: string
 
-    CreateArticleCommentRequest:
+    CreateDesignatedEstimateRequestInput:
       type: object
-      required:
-        - content
+      required: [moveType, moveDate, fromAddressId, toAddressId, driverId]
       properties:
-        content:
+        moveType:
           type: string
-          example: "댓글 내용"
-
-    GetArticleCommentListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Comment"
-        nextCursor:
-          type: integer
-          example: 10
-        hasMore:
-          type: boolean
-          example: true
-
-    CreateProductRequest:
-      type: object
-      required:
-        - name
-        - description
-        - price
-        - tags
-      properties:
-        name:
+          enum: [SMALL, HOME, OFFICE]
+        moveDate:
           type: string
-          example: "상품 이름"
-        description:
+          format: date-time
+        fromAddressId:
           type: string
-          example: "상품 설명"
-        price:
-          type: integer
-          minimum: 0
-          example: 10000
-        tags:
-          type: array
-          items:
-            type: string
-          example: ["태그1", "태그2"]
-
-    UpdateProductRequest:
-      type: object
-      properties:
-        name:
+        toAddressId:
           type: string
-          example: "상품 이름"
-        description:
+        driverId:
           type: string
-          example: "상품 설명"
-        price:
-          type: integer
-          minimum: 0
-          example: 10000
-        tags:
-          type: array
-          items:
-            type: string
-          example: ["태그1", "태그2"]
+          description: 지정하고자 하는 기사님 ID
 
-    CreateProductCommentRequest:
-      type: object
-      required:
-        - content
-      properties:
-        content:
-          type: string
-          example: "댓글 내용"
-
-    GetProductCommentListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Comment"
-        nextCursor:
-          type: integer
-          example: 10
-        hasMore:
-          type: boolean
-          example: true
-
-    UpdateCommentRequest:
-      type: object
-      properties:
-        content:
-          type: string
-          example: "댓글 내용"
-
-    Article:
+    CustomerAddress:
       type: object
       properties:
         id:
-          type: integer
-          example: 1
-        title:
           type: string
-          example: "게시글 제목"
-        content:
+        role:
           type: string
-          example: "게시글 내용"
-        createdAt:
+          enum: [FROM, TO, EXTRA]
+        customLabel:
           type: string
-          format: datetime
-          example: "2024-07-15T00:00:00.000Z"
-
-    Product:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: "상품 이름"
-        description:
-          type: string
-          example: "상품 설명"
-        price:
-          type: integer
-          example: 10000
-        tags:
-          type: array
-          items:
-            type: string
-          example: ["태그1", "태그2"]
-        createdAt:
-          type: string
-          format: datetime
-          example: "2024-07-15T00:00:00.000Z"
-
-    Comment:
-      type: object
-      properties:
-        id:
-          type: integer
-        content:
-          type: string
-        createdAt:
-          type: string
-          format: datetime
-          example: "2024-07-15T00:00:00.000Z"
+        address:
+          type: object
+          properties:
+            postalCode:
+              type: string
+            street:
+              type: string
+            detail:
+              type: string
+            region:
+              type: string
+            district:
+              type: string
