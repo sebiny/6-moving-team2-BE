@@ -17,7 +17,7 @@ describe("reviewController", () => {
   const mockUser = { customerId: "customer-123" };
 
   describe("getAllCompletedEstimate", () => {
-    it("should return 200 with reviewableEstimates", async () => {
+    it("리뷰 가능한 견적이 있을 경우 200상태코드와 함께 반환", async () => {
       const req = {
         user: mockUser,
         query: { page: "1" }
@@ -38,7 +38,7 @@ describe("reviewController", () => {
       });
     });
 
-    it("should throw 404 if no reviewableEstimates", async () => {
+    it("리뷰 가능한 견적이 없을 경우 404 에러를 반환", async () => {
       const req = {
         user: mockUser,
         query: {}
@@ -55,7 +55,7 @@ describe("reviewController", () => {
   });
 
   describe("getMyReviews", () => {
-    it("should return 200 with reviews", async () => {
+    it("리뷰들을 200상태코드로 반환", async () => {
       const req = {
         user: mockUser,
         query: { page: "1" }
@@ -81,7 +81,7 @@ describe("reviewController", () => {
   });
 
   describe("createReview", () => {
-    it("should return 201 when review is created", async () => {
+    it("리뷰 생성되면 201 상태코드와 함께 응답", async () => {
       const req = {
         user: mockUser,
         body: {
@@ -116,7 +116,7 @@ describe("reviewController", () => {
   });
 
   describe("deleteReview", () => {
-    it("should return 200 when review is deleted", async () => {
+    it("리뷰가 삭제되면 200상태코드와 함께 성공 메세지 반환", async () => {
       const req = {
         user: mockUser,
         body: { reviewId: "r1" }

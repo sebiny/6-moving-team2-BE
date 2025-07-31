@@ -12,7 +12,7 @@ describe("reviewService", () => {
   });
 
   describe("createReview", () => {
-    it("should throw error if review already exists", async () => {
+    it("리뷰가 이미 있으면 에러를 반환한다.", async () => {
       (reviewRepository.findByCustomerAndEstimate as jest.Mock).mockResolvedValue({ id: "existing" });
 
       const data = {
@@ -26,7 +26,7 @@ describe("reviewService", () => {
       await expect(reviewService.createReview(data)).rejects.toThrow(CustomError);
     });
 
-    it("should create review and update driver rating", async () => {
+    it("리뷰를 생성하고 기사평균평점을 업데이트 한다.", async () => {
       (reviewRepository.findByCustomerAndEstimate as jest.Mock).mockResolvedValue(null);
       (reviewRepository.createReview as jest.Mock).mockResolvedValue({ id: "new-review" });
       (reviewRepository.findAllByDriver as jest.Mock).mockResolvedValue([{ rating: 4 }, { rating: 5 }]);
@@ -49,13 +49,13 @@ describe("reviewService", () => {
   });
 
   describe("deleteReview", () => {
-    it("should throw error if review not found", async () => {
+    it("리뷰가 없으면 에러를 던진다.", async () => {
       (reviewRepository.findReviewById as jest.Mock).mockResolvedValue(null);
 
       await expect(reviewService.deleteReview("review1", "cust1")).rejects.toThrow(CustomError);
     });
 
-    it("should delete review and update driver rating", async () => {
+    it("리뷰를 지우고 기사평균평점을 업데이트한다.", async () => {
       (reviewRepository.findReviewById as jest.Mock).mockResolvedValue({
         id: "review1",
         driverId: "drv1"
@@ -71,7 +71,7 @@ describe("reviewService", () => {
       expect(driverRepository.updateAverageRating).toHaveBeenCalledWith("drv1", 3.5);
     });
 
-    it("should handle no remaining reviews", async () => {
+    it("남은 리뷰가 없을 때 처리", async () => {
       (reviewRepository.findReviewById as jest.Mock).mockResolvedValue({
         id: "review1",
         driverId: "drv1"
@@ -87,7 +87,7 @@ describe("reviewService", () => {
   });
 
   describe("getAllCompleted", () => {
-    it("should call repository with correct args", async () => {
+    it("올바른 인자로 repository를 호출해야 한다", async () => {
       (reviewRepository.findAllCompletedEstimateRequest as jest.Mock).mockResolvedValue([{ id: "e1" }]);
 
       const result = await reviewService.getAllCompleted("cust1", 1);
@@ -97,7 +97,7 @@ describe("reviewService", () => {
   });
 
   describe("getMyReviews", () => {
-    it("should call repository with correct args", async () => {
+    it("올바른 인자로 repository를 호출해야 한다", async () => {
       (reviewRepository.getMyReviews as jest.Mock).mockResolvedValue({
         reviews: [{ id: "r1" }],
         totalCount: 1,

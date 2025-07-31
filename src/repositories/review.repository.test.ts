@@ -21,7 +21,7 @@ describe("reviewRepository", () => {
   afterEach(() => jest.clearAllMocks());
 
   describe("findAllCompletedEstimateRequest", () => {
-    it("should return estimates with pagination", async () => {
+    it("페이지네이션과 견적을 가져온다.", async () => {
       (prisma.estimateRequest.findMany as jest.Mock).mockResolvedValue([{ id: "e1" }]);
       (prisma.estimateRequest.count as jest.Mock).mockResolvedValue(1);
 
@@ -34,7 +34,7 @@ describe("reviewRepository", () => {
   });
 
   describe("getMyReviews", () => {
-    it("should return my reviews with pagination", async () => {
+    it("페이지네이션과 리뷰를 반환한다.", async () => {
       (prisma.review.findMany as jest.Mock).mockResolvedValue([{ id: "r1" }]);
       (prisma.review.count as jest.Mock).mockResolvedValue(1);
 
@@ -55,7 +55,7 @@ describe("reviewRepository", () => {
   });
 
   describe("createReview", () => {
-    it("should create review", async () => {
+    it("리뷰를 생성한다.", async () => {
       const reviewData = {
         customerId: "cust1",
         driverId: "drv1",
@@ -74,7 +74,7 @@ describe("reviewRepository", () => {
   });
 
   describe("findByCustomerAndEstimate", () => {
-    it("should find a review if it exists", async () => {
+    it("리뷰가 있으면 반환한다.", async () => {
       const mockReview = { id: "review1" };
       (prisma.review.findFirst as jest.Mock).mockResolvedValue(mockReview);
 
@@ -84,13 +84,13 @@ describe("reviewRepository", () => {
   });
 
   describe("deleteReviewById", () => {
-    it("should throw if review not found or unauthorized", async () => {
+    it("리뷰가 not Found 거나 unathorized면은 오류를 반환한다.", async () => {
       (prisma.review.findUnique as jest.Mock).mockResolvedValue(null);
 
       await expect(reviewRepository.deleteReviewById("r1", "cust1")).rejects.toThrow(CustomError);
     });
 
-    it("should delete review if user is owner", async () => {
+    it("유저가 customerId가 맞으면 리뷰를 삭제한다.", async () => {
       (prisma.review.findUnique as jest.Mock).mockResolvedValue({
         id: "r1",
         customerId: "cust1"
@@ -104,7 +104,7 @@ describe("reviewRepository", () => {
   });
 
   describe("findAllByDriver", () => {
-    it("should return all reviews for driver", async () => {
+    it("드라이버의 모든 리뷰를 반환한다.", async () => {
       const mockReviews = [{ rating: 4 }, { rating: 5 }];
       (prisma.review.findMany as jest.Mock).mockResolvedValue(mockReviews);
 
@@ -118,7 +118,7 @@ describe("reviewRepository", () => {
   });
 
   describe("findReviewById", () => {
-    it("should return review with driverId and customerId", async () => {
+    it("driverId 와 customerId로 리뷰를 반환한다.", async () => {
       const mockReview = { driverId: "drv1", customerId: "cust1" };
       (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockReview);
 
