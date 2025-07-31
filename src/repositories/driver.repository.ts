@@ -110,7 +110,12 @@ async function getDesignatedEstimateRequests(driverId: string) {
         }
       },
       fromAddress: true,
-      toAddress: true
+      toAddress: true,
+      _count: {
+        select: {
+          estimates: true
+        }
+      }
     }
   });
 
@@ -140,10 +145,11 @@ async function getDesignatedEstimateRequests(driverId: string) {
     (request) => !rejectedRequestIds.includes(request.id) && !respondedRequestIds.includes(request.id)
   );
 
-  // 5. isDesignated: true 표시
+  // 5. isDesignated: true 표시 및 견적 개수 포함
   return filteredRequests.map((request) => ({
     ...request,
-    isDesignated: true
+    isDesignated: true,
+    estimateCount: request._count.estimates
   }));
 }
 
@@ -187,7 +193,12 @@ async function getAvailableEstimateRequests(driverId: string) {
         }
       },
       fromAddress: true,
-      toAddress: true
+      toAddress: true,
+      _count: {
+        select: {
+          estimates: true
+        }
+      }
     }
   });
 
@@ -216,10 +227,11 @@ async function getAvailableEstimateRequests(driverId: string) {
     (request) => !respondedRequestIds.includes(request.id) && !rejectedRequestIds.includes(request.id)
   );
 
-  // 일반견적 요청임을 표시
+  // 일반견적 요청임을 표시 및 견적 개수 포함
   return filteredRequests.map((request) => ({
     ...request,
-    isDesignated: false
+    isDesignated: false,
+    estimateCount: request._count.estimates
   }));
 }
 
