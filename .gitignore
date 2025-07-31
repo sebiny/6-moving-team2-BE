@@ -4,3 +4,4 @@ node_modules
 .http
 /src/generated/prisma
 dist
+.DS_Store
