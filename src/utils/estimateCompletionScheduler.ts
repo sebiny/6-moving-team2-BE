@@ -30,23 +30,6 @@ export class EstimateCompletionScheduler {
       this.isRunning = false;
     }
   }
-
-  /**
-   * 수동으로 스케줄러 실행 (테스트용)
-   */
-  static async runManually() {
-    console.log("수동으로 견적 완료 스케줄러 실행");
-    await this.runBatchUpdate();
-  }
-
-  /**
-   * 스케줄러 상태 확인
-   */
-  static getStatus() {
-    return {
-      isRunning: this.isRunning
-    };
-  }
 }
 
 // 스케줄러 시작 함수 (NodeCron 사용)

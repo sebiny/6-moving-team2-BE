@@ -320,22 +320,23 @@ async function getMyEstimates(driverId: string) {
     const moveDate = new Date(estimateRequest.moveDate);
 
     // 완료 상태 판단:
-    // 1. 스케줄러가 업데이트한 COMPLETED 상태 (우선순위)
-    // 2. ACCEPTED 상태이면서 이사일이 지남
-    // 3. 이사일이 지났지만 아직 확정되지 않음
+    // 1. 스케줄러가 업데이트한 COMPLETED 상태만 사용
+    // 2. ACCEPTED 상태이면서 이사일이 지남 (주석처리)
+    // 3. 이사일이 지났지만 아직 확정되지 않음 (주석처리)
     let completionStatus = null;
     let isCompleted = false;
 
     if (estimateRequest.status === "COMPLETED") {
       completionStatus = "COMPLETED";
       isCompleted = true;
-    } else if (estimate.status === "ACCEPTED" && moveDate < currentDate) {
-      completionStatus = "CONFIRMED_AND_PAST";
-      isCompleted = true;
-    } else if (moveDate < currentDate) {
-      completionStatus = "DATE_PAST";
-      isCompleted = true;
     }
+    // else if (estimate.status === "ACCEPTED" && moveDate < currentDate) {
+    //   completionStatus = "CONFIRMED_AND_PAST";
+    //   isCompleted = true;
+    // } else if (moveDate < currentDate) {
+    //   completionStatus = "DATE_PAST";
+    //   isCompleted = true;
+    // }
 
     return {
       ...estimate,
