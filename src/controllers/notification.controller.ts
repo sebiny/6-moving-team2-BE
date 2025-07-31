@@ -25,7 +25,7 @@ export const connectSse = (req: Request, res: Response) => {
   const pingInterval = setInterval(() => {
     res.write("event: ping\n");
     res.write(`data: keepalive\n\n`);
-  }, 1000 * 90); // 2분(120초)마다 ping (타임아웃보다 짧게)
+  }, 30000); // 30초마다
 
   // 연결 종료 처리
   const cleanup = () => {
