@@ -211,7 +211,7 @@ describe("AuthController", () => {
       const userPayload = { id: "user-id", userType: UserType.CUSTOMER, customerId: "cust-id" };
       mockRequest.user = userPayload;
       const newAccessToken = "new-fake-access-token";
-      mockedAuthService.generateNewAccessToken.mockReturnValue(newAccessToken);
+      mockedAuthService.generateNewAccessToken.mockResolvedValue(newAccessToken);
 
       await authController.refreshToken(mockRequest as Request, mockResponse as Response, mockNext);
 

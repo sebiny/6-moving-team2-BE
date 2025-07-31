@@ -96,7 +96,7 @@ const startSocialLogin = (req: Request, res: Response, next: NextFunction) => {
     return;
   }
 
-  // ✅ provider가 kakao일 때 scope를 올바르게 설정
+  //  provider가 kakao일 때 scope를 올바르게 설정
   const scopes = provider === "kakao" ? ["account_email", "profile_nickname", "profile_image"] : ["profile", "email"]; // 구글, 네이버는 기존 방식 유지 가능
 
   // userType을 state에 담아 passport-strategy로 전달
@@ -120,12 +120,20 @@ const socialLoginCallback = (req: Request, res: Response, next: NextFunction) =>
     { session: false },
     async (err: Error | null, user?: TokenUserPayload): Promise<void> => {
       if (err || !user) {
-        res.redirect(failureRedirectUrl);
-        return;
+        return res.redirect(failureRedirectUrl);
       }
 
       try {
         const { accessToken, refreshToken } = await authService.handleSocialLogin(user);
+
+        res.cookie("accessToken", accessToken, {
+          httpOnly: false,
+          sameSite: "none",
+          secure: true,
+          maxAge: 15 * 60 * 1000
+        });
+
+        // refreshToken은 기존대로 httpOnly 쿠키로 저장
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
           path: "/",
@@ -133,10 +141,8 @@ const socialLoginCallback = (req: Request, res: Response, next: NextFunction) =>
           secure: true
         });
 
-        //  httpOnly 쿠키로 전달된 refreshToken을 사용하여 클라이언트 측에서 accessToken을 재발급받도록 구현
-
-        res.redirect(`${process.env.CLIENT_URL}`);
-        return;
+        // 로그인 성공 후 클라이언트 메인 페이지로 리다이렉트
+        return res.redirect(process.env.CLIENT_URL || "/");
       } catch (error) {
         next(error);
       }
@@ -190,7 +196,7 @@ const refreshToken = asyncHandler(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new CustomError(401, "토큰 갱신을 위한 사용자 정보가 없습니다.");
   }
-  const newAccessToken = authService.generateNewAccessToken(req.user);
+  const newAccessToken = await authService.generateNewAccessToken(req.user);
   res.json({ accessToken: newAccessToken });
 });
 

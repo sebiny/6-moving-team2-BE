@@ -174,17 +174,38 @@ describe("AuthService", () => {
   });
 
   describe("generateNewAccessToken", () => {
-    test("주어진 payload로 새로운 액세스 토큰을 생성해야 합니다.", () => {
+    test("주어진 payload로 새로운 액세스 토큰을 생성해야 합니다.", async () => {
       const payload: TokenUserPayload = { id: "user-id", userType: UserType.CUSTOMER };
+      const mockUser = {
+        id: "user-id",
+        userType: UserType.CUSTOMER,
+        email: "test@test.com",
+        name: "test",
+        phone: "01012345678",
+        customer: { id: "customer-id" }
+      };
+
       const newAccessToken = "new-access-token";
 
-      (mockedJwt.sign as jest.Mock).mockReturnValueOnce(newAccessToken);
+      mockedAuthRepository.findById.mockResolvedValue(mockUser as any);
 
-      const result = authService.generateNewAccessToken(payload);
+      (mockedJwt.sign as jest.Mock).mockReturnValueOnce(newAccessToken).mockReturnValueOnce("some-refresh-token");
 
+      const result = await authService.generateNewAccessToken(payload);
+
+      expect(mockedAuthRepository.findById).toHaveBeenCalledWith(payload.id);
       expect(result).toBe(newAccessToken);
-
       expect(mockedJwt.sign).toHaveBeenCalledTimes(2);
+    });
+
+    test("사용자를 찾을 수 없는 경우 CustomError를 던져야 합니다.", async () => {
+      const payload: TokenUserPayload = { id: "non-existent-user", userType: UserType.CUSTOMER };
+
+      mockedAuthRepository.findById.mockResolvedValue(null);
+
+      await expect(authService.generateNewAccessToken(payload)).rejects.toThrow(
+        new CustomError(401, "사용자를 찾을 수 없습니다.")
+      );
     });
   });
 

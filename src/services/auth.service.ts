@@ -160,8 +160,22 @@ async function signInUser(email: string, passwordInput: string, userType: UserTy
 }
 
 // 액세스 토큰 재발급
-function generateNewAccessToken(user: TokenUserPayload): string {
-  const { accessToken } = generateTokens(user);
+async function generateNewAccessToken(user: TokenUserPayload): Promise<string> {
+  // 안전하게 DB에서 사용자 정보 다시 조회
+  const fullUser = await getUserById(user.id);
+
+  if (!fullUser) {
+    throw new CustomError(401, "사용자를 찾을 수 없습니다.");
+  }
+
+  const payload: TokenUserPayload = {
+    id: fullUser.id,
+    userType: fullUser.userType,
+    customerId: fullUser.customer?.id,
+    driverId: fullUser.driver?.id
+  };
+
+  const { accessToken } = generateTokens(payload);
   return accessToken;
 }
 
