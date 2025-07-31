@@ -1,5 +1,6 @@
 import { $Enums, MoveType, RegionType } from "@prisma/client";
 import { createMoveDayReminderPlayloadType } from "../types/notification.type";
+import DOMPurify from "isomorphic-dompurify";
 
 const moveTypeMap: { [key in MoveType]: string } = {
   [MoveType.SMALL]: "소형이사",
@@ -27,13 +28,35 @@ const regionTypeMap: { [key in RegionType]: string } = {
   [RegionType.JEJU]: "제주"
 };
 
+function escapeHTML(str: string | undefined | null): string {
+  if (str == null) return "";
+  return str.replace(
+    /[&<>"']/g,
+    (m) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[m] || m
+  );
+}
+
+function pointedStyle(text: string): string {
+  return `<span style="color: #F9502E">${escapeHTML(text)}</span>`;
+}
+
 // 회원가입 축하 메시지 생성
 function createSignUpSuccessPayload(name: string) {
+  const safeName = escapeHTML(name ?? "회원");
+  const messageHtml = DOMPurify.sanitize(`${pointedStyle(safeName)}님, 무빙 회원가입을 축하합니다!`);
+
   return {
     type: $Enums.NotificationType.WELCOME,
     payload: {
       receivedName: name,
-      message: `${name}님, 무빙 회원가입을 축하합니다!`,
+      message: messageHtml,
       timeStamp: new Date().toISOString()
     }
   };
@@ -42,11 +65,13 @@ function createSignUpSuccessPayload(name: string) {
 // 견적 요청 알림 메시지 (고객 > 고객)
 function createEstimateReqSuccessPayloadForCustomer(customerName: string | undefined, moveType: MoveType) {
   const moveTypeText = moveTypeMap[moveType] || "이사"; // 한글로 변환
+  const safeName = escapeHTML(customerName ?? "고객");
+  const messageHtml = DOMPurify.sanitize(`${safeName}님의 ${pointedStyle(moveTypeText)} 견적요청이 전송되었어요.`);
   return {
     type: $Enums.NotificationType.ESTIMATE_REQUEST, // 견적 요청 타입으로 메시지 생성
     payload: {
       customerName,
-      message: `${customerName}님의 ${moveTypeText} 견적요청이 전송되었어요.`,
+      message: messageHtml,
       timeStamp: new Date().toISOString()
     }
   };
@@ -54,11 +79,12 @@ function createEstimateReqSuccessPayloadForCustomer(customerName: string | undef
 
 // 견적 요청할 기사 없음 알림 메시지 (고객 > 고객)
 function createNoDriverFoundPayloadForCustomer(customerName: string | undefined) {
+  const safeName = escapeHTML(customerName ?? "고객");
   return {
     type: $Enums.NotificationType.MESSAGE, // 견적 요청 타입으로 메시지 생성
     payload: {
       customerName,
-      message: `${customerName}님, 죄송합니다. 현재 요청하신 지역에 이용 가능한 기사님이 없습니다.`,
+      message: `${safeName}님, 죄송합니다. 현재 요청하신 지역에 이용 가능한 기사님이 없습니다.`,
       timeStamp: new Date().toISOString()
     }
   };
@@ -67,11 +93,12 @@ function createNoDriverFoundPayloadForCustomer(customerName: string | undefined)
 // 견적 요청 도착 알림 메시지 (고객 > 기사)
 function createEstimateReqSuccessPayloadForDriver(customerName: string | undefined, moveType: MoveType) {
   const moveTypeText = moveTypeMap[moveType] || "이사"; // 한글로 변환
+  const safeCustomerName = escapeHTML(customerName ?? "고객");
   return {
     type: $Enums.NotificationType.ESTIMATE_REQUEST, // 견적 요청 타입으로 메시지 생성
     payload: {
       customerName,
-      message: `${customerName}님의 ${moveTypeText} 견적요청이 도착했어요.`,
+      message: `${safeCustomerName}님의 ${pointedStyle(moveTypeText)} 견적요청이 도착했어요.`,
       timeStamp: new Date().toISOString()
     }
   };
@@ -80,11 +107,13 @@ function createEstimateReqSuccessPayloadForDriver(customerName: string | undefin
 // 새로운 견적 도착 알림 메시지 (기사 -> 고객)
 function createEstimateProposalSuccessPlayloadForCustomer(driverName: string | undefined, moveType: MoveType) {
   const moveTypeText = moveTypeMap[moveType] || "이사"; // 한글로 변환
+  const safeDriverName = escapeHTML(driverName ?? "");
+  const styledText = `${moveTypeText} 견적`;
   return {
     type: $Enums.NotificationType.ESTIMATE_PROPOSAL, // 견적 도착
     payload: {
       driverName,
-      message: `${driverName} 기사님의 ${moveTypeText} 견적이 도착했어요.`,
+      message: `${safeDriverName} 기사님의 ${pointedStyle(styledText)}이 도착했어요.`,
       timeStamp: new Date().toISOString()
     }
   };
@@ -92,11 +121,12 @@ function createEstimateProposalSuccessPlayloadForCustomer(driverName: string | u
 
 // 견적 확정 알림 메시지 (기사 -> 고객)
 function createEstimateConfirmPlayloadForCustomer(customerName: string | undefined) {
+  const safeCustomerName = escapeHTML(customerName);
   return {
     type: $Enums.NotificationType.MOVE_CONFIRMED, // 견적 확정
     payload: {
       customerName,
-      message: `${customerName}님의 이사가 확정되었어요.`,
+      message: `${safeCustomerName}님의 이사가 확정되었어요.`,
       timeStamp: new Date().toISOString()
     }
   };
@@ -104,11 +134,12 @@ function createEstimateConfirmPlayloadForCustomer(customerName: string | undefin
 
 // 견적 확정 알림 메시지 (고객 -> 기사)
 function createEstimateConfirmPlayloadForDriver(driverName: string | undefined) {
+  const safeDriverName = escapeHTML(driverName ?? "");
   return {
     type: $Enums.NotificationType.ESTIMATE_ACCEPTED, // 견적 선택됨
     payload: {
       driverName,
-      message: `${driverName} 기사님의 견적이 확정되었어요.`,
+      message: `${safeDriverName} 기사님의 견적이 ${pointedStyle("확정")}되었어요.`,
       timeStamp: new Date().toISOString()
     }
   };
@@ -123,11 +154,11 @@ function createMoveDayReminderPlayload({
 }: createMoveDayReminderPlayloadType) {
   const fromRegionText = regionTypeMap[fromRegion as RegionType]; // 한글로 변환
   const toRegionText = regionTypeMap[toRegion as RegionType]; // 한글로 변환
-
+  const rawText = `${fromRegionText}(${fromDistrict}) → ${toRegionText}(${toDistrict}) 이사 예정일`;
   return {
     type: $Enums.NotificationType.MOVE_DAY_REMINDER, // 견적 도착
     payload: {
-      message: `오늘은 ${fromRegionText}(${fromDistrict}) → ${toRegionText}(${toDistrict}) 이사 예정일이예요.`,
+      message: `오늘은 ${pointedStyle(rawText)}예요.`,
       timeStamp: new Date().toISOString()
     }
   };

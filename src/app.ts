@@ -19,6 +19,7 @@ import customerEstimateRouter from "./routes/customerEstimate.router";
 import driverPrivateRouter from "./routes/driverPrivate.router";
 import cron from "node-cron";
 import { sendMoveDayReminders } from "./utils/moveReminder";
+import { EstimateCompletionScheduler } from "./utils/estimateCompletionScheduler";
 
 const app = express();
 app.use(
@@ -59,6 +60,17 @@ app.use(
 cron.schedule("0 0 * * *", sendMoveDayReminders, {
   timezone: "Asia/Seoul" // 시간대(Timezone)를 명시하는 것이 좋습니다.
 });
+
+// 00:05:00 - 견적 완료 처리 (이사 당일 알림 후 5분 뒤 실행)
+cron.schedule(
+  "5 0 * * *",
+  () => {
+    EstimateCompletionScheduler.runBatchUpdate();
+  },
+  {
+    timezone: "Asia/Seoul"
+  }
+);
 
 app.use(errorHandler as express.ErrorRequestHandler);
 
