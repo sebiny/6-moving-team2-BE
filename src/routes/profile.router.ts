@@ -22,8 +22,8 @@ profileRouter.post("/customer", authMiddleware, profileController.createCustomer
 // PATCH /profile/customer: 고객 프로필 수정
 profileRouter.patch("/customer", authMiddleware, profileController.updateCustomerProfile);
 
-// GET /profile/customer/:id: 고객 프로필 조회
-profileRouter.get("/customer/:id", authMiddleware, profileController.getCustomerProfile);
+// // GET /profile/customer/:id: 고객 프로필 조회
+// profileRouter.get("/customer/:id", authMiddleware, profileController.getCustomerProfile);
 
 // POST /profile/driver: 기사 프로필 생성
 profileRouter.post("/driver", authMiddleware, profileController.createDriverProfile);
@@ -31,8 +31,8 @@ profileRouter.post("/driver", authMiddleware, profileController.createDriverProf
 // PATCH /profile/driver: 기사 프로필 수정
 profileRouter.patch("/driver", authMiddleware, profileController.updateDriverProfile);
 
-// GET /profile/driver/:id: 기사 프로필 상세 조회
-profileRouter.get("/driver/:id", authMiddleware, profileController.getDriverProfile);
+// // GET /profile/driver/:id: 기사 프로필 상세 조회
+// profileRouter.get("/driver/:id", authMiddleware, profileController.getDriverProfile);
 
 // PATCH /profile/driver/basic: 기사 프로필 기본 정보 수정
 profileRouter.patch("/driver/basic", authMiddleware, profileController.updateDriverBasicProfile);

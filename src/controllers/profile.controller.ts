@@ -86,12 +86,12 @@ const updateCustomerProfile = asyncHandler(async (req: Request, res: Response) =
   res.json(updated);
 });
 
-// 고객 프로필 조회
-const getCustomerProfile = asyncHandler(async (req: Request, res: Response) => {
-  const customerId = req.params.id;
-  const profile = await profileService.getCustomerProfile(customerId);
-  res.json(profile);
-});
+// // 고객 프로필 조회
+// const getCustomerProfile = asyncHandler(async (req: Request, res: Response) => {
+//   const customerId = req.params.id;
+//   const profile = await profileService.getCustomerProfile(customerId);
+//   res.json(profile);
+// });
 
 // 기사 프로필 생성
 const createDriverProfile = asyncHandler(async (req: Request, res: Response) => {
@@ -137,12 +137,12 @@ const updateDriverProfile = asyncHandler(async (req: Request, res: Response) => 
   res.json(updated);
 });
 
-// 기사 프로필 조회
-const getDriverProfile = asyncHandler(async (req: Request, res: Response) => {
-  const driverId = req.params.id;
-  const profile = await profileService.getDriverProfile(driverId);
-  res.json(profile);
-});
+// // 기사 프로필 조회
+// const getDriverProfile = asyncHandler(async (req: Request, res: Response) => {
+//   const driverId = req.params.id;
+//   const profile = await profileService.getDriverProfile(driverId);
+//   res.json(profile);
+// });
 
 const updateDriverBasicProfile = asyncHandler(async (req: Request, res: Response) => {
   const authUserId = req.user?.id;
@@ -162,10 +162,10 @@ const updateDriverBasicProfile = asyncHandler(async (req: Request, res: Response
 export default {
   createCustomerProfile,
   updateCustomerProfile,
-  getCustomerProfile,
+  // getCustomerProfile,
   createDriverProfile,
   updateDriverProfile,
-  getDriverProfile,
+  // getDriverProfile,
   updateDriverBasicProfile,
   uploadProfileImage
 };
