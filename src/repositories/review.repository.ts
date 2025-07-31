@@ -1,6 +1,5 @@
-import { skip } from "@prisma/client/runtime/library";
 import prisma from "../config/prisma";
-import { CreateReviewInput, ReviewInput } from "../types/review.type";
+import { CreateReviewInput } from "../types/review.type";
 import { CustomError } from "../utils/customError";
 
 //작성가능한 견적(리뷰)

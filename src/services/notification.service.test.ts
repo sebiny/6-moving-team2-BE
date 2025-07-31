@@ -25,7 +25,7 @@ describe("Notification Service Additional Functions", () => {
       const input = {
         driverId: "driver1",
         customerId: "customer1",
-        moveType: "일반"
+        moveType: "소형이사" as MoveType
       };
       const driverUser = { id: input.driverId, name: "기사이름" };
       const customerUser = { id: input.customerId, name: "고객이름" };
@@ -40,7 +40,7 @@ describe("Notification Service Additional Functions", () => {
       (notificationRepository.createNotification as jest.Mock).mockResolvedValue(mockNotification);
 
       const customerEmitter = { write: jest.fn() };
-      (sseEmitters as any)[customerUser.id] = customerEmitter;
+      (sseEmitters as Record<string, any>)[customerUser.id] = customerEmitter;
 
       await notificationService.createEstimateProposalNotification({
         driverId: "driver1",

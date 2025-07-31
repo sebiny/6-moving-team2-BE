@@ -50,7 +50,6 @@ async function getAllNotificationsWithDirection(userId: string): Promise<Notific
  */
 async function getReceivedNotifications(userId: string): Promise<Notification[]> {
   const receivedNotifications = await prisma.notification.findMany({
-    // 이 부분이 핵심입니다! OR 조건을 제거하고 receiverId만 남깁니다.
     where: {
       receiverId: userId
     },
@@ -82,18 +81,6 @@ async function markAsReadNotification(notificationId: string): Promise<Notificat
 }
 
 /**
- * 특정 사용자의 모든 알림을 읽음 처리합니다.
- * @param userId - 사용자 ID
- * @returns 업데이트 작업 정보
- */
-async function markAllAsRead(userId: string) {
-  return prisma.notification.updateMany({
-    where: { receiverId: userId, isRead: false },
-    data: { isRead: true }
-  });
-}
-
-/**
  * 특정 알림의 소유자를 확인하기 위해 알림 정보를 조회합니다.
  * @param notificationId - 알림 ID
  * @returns 알림 객체 또는 null
@@ -120,7 +107,6 @@ export default {
   getAllNotificationsWithDirection,
   markAsReadNotification,
   getNotificationById,
-  markAllAsRead,
   markAsRead,
   findById,
   getReceivedNotifications
