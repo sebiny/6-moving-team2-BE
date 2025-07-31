@@ -1,6 +1,6 @@
 import driverRepository from "../repositories/driver.repository";
 import reviewRepository from "../repositories/review.repository";
-import { CreateReviewInput, ReviewInput } from "../types/review.type";
+import { CreateReviewInput } from "../types/review.type";
 import { CustomError } from "../utils/customError";
 
 //작성 가능한 견적(리뷰)
