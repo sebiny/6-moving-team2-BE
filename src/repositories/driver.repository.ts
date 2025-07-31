@@ -248,25 +248,35 @@ async function createEstimate(data: { driverId: string; estimateRequestId: strin
     });
 
     const isDesignatedRequest = designatedDrivers.length > 0;
-    const limit = isDesignatedRequest ? 3 : 5; // 지정 요청: 3개, 일반 요청: 5개
 
-    // 현재 응답 수 계산 (견적 + 반려)
-    const [estimateCount, rejectionCount] = await Promise.all([
-      tx.estimate.count({
+    if (isDesignatedRequest) {
+      // 지정견적요청: (견적보내기 + 반려하기) 3개로 제한
+      const limit = designatedDrivers.length;
+
+      // 현재 응답 수 계산 (견적 + 반려)
+      const [estimateCount, rejectionCount] = await Promise.all([
+        tx.estimate.count({
+          where: { estimateRequestId: data.estimateRequestId, deletedAt: null }
+        }),
+        tx.driverEstimateRejection.count({
+          where: { estimateRequestId: data.estimateRequestId }
+        })
+      ]);
+
+      const currentCount = estimateCount + rejectionCount;
+
+      if (currentCount >= limit) {
+        throw new CustomError(400, "지정된 모든 기사님이 응답하셨습니다.");
+      }
+    } else {
+      // 일반견적요청: 견적보내기만 5개로 제한
+      const estimateCount = await tx.estimate.count({
         where: { estimateRequestId: data.estimateRequestId, deletedAt: null }
-      }),
-      tx.driverEstimateRejection.count({
-        where: { estimateRequestId: data.estimateRequestId }
-      })
-    ]);
+      });
 
-    const currentCount = estimateCount + rejectionCount;
-
-    if (currentCount >= limit) {
-      throw new CustomError(
-        400,
-        isDesignatedRequest ? "지정된 모든 기사님이 응답하셨습니다." : "이미 최대 응답 가능 기사님 수를 초과했습니다."
-      );
+      if (estimateCount >= 5) {
+        throw new CustomError(400, "이미 최대 응답 가능 기사님 수를 초과했습니다.");
+      }
     }
 
     return tx.estimate.create({
@@ -414,31 +424,45 @@ async function checkResponseLimit(estimateRequestId: string, driverId: string) {
   });
 
   const isDesignatedRequest = designatedDrivers.length > 0;
-  const limit = isDesignatedRequest ? designatedDrivers.length : 5;
 
-  // 현재 응답 수 계산 (견적 + 반려)
-  const [estimateCount, rejectionCount] = await Promise.all([
-    prisma.estimate.count({
+  if (isDesignatedRequest) {
+    // 지정견적요청: 견적보내기 + 반려하기로 제한
+    const limit = designatedDrivers.length;
+
+    // 현재 응답 수 계산 (견적 + 반려)
+    const [estimateCount, rejectionCount] = await Promise.all([
+      prisma.estimate.count({
+        where: { estimateRequestId, deletedAt: null }
+      }),
+      prisma.driverEstimateRejection.count({
+        where: { estimateRequestId }
+      })
+    ]);
+
+    const currentCount = estimateCount + rejectionCount;
+    const canRespond = currentCount < limit;
+
+    return {
+      canRespond,
+      limit,
+      currentCount,
+      message: canRespond ? "응답 가능합니다." : "지정된 모든 기사님이 응답하셨습니다."
+    };
+  } else {
+    // 일반견적요청: 견적보내기만 5개로 제한
+    const estimateCount = await prisma.estimate.count({
       where: { estimateRequestId, deletedAt: null }
-    }),
-    prisma.driverEstimateRejection.count({
-      where: { estimateRequestId }
-    })
-  ]);
+    });
 
-  const currentCount = estimateCount + rejectionCount;
-  const canRespond = currentCount < limit;
+    const canRespond = estimateCount < 5;
 
-  return {
-    canRespond,
-    limit,
-    currentCount,
-    message: canRespond
-      ? "응답 가능합니다."
-      : isDesignatedRequest
-        ? "지정된 모든 기사님이 응답하셨습니다."
-        : "최대 5명까지 응답 가능합니다."
-  };
+    return {
+      canRespond,
+      limit: 5,
+      currentCount: estimateCount,
+      message: canRespond ? "응답 가능합니다." : "이미 최대 응답 가능 기사님 수를 초과했습니다."
+    };
+  }
 }
 
 type DriverWithAuthUserId = {
