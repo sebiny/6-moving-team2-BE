@@ -272,7 +272,8 @@ async function createEstimate(data: { driverId: string; estimateRequestId: strin
     return tx.estimate.create({
       data: {
         ...data,
-        status: "PROPOSED"
+        status: "PROPOSED",
+        isDesignated: isDesignatedRequest
       }
     });
   });
@@ -340,7 +341,8 @@ async function getMyEstimates(driverId: string) {
       ...estimate,
       completionStatus,
       isCompleted,
-      customerName: estimateRequest.customer.authUser.name
+      customerName: estimateRequest.customer.authUser.name,
+      isDesignated: estimate.isDesignated
     };
   });
 }
@@ -368,7 +370,7 @@ async function getEstimateDetail(driverId: string, estimateId: string) {
 }
 
 async function getRejectedEstimateRequests(driverId: string) {
-  return await prisma.driverEstimateRejection.findMany({
+  const rejections = await prisma.driverEstimateRejection.findMany({
     where: {
       driverId
     },
@@ -383,7 +385,8 @@ async function getRejectedEstimateRequests(driverId: string) {
             }
           },
           fromAddress: true,
-          toAddress: true
+          toAddress: true,
+          designatedDrivers: true
         }
       }
     },
@@ -391,6 +394,15 @@ async function getRejectedEstimateRequests(driverId: string) {
       createdAt: "desc"
     }
   });
+
+  // 각 반려 요청에 대해 isDesignated 필드 추가
+  return rejections.map((rejection) => ({
+    ...rejection,
+    estimateRequest: {
+      ...rejection.estimateRequest,
+      isDesignated: rejection.estimateRequest.designatedDrivers.length > 0
+    }
+  }));
 }
 
 // 응답 수 제한 확인 (일반 요청: 5명, 지정 요청: 지정 기사 수)
