@@ -2,6 +2,7 @@ import estimateReqService from "../services/estimateReq.service";
 import estimateReqRepository from "../repositories/estimateReq.repository";
 import { CustomError } from "../utils/customError";
 import { MoveType, RequestStatus, AddressRole } from "@prisma/client";
+import dayjs from "dayjs";
 
 jest.mock("../repositories/estimateReq.repository");
 
@@ -76,6 +77,22 @@ describe("EstimateReq Service", () => {
           moveDate: new Date(Date.now() - 86400000)
         })
       ).rejects.toThrow("이전 날짜로 이사를 요청할 수 없습니다.");
+    });
+
+    test("이사 날짜가 오늘이어도 견적 요청이 생성된다", async () => {
+      const today = dayjs().add(1, "hour").toDate();
+
+      const mockResult = { id: "req-today", ...baseData, moveDate: today };
+
+      (estimateReqRepository.findActiveEstimateRequest as jest.Mock).mockResolvedValue(null);
+      (estimateReqRepository.createEstimateRequest as jest.Mock).mockResolvedValue(mockResult);
+
+      const result = await estimateReqService.createEstimateRequest({
+        ...baseData,
+        moveDate: today
+      });
+
+      expect(result).toEqual(mockResult);
     });
 
     test("조건이 모두 충족되면 견적 요청을 생성하여 반환한다", async () => {

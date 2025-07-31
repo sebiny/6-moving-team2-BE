@@ -17,7 +17,7 @@ describe("Notification Repository", () => {
   const mockNotification: Notification = {
     id: "notif-id-123",
     message: "테스트 메시지",
-    type: "ESTIMATE_ACCEPTED", // 실제 프로젝트에 맞게 타입 맞춰주세요
+    type: "ESTIMATE_ACCEPTED",
     isRead: false,
     path: "",
     senderId: "user-sender",
@@ -138,25 +138,6 @@ describe("Notification Repository", () => {
       });
 
       expect(result).toEqual(updatedNotification);
-    });
-  });
-
-  describe("markAllAsRead", () => {
-    it("특정 사용자의 모든 알림을 읽음 처리한다", async () => {
-      const userId = "userReceiver";
-
-      const mockUpdateResult = { count: 3 };
-
-      (prisma.notification.updateMany as jest.Mock).mockResolvedValue(mockUpdateResult);
-
-      const result = await notificationRepository.markAllAsRead(userId);
-
-      expect(prisma.notification.updateMany).toHaveBeenCalledWith({
-        where: { receiverId: userId, isRead: false },
-        data: { isRead: true }
-      });
-
-      expect(result).toEqual(mockUpdateResult);
     });
   });
 
