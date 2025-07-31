@@ -52,11 +52,11 @@ async function getAllFavoriteDrivers(userId: string, pageSize?: number | null) {
   const favoriteDrivers = (await prisma.favorite.findMany(options)) as FavoriteDriverWithDetails[];
 
   return favoriteDrivers.map((favorite) => {
-    const { driver } = favorite;
+    const { _count, ...restDriver } = favorite.driver;
     return {
-      ...driver,
-      reviewCount: driver._count.reviewsReceived,
-      favoriteCount: driver._count.favorite
+      ...restDriver,
+      reviewCount: _count.reviewsReceived,
+      favoriteCount: _count.favorite
     };
   });
 }
