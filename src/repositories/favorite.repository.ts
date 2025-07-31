@@ -27,7 +27,7 @@ type FavoriteDriverWithDetails = {
 };
 
 //찜한 기사님 불러오기
-async function getAllFavoriteDrivers(userId: string, page?: number | null, pageSize?: number | null) {
+async function getAllFavoriteDrivers(userId: string, pageSize?: number | null) {
   const options: any = {
     where: { customerId: userId },
     include: {
@@ -45,8 +45,7 @@ async function getAllFavoriteDrivers(userId: string, page?: number | null, pageS
     }
   };
 
-  if (page && pageSize) {
-    options.skip = (page - 1) * pageSize;
+  if (pageSize) {
     options.take = pageSize;
   }
 

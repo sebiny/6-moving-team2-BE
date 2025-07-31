@@ -22,10 +22,6 @@ async function getDriverReviews(id: string, page: number) {
   return await driverRepository.getDriverReviews(id, page);
 }
 
-async function updateDriver(id: string, data: EditDataType) {
-  return await driverRepository.updateDriver(id, data);
-}
-
 async function getDesignatedEstimateRequests(driverId: string) {
   return await driverRepository.getDesignatedEstimateRequests(driverId);
 }
@@ -66,7 +62,6 @@ export default {
   getAllDrivers,
   getDriverById,
   getDriverReviews,
-  updateDriver,
   getDesignatedEstimateRequests,
   getAvailableEstimateRequests,
   getAllEstimateRequests,
