@@ -2,7 +2,7 @@ import { AddressRole } from "@prisma/client";
 import estimateReqRepository from "../repositories/estimateReq.repository";
 import { LinkCustomerAddressInput, CreateEstimateRequestInput } from "../types/estimateReq.type";
 import { CustomError } from "../utils/customError";
-import prisma from "../config/prisma";
+import dayjs from "dayjs";
 
 // 고객 주소 연결
 async function linkCustomerAddress(data: LinkCustomerAddressInput) {
@@ -22,7 +22,7 @@ async function createEstimateRequest(data: CreateEstimateRequestInput) {
     throw new CustomError(400, "출발지와 도착지는 서로 달라야 합니다.");
   }
 
-  if (moveDate < new Date()) {
+  if (dayjs(moveDate).isBefore(dayjs().startOf("day"))) {
     throw new CustomError(400, "이전 날짜로 이사를 요청할 수 없습니다.");
   }
 
