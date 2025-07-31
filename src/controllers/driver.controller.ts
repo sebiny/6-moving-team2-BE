@@ -86,6 +86,11 @@ const createEstimate = asyncHandler(async (req, res) => {
 
   if (!driverId) return res.status(401).json({ message: "Driver not authenticated" });
 
+  // price 검증
+  if (!price || price <= 0 || isNaN(price)) {
+    return res.status(400).json({ message: "유효한 견적가를 입력해주세요." });
+  }
+
   // 견적 요청 상태 검증
   const estimateRequest = await estimateReqService.findRequestById(requestId);
   if (!estimateRequest) {
@@ -97,6 +102,16 @@ const createEstimate = asyncHandler(async (req, res) => {
     return res.status(400).json({
       message: "이 견적 요청은 더 이상 견적을 받을 수 없습니다.",
       status: estimateRequest.status
+    });
+  }
+
+  // 완료된 견적 요청인지 확인 (이사일이 지난 경우)
+  const currentDate = new Date();
+  const moveDate = new Date(estimateRequest.moveDate);
+  if (moveDate < currentDate) {
+    return res.status(400).json({
+      message: "이사일이 지난 견적 요청에는 견적을 보낼 수 없습니다.",
+      moveDate: estimateRequest.moveDate
     });
   }
 
@@ -159,6 +174,16 @@ const rejectEstimateRequest = asyncHandler(async (req, res) => {
     return res.status(400).json({
       message: "이 견적 요청은 더 이상 반려할 수 없습니다.",
       status: estimateRequest.status
+    });
+  }
+
+  // 완료된 견적 요청인지 확인 (이사일이 지난 경우)
+  const currentDate = new Date();
+  const moveDate = new Date(estimateRequest.moveDate);
+  if (moveDate < currentDate) {
+    return res.status(400).json({
+      message: "이사일이 지난 견적 요청에는 반려할 수 없습니다.",
+      moveDate: estimateRequest.moveDate
     });
   }
 
