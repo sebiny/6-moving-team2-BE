@@ -7,5 +7,5 @@ export const getCookieDomain = (): string | undefined => {
   }
 
   // 배포 환경이면 .도메인 형식
-  return ".moving-2.click";
+  return "www.moving-2.click";
 };
