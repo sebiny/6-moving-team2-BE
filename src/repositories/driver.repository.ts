@@ -24,12 +24,8 @@ async function getAllDrivers(options: optionsType, userId?: string) {
 
   const orderByClause =
     orderBy === "reviewCount"
-      ? {
-          reviewsReceived: {
-            _count: "desc" as const
-          }
-        }
-      : { [orderBy]: "desc" as const };
+      ? [{ reviewsReceived: { _count: "desc" as const } }, { id: "asc" as const }]
+      : [{ [orderBy]: "desc" as const }, { id: "asc" as const }];
 
   const PAGE_SIZE = 3;
   const skip = (page - 1) * PAGE_SIZE;

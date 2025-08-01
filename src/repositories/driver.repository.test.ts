@@ -115,7 +115,7 @@ describe("Driver Repository", () => {
       expect(result!.id).toBe("driver1");
       expect(result!.isFavorite).toBe(true);
     });
-    test("ID를 가진 기사가 없을 경우 ", async () => {
+    test("ID를 가진 기사가 없을 경우 null을 반환한다 ", async () => {
       (mockedPrisma.driver.findUnique as jest.Mock).mockResolvedValue(null);
       const result = await driverRepository.getDriverById("nope");
       expect(result).toBeNull();
