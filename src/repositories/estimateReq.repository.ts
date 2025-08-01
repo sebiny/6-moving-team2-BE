@@ -1,6 +1,7 @@
 import prisma from "../config/prisma";
 import type { AddressRole, RegionType } from "@prisma/client";
 import { LinkCustomerAddressInput, CreateEstimateRequestInput } from "../types/estimateReq.type";
+import dayjs from "dayjs";
 
 // 고객(customer) 테이블에 연결(FROM, TO)
 async function linkCustomerAddress(data: LinkCustomerAddressInput) {
@@ -37,7 +38,7 @@ async function findActiveEstimateRequest(customerId: string) {
         {
           status: "APPROVED",
           moveDate: {
-            gt: new Date()
+            gte: dayjs().startOf("day").toDate()
           }
         }
       ]
