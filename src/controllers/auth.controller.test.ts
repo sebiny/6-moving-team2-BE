@@ -5,6 +5,7 @@ import authRepository from "../repositories/auth.repository";
 import passport from "passport";
 import { CustomError } from "../utils/customError";
 import { UserType } from "@prisma/client";
+import { getCookieDomain } from "../utils/getCookieDomain";
 
 jest.mock("../services/auth.service");
 jest.mock("../repositories/auth.repository");
@@ -99,8 +100,9 @@ describe("AuthController", () => {
       expect(mockResponse.cookie).toHaveBeenCalledWith("refreshToken", loginResult.refreshToken, {
         httpOnly: true,
         path: "/",
-        sameSite: "none",
-        secure: true
+        sameSite: "lax",
+        secure: true,
+        domain: getCookieDomain()
       });
       expect(mockResponse.json).toHaveBeenCalledWith({ accessToken: loginResult.accessToken, user: loginResult.user });
       expect(mockNext).not.toHaveBeenCalled();
@@ -130,8 +132,9 @@ describe("AuthController", () => {
       expect(mockResponse.clearCookie).toHaveBeenCalledWith("refreshToken", {
         httpOnly: true,
         path: "/",
-        sameSite: "none",
-        secure: true
+        sameSite: "lax",
+        secure: true,
+        domain: getCookieDomain()
       });
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({ message: "성공적으로 로그아웃되었습니다." });
