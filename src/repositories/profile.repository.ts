@@ -26,15 +26,15 @@ async function updateCustomerProfile(authUserId: string, data: Prisma.CustomerUp
     }
   });
 }
-// 고객 프로필 조회 by customerId (id 직접 조회)
-async function getCustomerById(id: string): Promise<Customer | null> {
-  return prisma.customer.findUnique({
-    where: { id },
-    include: {
-      authUser: true
-    }
-  });
-}
+// // 고객 프로필 조회 by customerId (id 직접 조회)
+// async function getCustomerById(id: string): Promise<Customer | null> {
+//   return prisma.customer.findUnique({
+//     where: { id },
+//     include: {
+//       authUser: true
+//     }
+//   });
+// }
 
 // 기사 프로필 조회 by authUserId
 async function findDriverByAuthUserId(authUserId: string): Promise<Driver | null> {
@@ -64,15 +64,15 @@ async function updateDriverProfile(authUserId: string, data: Prisma.DriverUpdate
   });
 }
 
-// 기사 프로필 조회 by driverId (id 직접 조회)
-async function getDriverById(id: string): Promise<Driver | null> {
-  return prisma.driver.findUnique({
-    where: { id },
-    include: {
-      serviceAreas: true
-    }
-  });
-}
+// // 기사 프로필 조회 by driverId (id 직접 조회)
+// async function getDriverById(id: string): Promise<Driver | null> {
+//   return prisma.driver.findUnique({
+//     where: { id },
+//     include: {
+//       serviceAreas: true
+//     }
+//   });
+// }
 
 // 기존 기사 서비스 지역 삭제
 async function deleteDriverServiceAreas(driverId: string): Promise<void> {
@@ -90,11 +90,11 @@ export default {
   findCustomerByAuthUserId,
   createCustomerProfile,
   updateCustomerProfile,
-  getCustomerById,
+  // getCustomerById,
   findDriverByAuthUserId,
   createDriverProfile,
   updateDriverProfile,
-  getDriverById,
+  // getDriverById,
   deleteDriverServiceAreas,
   createDriverServiceAreas
 };

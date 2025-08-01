@@ -154,12 +154,12 @@ async function updateCustomerProfile(
   };
 }
 
-// 고객 프로필 조회
-async function getCustomerProfile(customerId: string) {
-  const customer = await profileRepository.getCustomerById(customerId);
-  if (!customer) throw new CustomError(404, "고객 프로필을 찾을 수 없습니다.");
-  return customer;
-}
+// // 고객 프로필 조회
+// async function getCustomerProfile(customerId: string) {
+//   const customer = await profileRepository.getCustomerById(customerId);
+//   if (!customer) throw new CustomError(404, "고객 프로필을 찾을 수 없습니다.");
+//   return customer;
+// }
 
 // 기사 프로필 생성
 async function createDriverProfile(
@@ -259,12 +259,12 @@ async function updateDriverProfile(
   return await profileRepository.updateDriverProfile(authUserId, rest);
 }
 
-// 기사 프로필 조회
-async function getDriverProfile(driverId: string) {
-  const driver = await profileRepository.getDriverById(driverId);
-  if (!driver) throw new CustomError(404, "기사 프로필을 찾을 수 없습니다.");
-  return driver;
-}
+// // 기사 프로필 조회
+// async function getDriverProfile(driverId: string) {
+//   const driver = await profileRepository.getDriverById(driverId);
+//   if (!driver) throw new CustomError(404, "기사 프로필을 찾을 수 없습니다.");
+//   return driver;
+// }
 
 //기사 프로필 기본 정보 수정
 async function updateDriverBasicProfile(
@@ -349,9 +349,9 @@ async function updateDriverBasicProfile(
 export default {
   createCustomerProfile,
   updateCustomerProfile,
-  getCustomerProfile,
+  // getCustomerProfile,
   createDriverProfile,
   updateDriverProfile,
-  getDriverProfile,
+  // getDriverProfile,
   updateDriverBasicProfile
 };
