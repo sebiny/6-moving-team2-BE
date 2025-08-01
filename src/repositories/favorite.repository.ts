@@ -27,7 +27,7 @@ type FavoriteDriverWithDetails = {
 };
 
 //찜한 기사님 불러오기
-async function getAllFavoriteDrivers(userId: string, page?: number | null, pageSize?: number | null) {
+async function getAllFavoriteDrivers(userId: string, pageSize?: number | null) {
   const options: any = {
     where: { customerId: userId },
     include: {
@@ -45,19 +45,18 @@ async function getAllFavoriteDrivers(userId: string, page?: number | null, pageS
     }
   };
 
-  if (page && pageSize) {
-    options.skip = (page - 1) * pageSize;
+  if (pageSize) {
     options.take = pageSize;
   }
 
   const favoriteDrivers = (await prisma.favorite.findMany(options)) as FavoriteDriverWithDetails[];
 
   return favoriteDrivers.map((favorite) => {
-    const { driver } = favorite;
+    const { _count, ...restDriver } = favorite.driver;
     return {
-      ...driver,
-      reviewCount: driver._count.reviewsReceived,
-      favoriteCount: driver._count.favorite
+      ...restDriver,
+      reviewCount: _count.reviewsReceived,
+      favoriteCount: _count.favorite
     };
   });
 }

@@ -52,13 +52,6 @@ const getDriverReviews = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(result);
 });
 
-const updateDriver = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const data = req.body;
-  const result = await driverService.updateDriver(id, data);
-  res.status(200).json(result);
-});
-
 const getDesignatedEstimateRequests = asyncHandler(async (req: Request, res: Response) => {
   const driverId = req.user?.driverId;
   if (!driverId) {
@@ -263,7 +256,6 @@ export default {
   getDriverById,
   getDriverByIdAuth,
   getDriverReviews,
-  updateDriver,
   getDesignatedEstimateRequests,
   getAvailableEstimateRequests,
   getAllEstimateRequests,

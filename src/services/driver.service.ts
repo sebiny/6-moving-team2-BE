@@ -1,4 +1,4 @@
-import driverRepository, { EditDataType, optionsType } from "../repositories/driver.repository";
+import driverRepository, { optionsType } from "../repositories/driver.repository";
 import estimateReqRepository from "../repositories/estimateReq.repository";
 
 async function getAllDrivers(options: optionsType, userId?: string) {
@@ -20,10 +20,6 @@ async function getDriverById(id: string, userId?: string) {
 
 async function getDriverReviews(id: string, page: number) {
   return await driverRepository.getDriverReviews(id, page);
-}
-
-async function updateDriver(id: string, data: EditDataType) {
-  return await driverRepository.updateDriver(id, data);
 }
 
 async function getDesignatedEstimateRequests(driverId: string) {
@@ -66,7 +62,6 @@ export default {
   getAllDrivers,
   getDriverById,
   getDriverReviews,
-  updateDriver,
   getDesignatedEstimateRequests,
   getAvailableEstimateRequests,
   getAllEstimateRequests,
