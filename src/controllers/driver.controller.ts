@@ -108,7 +108,11 @@ const createEstimate = asyncHandler(async (req, res) => {
   // 완료된 견적 요청인지 확인 (이사일이 지난 경우)
   const currentDate = new Date();
   const moveDate = new Date(estimateRequest.moveDate);
-  if (moveDate < currentDate) {
+
+  // 오늘 날짜의 시작 설정 (시간 제거)
+  const todayStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+
+  if (moveDate < todayStart) {
     return res.status(400).json({
       message: "이사일이 지난 견적 요청에는 견적을 보낼 수 없습니다.",
       moveDate: estimateRequest.moveDate
@@ -180,7 +184,11 @@ const rejectEstimateRequest = asyncHandler(async (req, res) => {
   // 완료된 견적 요청인지 확인 (이사일이 지난 경우)
   const currentDate = new Date();
   const moveDate = new Date(estimateRequest.moveDate);
-  if (moveDate < currentDate) {
+
+  // 오늘 날짜의 시작 설정 (시간 제거)
+  const todayStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+
+  if (moveDate < todayStart) {
     return res.status(400).json({
       message: "이사일이 지난 견적 요청에는 반려할 수 없습니다.",
       moveDate: estimateRequest.moveDate
