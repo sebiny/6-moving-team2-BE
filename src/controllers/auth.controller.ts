@@ -6,6 +6,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { UserType } from "@prisma/client";
 import rateLimit from "express-rate-limit";
 import { CustomError } from "../utils/customError";
+import { getCookieDomain } from "../utils/getCookieDomain";
 
 declare global {
   namespace Express {
@@ -59,8 +60,9 @@ const logIn = asyncHandler(async (req: Request, res: Response) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: true
+    sameSite: "lax",
+    secure: true,
+    domain: getCookieDomain()
   });
 
   res.json({ accessToken, user });
@@ -71,8 +73,9 @@ const logOut = asyncHandler(async (_req: Request, res: Response) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: true
+    sameSite: "lax",
+    secure: true,
+    domain: getCookieDomain()
   });
   res.status(200).json({ message: "성공적으로 로그아웃되었습니다." });
 });
@@ -128,17 +131,19 @@ const socialLoginCallback = (req: Request, res: Response, next: NextFunction) =>
 
         res.cookie("accessToken", accessToken, {
           httpOnly: false,
-          sameSite: "none",
+          sameSite: "lax",
           secure: true,
-          maxAge: 15 * 60 * 1000
+          maxAge: 15 * 60 * 1000,
+          domain: getCookieDomain()
         });
 
         // refreshToken은 기존대로 httpOnly 쿠키로 저장
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
           path: "/",
-          sameSite: "none",
-          secure: true
+          sameSite: "lax",
+          secure: true,
+          domain: getCookieDomain()
         });
 
         // 로그인 성공 후 클라이언트 메인 페이지로 리다이렉트

@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { CustomError } from "../utils/customError";
 import profileService from "../services/profile.service";
 import { UserType } from "@prisma/client";
+import { getCookieDomain } from "../utils/getCookieDomain";
 
 declare global {
   namespace Express {
@@ -47,8 +48,9 @@ const createCustomerProfile = asyncHandler(async (req: Request, res: Response) =
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: true
+    sameSite: "lax",
+    secure: true,
+    domain: getCookieDomain()
   });
   res.status(201).json({ profile, accessToken });
 });
@@ -111,7 +113,13 @@ const createDriverProfile = asyncHandler(async (req: Request, res: Response) => 
     serviceAreas
   });
 
-  res.cookie("refreshToken", refreshToken, { httpOnly: true, path: "/", sameSite: "none", secure: true });
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    path: "/",
+    sameSite: "lax",
+    secure: true,
+    domain: getCookieDomain()
+  });
 
   res.status(201).json({ profile, accessToken });
 });
