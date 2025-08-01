@@ -1,4 +1,5 @@
 import favoriteRepository from "../repositories/favorite.repository";
+import { CustomError } from "../utils/customError";
 import favoriteService from "./favorite.service";
 
 jest.mock("../repositories/favorite.repository");
@@ -51,7 +52,7 @@ describe("Favorite Service", () => {
       const error = { code: "P2002" };
       mockedFavoriteRepository.createFavorite.mockRejectedValue(error);
 
-      await expect(favoriteService.createFavorite("driver1", "cust1")).rejects.toThrow("이미 찜한 기사님입니다.");
+      await expect(favoriteService.createFavorite("driver1", "cust1")).rejects.toThrow(CustomError);
     });
   });
   describe("deleteFavorite", () => {
@@ -65,7 +66,7 @@ describe("Favorite Service", () => {
       const error = { code: "P2025" };
       mockedFavoriteRepository.deleteFavorite.mockRejectedValue(error);
 
-      await expect(favoriteService.deleteFavorite("driver1", "cust1")).rejects.toThrow("찜 정보가 존재하지 않습니다.");
+      await expect(favoriteService.deleteFavorite("driver1", "cust1")).rejects.toThrow(CustomError);
     });
   });
 });

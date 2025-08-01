@@ -81,8 +81,19 @@ async function getDriverById(id: string, userId?: string) {
 async function getDriverReviews(id: string, page: number) {
   const PAGE_SIZE = 3;
   const skip = (page - 1) * PAGE_SIZE;
-  const reviews = await prisma.review.findMany({ where: { driverId: id }, skip: skip, take: PAGE_SIZE });
-  return reviews;
+  const reviews = await prisma.review.findMany({
+    where: { driverId: id },
+    skip: skip,
+    take: PAGE_SIZE,
+    include: { writer: { select: { authUser: { select: { email: true } } } } }
+  });
+  return reviews.map((review) => {
+    const { writer, ...rest } = review;
+    return {
+      ...rest,
+      email: writer.authUser.email
+    };
+  });
 }
 
 // 지정 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)

@@ -1,4 +1,4 @@
-import driverRepository, { EditDataType, optionsType } from "../repositories/driver.repository";
+import driverRepository, { optionsType } from "../repositories/driver.repository";
 import estimateReqRepository from "../repositories/estimateReq.repository";
 
 async function getAllDrivers(options: optionsType, userId?: string) {
