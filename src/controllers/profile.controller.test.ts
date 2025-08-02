@@ -3,6 +3,7 @@ import profileController from "./profile.controller";
 import profileService from "../services/profile.service";
 import { CustomError } from "../utils/customError";
 import { UserType, MoveType, RegionType } from "@prisma/client";
+import { getCookieDomain } from "../utils/getCookieDomain";
 
 jest.mock("../services/profile.service");
 
@@ -75,8 +76,9 @@ describe("ProfileController", () => {
       expect(mockResponse.cookie).toHaveBeenCalledWith("refreshToken", serviceResult.refreshToken, {
         httpOnly: true,
         path: "/",
-        sameSite: "none",
-        secure: true
+        sameSite: "lax",
+        secure: true,
+        domain: getCookieDomain()
       });
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -147,8 +149,9 @@ describe("ProfileController", () => {
       expect(mockResponse.cookie).toHaveBeenCalledWith("refreshToken", serviceResult.refreshToken, {
         httpOnly: true,
         path: "/",
-        sameSite: "none",
-        secure: true
+        sameSite: "lax",
+        secure: true,
+        domain: getCookieDomain()
       });
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({

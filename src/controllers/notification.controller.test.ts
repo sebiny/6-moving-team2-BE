@@ -7,71 +7,96 @@ import { EventEmitter } from "events";
 // 의존성 모의 처리
 jest.mock("../services/notification.service");
 jest.mock("../sse/sseEmitters", () => ({
-  sseEmitters: {} // 테스트에서 조작할 수 있도록 빈 객체로 설정
+  sseEmitters: {}
 }));
 jest.mock("../utils/asyncHandler", () => ({
-  // asyncHandler는 비동기 함수를 받아 바로 실행하는 형태로 모의 처리
   asyncHandler: (fn: Function) => (req: Request, res: Response, next: Function) => fn(req, res, next)
 }));
 
-// Jest의 타이머 기능을 사용하기 위함
-jest.useFakeTimers();
+class MockRequest extends EventEmitter {
+  user: { id: string } | undefined = { id: "testUserId" };
+  params = {};
+}
+
+class MockResponse extends EventEmitter {
+  set = jest.fn();
+  flushHeaders = jest.fn();
+  write = jest.fn();
+  end = jest.fn();
+  status = jest.fn().mockReturnThis();
+  json = jest.fn();
+
+  resetMocks() {
+    this.set.mockClear();
+    this.flushHeaders.mockClear();
+    this.write.mockClear();
+    this.end.mockClear();
+    this.status.mockClear();
+    this.json.mockClear();
+  }
+}
 
 describe("Notification Controller", () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let mockNext: jest.Mock;
 
-  // 각 테스트가 실행되기 전에 mock 객체들을 초기화합니다.
   beforeEach(() => {
     mockRequest = {
-      user: { id: "testUserId", userType: "CUSTOMER" }, // 인증된 사용자 Mock
+      user: { id: "testUserId", userType: "CUSTOMER" },
       params: {}
     };
     mockResponse = {
-      status: jest.fn().mockReturnThis(), // res.status(200).json(...) 체이닝을 위해 mockReturnThis() 사용
+      status: jest.fn().mockReturnThis(),
       json: jest.fn(),
       set: jest.fn(),
       flushHeaders: jest.fn(),
       write: jest.fn(),
       end: jest.fn()
     };
-    mockNext = jest.fn(); // asyncHandler에서 사용될 수 있는 next 함수 Mock
+    mockNext = jest.fn();
 
-    // 이전 테스트의 영향을 받지 않도록 모든 mock을 초기화합니다.
     jest.clearAllMocks();
     // sseEmitters 초기화
     Object.keys(sseEmitters).forEach((key) => delete sseEmitters[key]);
   });
 
-  // ✅ 타이머 정리 추가
-  afterEach(() => {
-    jest.clearAllTimers();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
-  });
-
   describe("connectSse", () => {
-    // ✅ EventEmitter를 상속받는 Mock 클래스들
-    class MockRequest extends EventEmitter {
-      user = { id: "testUserId" };
-    }
+    let originalSetInterval: typeof setInterval;
+    let originalClearInterval: typeof clearInterval;
 
-    class MockResponse extends EventEmitter {
-      set = jest.fn();
-      flushHeaders = jest.fn();
-      write = jest.fn();
-      end = jest.fn();
-      status = jest.fn().mockReturnThis();
-    }
+    beforeAll(() => {
+      // 기존 timer 함수들 백업
+      originalSetInterval = global.setInterval;
+      originalClearInterval = global.clearInterval;
+    });
+
+    beforeEach(() => {
+      // SSE 테스트에서만 타이머 사용
+      jest.useFakeTimers();
+      jest.clearAllTimers();
+
+      // sseEmitters 추가 초기화 (SSE 테스트용)
+      Object.keys(sseEmitters).forEach((key) => delete sseEmitters[key]);
+    });
+
+    afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+      jest.clearAllTimers();
+    });
+
+    afterAll(() => {
+      // 원래 함수들 복원
+      global.setInterval = originalSetInterval;
+      global.clearInterval = originalClearInterval;
+    });
 
     it("인증된 사용자에 대해 SSE 연결을 성공적으로 설정해야 합니다.", () => {
-      const mockSseRequest = new MockRequest() as any;
-      const mockSseResponse = new MockResponse() as any;
+      const mockSseRequest = new MockRequest();
+      const mockSseResponse = new MockResponse();
 
-      connectSse(mockSseRequest as Request, mockSseResponse as Response);
+      connectSse(mockSseRequest as any, mockSseResponse as any);
 
       expect(mockSseResponse.set).toHaveBeenCalledWith({
         "Content-Type": "text/event-stream",
@@ -83,29 +108,38 @@ describe("Notification Controller", () => {
       expect(sseEmitters["testUserId"]).toBe(mockSseResponse);
     });
 
-    it("2분마다 ping 이벤트를 전송해야 합니다.", () => {
-      const mockSseRequest = new MockRequest() as any;
-      const mockSseResponse = new MockResponse() as any;
+    it("30초마다 ping 이벤트를 전송해야 합니다.", () => {
+      const mockSseRequest = new MockRequest();
+      const mockSseResponse = new MockResponse();
 
-      connectSse(mockSseRequest as Request, mockSseResponse as Response);
+      // setInterval spy 추가로 interval 설정 확인
+      const setIntervalSpy = jest.spyOn(global, "setInterval");
 
-      // ✅ 초기 상태 확인
+      connectSse(mockSseRequest as any, mockSseResponse as any);
+
+      // setInterval이 정확히 한 번만 호출되었는지 확인
+      expect(setIntervalSpy).toHaveBeenCalledTimes(1);
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 30000);
+
+      // 초기 상태 확인
       expect(mockSseResponse.write).not.toHaveBeenCalled();
 
-      // 2분(120,000ms) 후
-      jest.advanceTimersByTime(120 * 1000);
+      // 30초 후
+      jest.advanceTimersByTime(30 * 1000);
 
       expect(mockSseResponse.write).toHaveBeenCalledWith("event: ping\n");
       expect(mockSseResponse.write).toHaveBeenCalledWith("data: keepalive\n\n");
       expect(mockSseResponse.write).toHaveBeenCalledTimes(2);
+
+      setIntervalSpy.mockRestore();
     });
 
     it("연결이 종료되면 interval을 정리하고 emitter를 삭제해야 합니다.", () => {
       const clearIntervalSpy = jest.spyOn(global, "clearInterval");
-      const mockSseRequest = new MockRequest() as any;
-      const mockSseResponse = new MockResponse() as any;
+      const mockSseRequest = new MockRequest();
+      const mockSseResponse = new MockResponse();
 
-      connectSse(mockSseRequest as Request, mockSseResponse as Response);
+      connectSse(mockSseRequest as any, mockSseResponse as any);
 
       expect(sseEmitters["testUserId"]).toBeDefined();
 
@@ -118,13 +152,13 @@ describe("Notification Controller", () => {
     });
 
     it("인증되지 않은 사용자는 401 에러를 반환해야 합니다.", () => {
-      const mockSseRequest = new MockRequest() as any;
-      const mockSseResponse = new MockResponse() as any;
+      const mockSseRequest = new MockRequest();
+      const mockSseResponse = new MockResponse();
 
       // 인증되지 않은 사용자 설정
       mockSseRequest.user = undefined;
 
-      connectSse(mockSseRequest as Request, mockSseResponse as Response);
+      connectSse(mockSseRequest as any, mockSseResponse as any);
 
       expect(mockSseResponse.status).toHaveBeenCalledWith(401);
       expect(mockSseResponse.end).toHaveBeenCalledTimes(1);
@@ -132,14 +166,13 @@ describe("Notification Controller", () => {
 
     it("req의 close 이벤트도 정상적으로 처리되어야 합니다.", () => {
       const clearIntervalSpy = jest.spyOn(global, "clearInterval");
-      const mockSseRequest = new MockRequest() as any;
-      const mockSseResponse = new MockResponse() as any;
+      const mockSseRequest = new MockRequest();
+      const mockSseResponse = new MockResponse();
 
-      connectSse(mockSseRequest as Request, mockSseResponse as Response);
+      connectSse(mockSseRequest as any, mockSseResponse as any);
 
       expect(sseEmitters["testUserId"]).toBeDefined();
 
-      // ✅ req의 close 이벤트 발생 테스트
       mockSseRequest.emit("close");
 
       expect(clearIntervalSpy).toHaveBeenCalled();
@@ -150,14 +183,13 @@ describe("Notification Controller", () => {
 
     it("error 이벤트 발생 시에도 정리 작업이 수행되어야 합니다.", () => {
       const clearIntervalSpy = jest.spyOn(global, "clearInterval");
-      const mockSseRequest = new MockRequest() as any;
-      const mockSseResponse = new MockResponse() as any;
+      const mockSseRequest = new MockRequest();
+      const mockSseResponse = new MockResponse();
 
-      connectSse(mockSseRequest as Request, mockSseResponse as Response);
+      connectSse(mockSseRequest as any, mockSseResponse as any);
 
       expect(sseEmitters["testUserId"]).toBeDefined();
 
-      // ✅ error 이벤트 발생 테스트
       mockSseResponse.emit("error", new Error("Connection error"));
 
       expect(clearIntervalSpy).toHaveBeenCalled();
@@ -165,7 +197,7 @@ describe("Notification Controller", () => {
 
       clearIntervalSpy.mockRestore();
     });
-  });
+  }); // ✅ connectSse describe 블록 닫기
 
   describe("getMyNotifications", () => {
     it("사용자의 모든 알림 목록을 성공적으로 반환해야 합니다.", async () => {
