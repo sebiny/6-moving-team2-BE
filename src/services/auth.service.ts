@@ -69,11 +69,11 @@ async function signUpUser(data: SignUpUserData): Promise<Omit<AuthUser, "passwor
     throw new CustomError(422, "유효하지 않은 전화번호 형식입니다. 숫자만 입력해 주세요.");
   }
 
-  // 이름 유효성 검사 (2~5자의 한글)
-  const nameRegex = /^[가-힣]{2,5}$/;
-  if (!nameRegex.test(name)) {
-    throw new CustomError(422, "이름은 2~5자의 한글만 사용 가능합니다.");
-  }
+  // // 이름 유효성 검사 (2~5자의 한글)
+  // const nameRegex = /^[가-힣]{2,5}$/;
+  // if (!nameRegex.test(name)) {
+  //   throw new CustomError(422, "이름은 2~5자의 한글만 사용 가능합니다.");
+  // }
 
   // 비밀번호 복잡성 검사: 최소 8자, 영문, 숫자, 특수문자 포함
   const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
