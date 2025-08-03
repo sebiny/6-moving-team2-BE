@@ -17,6 +17,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import notificationRouter from "./routes/notification.router";
 import customerEstimateRouter from "./routes/customerEstimate.router";
 import driverPrivateRouter from "./routes/driverPrivate.router";
+import shareEstimateRouter from "./routes/shareEstimate.router";
 import cron from "node-cron";
 import { sendMoveDayReminders } from "./utils/moveReminder";
 import { EstimateCompletionScheduler } from "./utils/estimateCompletionScheduler";
@@ -49,6 +50,8 @@ app.use("/favorite", favoriteRouter);
 app.use("/notification", notificationRouter);
 
 app.use("/customer/estimate", customerEstimateRouter);
+
+app.use("/estimate", shareEstimateRouter);
 
 app.use(
   "/api-docs",
