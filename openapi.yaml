@@ -11,6 +11,7 @@ tags:
   - name: Customer
   - name: Driver
   - name: Notification
+  - name: Favorite
 
 paths:
   /address:
@@ -286,6 +287,181 @@ paths:
               example:
                 message: "서버 내부 오류가 발생했습니다."
 
+  /favorite:
+    get:
+      summary: 즐겨찾기한 기사 리스트 조회
+      tags: [Favorite]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: 성공적으로 즐겨찾기한 기사 리스트 반환
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Driver"
+        "401":
+          description: 인증 실패
+        "500":
+          description: 서버 에러
+
+  /favorite/drivers/:id:
+    post:
+      summary: 기사 즐겨찾기 추가
+      tags: [Favorite]
+      security:
+        - access-token: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: 즐겨찾기 추가 성공
+        "400":
+          description: 잘못된 요청
+        "401":
+          description: 인증 실패
+        "500":
+          description: 서버 에러
+
+    delete:
+      summary: 기사 즐겨찾기 삭제
+      tags: [Favorite]
+      security:
+        - access-token: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 즐겨찾기 삭제 성공
+        "401":
+          description: 인증 실패
+        "404":
+          description: 즐겨찾기 내역 없음
+        "500":
+          description: 서버 에러
+
+  /driver/auth:
+    get:
+      summary: 전체 기사 리스트 조회(회원)
+      tags: [Driver]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: 성공적으로 기사 리스트를 반환
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Driver"
+        "401":
+          description: 인증 실패
+        "500":
+          description: 서버 에러
+
+  /driver/:id/auth:
+    get:
+      summary: 특정 기사 정보 조회(회원)
+      tags: [Driver]
+      security:
+        - access-token: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 기사 ID
+      responses:
+        "200":
+          description: 성공적으로 기사 정보를 반환
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Driver"
+        "401":
+          description: 인증 실패
+        "404":
+          description: 기사 정보를 찾을 수 없음
+        "500":
+          description: 서버 에러
+
+  /driver:
+    get:
+      summary: 전체 기사 리스트 조회 (비회원용)
+      tags: [Driver]
+      responses:
+        "200":
+          description: 성공적으로 기사 리스트를 반환
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Driver"
+        "500":
+          description: 서버 에러
+
+  /driver/:id:
+    get:
+      summary: 특정 기사 정보 조회 (비회원용)
+      tags:
+        - Driver
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 기사 ID
+      responses:
+        "200":
+          description: 성공적으로 기사 정보를 반환
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Driver"
+        "404":
+          description: 기사 정보를 찾을 수 없음
+        "500":
+          description: 서버 에러
+
+  /driver/:id/reviews:
+    get:
+      summary: 특정 기사의 리뷰 조회
+      tags: [Driver]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 기사 ID
+      responses:
+        "200":
+          description: 성공적으로 리뷰 목록을 반환
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+        "404":
+          description: 기사 정보를 찾을 수 없음
+        "500":
+          description: 서버 에러
+
 components:
   schemas:
     CreateAddressInput:
@@ -391,3 +567,89 @@ components:
               type: string
             district:
               type: string
+    Favorite:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "fav-abc123"
+        driverId:
+          type: string
+          example: "drv-123"
+        customerId:
+          type: string
+          example: "user-789"
+        createdAt:
+          type: string
+          format: date-time
+    Driver:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "abc123-uuid"
+        nickname:
+          type: string
+          example: "이삿짐마스터"
+        phone:
+          type: string
+          example: "01012345678"
+        profileImage:
+          type: string
+          format: uri
+          example: "https://example.com/profile.jpg"
+        shortIntro:
+          type: string
+          example: "10년 경력의 이사 전문가입니다."
+        detailIntro:
+          type: string
+          example: "서울 및 수도권 지역 전문 이사 서비스를 제공합니다."
+        moveType:
+          type: array
+          items:
+            type: string
+            enum: [SMALL, HOME, OFFICE]
+          example: ["SMALL", "HOME"]
+        serviceAreas:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              region:
+                type: string
+                example: "SEOUL"
+        averageRating:
+          type: number
+          format: float
+          example: 4.7
+        reviewCount:
+          type: integer
+          example: 12
+        favoriteCount:
+          type: integer
+          example: 5
+        isFavorite:
+          type: boolean
+          example: true
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "rev-001"
+        rating:
+          type: number
+          format: float
+          example: 4.5
+        content:
+          type: string
+          example: "정말 친절하고 만족스러운 서비스였습니다."
+        createdAt:
+          type: string
+          format: date-time
+        email:
+          type: string
+          example: "customer1@example.com"

@@ -1,6 +1,8 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import passport from "./config/passport";
+import helmet from "helmet";
+import morgan from "morgan";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
@@ -23,6 +25,8 @@ import { sendMoveDayReminders } from "./utils/moveReminder";
 import { EstimateCompletionScheduler } from "./utils/estimateCompletionScheduler";
 
 const app = express();
+app.use(helmet());
+app.use(morgan("combined"));
 app.use(
   cors({
     origin: ["http://localhost:3000", "https://6-moving-team2-fe-sepia.vercel.app", "https://www.moving-2.click"],

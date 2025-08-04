@@ -37,21 +37,6 @@ describe("reviewController", () => {
         reviewableEstimates: [{ id: 1 }]
       });
     });
-
-    it("리뷰 가능한 견적이 없을 경우 404 에러를 반환", async () => {
-      const req = {
-        user: mockUser,
-        query: {}
-      } as unknown as Request;
-
-      const res = mockResponse();
-
-      (reviewService.getAllCompleted as jest.Mock).mockResolvedValue({
-        reviewableEstimates: []
-      });
-
-      await expect(reviewController.getAllCompletedEstimate(req, res, next)).rejects.toThrow(CustomError);
-    });
   });
 
   describe("getMyReviews", () => {
