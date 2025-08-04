@@ -155,7 +155,7 @@ async function getDesignatedEstimateRequests(driverId: string) {
   }));
 }
 
-// 서비스 가능 지역 견적 요청 리스트 조회
+// 기사 서비스 지역의 일반 견적 요청 목록 조회 (지정되지 않은 요청)
 async function getAvailableEstimateRequests(driverId: string) {
   // 1. 기사의 서비스 가능 지역 조회
   const driverServiceAreas = await prisma.driverServiceArea.findMany({
@@ -237,7 +237,7 @@ async function getAvailableEstimateRequests(driverId: string) {
   }));
 }
 
-// 모든 견적 요청 리스트 조회 (지정 + 서비스 가능 지역)
+// 기사가 받을 수 있는 모든 견적 요청 목록 조회 (지정 + 일반)
 async function getAllEstimateRequests(driverId: string) {
   const [designatedRequests, availableRequests] = await Promise.all([
     getDesignatedEstimateRequests(driverId),
@@ -248,12 +248,14 @@ async function getAllEstimateRequests(driverId: string) {
   return [...designatedRequests, ...availableRequests];
 }
 
+// 특정 기사가 특정 견적 요청에 대해 보낸 견적 조회
 async function findEstimateByDriverAndRequest(driverId: string, estimateRequestId: string) {
   return prisma.estimate.findFirst({
     where: { driverId, estimateRequestId, deletedAt: null }
   });
 }
 
+// 기사가 견적 요청에 대해 견적서 생성 (응답 제한 확인 포함)
 async function createEstimate(data: { driverId: string; estimateRequestId: string; price: number; comment?: string }) {
   return prisma.$transaction(async (tx) => {
     // 지정 요청인지 확인
@@ -303,6 +305,7 @@ async function createEstimate(data: { driverId: string; estimateRequestId: strin
   });
 }
 
+// 기사가 견적 요청을 거절 처리
 async function rejectEstimate(estimateId: string, reason: string) {
   return prisma.estimate.update({
     where: { id: estimateId },
@@ -313,6 +316,7 @@ async function rejectEstimate(estimateId: string, reason: string) {
   });
 }
 
+// 기사가 보낸 모든 견적 목록 조회 (최신순 정렬)
 async function getMyEstimates(driverId: string) {
   // 기사님이 보낸 모든 견적 리스트 반환
   const estimates = await prisma.estimate.findMany({
@@ -372,6 +376,7 @@ async function getMyEstimates(driverId: string) {
   });
 }
 
+// 기사가 보낸 특정 견적의 상세 정보 조회
 async function getEstimateDetail(driverId: string, estimateId: string) {
   // 기사 본인이 보낸 견적만 조회, 상세 정보 포함
   return await prisma.estimate.findFirst({
@@ -394,6 +399,7 @@ async function getEstimateDetail(driverId: string, estimateId: string) {
   });
 }
 
+// 기사가 거절한 견적 요청 목록 조회 (최신순 정렬)
 async function getRejectedEstimateRequests(driverId: string) {
   const rejections = await prisma.driverEstimateRejection.findMany({
     where: {
@@ -430,7 +436,7 @@ async function getRejectedEstimateRequests(driverId: string) {
   }));
 }
 
-// 응답 수 제한 확인 (일반 요청: 5명, 지정 요청: 지정 기사 수)
+// 견적 요청에 대한 응답 제한 확인 (일반: 5명, 지정: 지정 기사 수)
 async function checkResponseLimit(estimateRequestId: string, driverId: string) {
   // 지정 요청인지 확인
   const designatedDrivers = await prisma.designatedDriver.findMany({

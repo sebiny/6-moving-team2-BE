@@ -3,6 +3,12 @@ import driverService from "../services/driver.service";
 import estimateReqService from "../services/estimateReq.service";
 import notificationService from "../services/notification.service";
 import driverController from "./driver.controller";
+import { createMockServiceResponses } from "./__mocks__/testData";
+
+// 서비스 전체를 mock 처리
+jest.mock("../services/driver.service");
+jest.mock("../services/estimateReq.service");
+jest.mock("../services/notification.service");
 
 describe("Driver Private Controller (인증 필요)", () => {
   const mockResponse = () => {
@@ -25,19 +31,22 @@ describe("Driver Private Controller (인증 필요)", () => {
 
   let res: any;
   let next: any;
+  let mockServiceResponses: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
     res = mockResponse();
     next = jest.fn();
+    mockServiceResponses = createMockServiceResponses();
   });
 
   describe("getAllDriversAuth", () => {
     test("회원 기사 목록 조회 성공", async () => {
       const req = mockRequest({ customerId: "c1" }, { keyword: "기사", page: "1" });
-      const mockDrivers = [{ id: "d1", name: "기사1" }] as any;
 
-      const getAllDriversSpy = jest.spyOn(driverService, "getAllDrivers").mockResolvedValue(mockDrivers);
+      const getAllDriversSpy = jest
+        .spyOn(driverService, "getAllDrivers")
+        .mockResolvedValue(mockServiceResponses.getAllDrivers);
 
       await driverController.getAllDriversAuth(req, res, next);
 
@@ -52,39 +61,39 @@ describe("Driver Private Controller (인증 필요)", () => {
         "c1"
       );
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(mockDrivers);
+      expect(res.json).toHaveBeenCalledWith(mockServiceResponses.getAllDrivers);
     });
   });
 
   describe("getDriverByIdAuth", () => {
     test("기사 상세 조회 (회원)", async () => {
       const req = mockRequest({ customerId: "c1" }, {}, { id: "d1" });
-      const mockDriver = { id: "d1", name: "기사1" } as any;
 
-      const getDriverByIdSpy = jest.spyOn(driverService, "getDriverById").mockResolvedValue(mockDriver);
+      const getDriverByIdSpy = jest
+        .spyOn(driverService, "getDriverById")
+        .mockResolvedValue(mockServiceResponses.getDriverById);
 
       await driverController.getDriverByIdAuth(req, res, next);
 
       expect(getDriverByIdSpy).toHaveBeenCalledWith("d1", "c1");
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(mockDriver);
+      expect(res.json).toHaveBeenCalledWith(mockServiceResponses.getDriverById);
     });
   });
 
   describe("getDesignatedEstimateRequests", () => {
     test("지정견적요청 조회 성공", async () => {
       const req = mockRequest({ driverId: "d1" });
-      const mockRequests = [{ id: "req1", status: "PENDING" }] as any;
 
       const getDesignatedEstimateRequestsSpy = jest
         .spyOn(driverService, "getDesignatedEstimateRequests")
-        .mockResolvedValue(mockRequests);
+        .mockResolvedValue(mockServiceResponses.getDesignatedEstimateRequests);
 
       await driverController.getDesignatedEstimateRequests(req, res, next);
 
       expect(getDesignatedEstimateRequestsSpy).toHaveBeenCalledWith("d1");
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(mockRequests);
+      expect(res.json).toHaveBeenCalledWith(mockServiceResponses.getDesignatedEstimateRequests);
     });
 
     test("기사님 인증 실패 시 401 반환", async () => {
@@ -95,17 +104,16 @@ describe("Driver Private Controller (인증 필요)", () => {
   describe("getAvailableEstimateRequests", () => {
     test("일반견적요청 조회 성공", async () => {
       const req = mockRequest({ driverId: "d1" });
-      const mockRequests = [{ id: "req1", status: "PENDING" }] as any;
 
       const getAvailableEstimateRequestsSpy = jest
         .spyOn(driverService, "getAvailableEstimateRequests")
-        .mockResolvedValue(mockRequests);
+        .mockResolvedValue(mockServiceResponses.getAvailableEstimateRequests);
 
       await driverController.getAvailableEstimateRequests(req, res, next);
 
       expect(getAvailableEstimateRequestsSpy).toHaveBeenCalledWith("d1");
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(mockRequests);
+      expect(res.json).toHaveBeenCalledWith(mockServiceResponses.getAvailableEstimateRequests);
     });
 
     test("기사님 인증 실패 시 401 반환", async () => {
@@ -116,17 +124,16 @@ describe("Driver Private Controller (인증 필요)", () => {
   describe("getAllEstimateRequests", () => {
     test("모든 견적 요청 조회 성공", async () => {
       const req = mockRequest({ driverId: "d1" });
-      const mockRequests = [{ id: "req1", status: "PENDING" }] as any;
 
       const getAllEstimateRequestsSpy = jest
         .spyOn(driverService, "getAllEstimateRequests")
-        .mockResolvedValue(mockRequests);
+        .mockResolvedValue(mockServiceResponses.getAllEstimateRequests);
 
       await driverController.getAllEstimateRequests(req, res, next);
 
       expect(getAllEstimateRequestsSpy).toHaveBeenCalledWith("d1");
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(mockRequests);
+      expect(res.json).toHaveBeenCalledWith(mockServiceResponses.getAllEstimateRequests);
     });
 
     test("기사님 인증 실패 시 401 반환", async () => {
@@ -136,58 +143,64 @@ describe("Driver Private Controller (인증 필요)", () => {
 
   describe("createEstimate", () => {
     test("견적 생성 성공", async () => {
-      const req = mockRequest({ driverId: "d1" }, {}, { requestId: "req1" }, { price: 0, message: "견적 메시지" });
-      
-      console.log("DriverId from user:", req.user?.driverId);
-      console.log("DriverId exists:", !!req.user?.driverId);
-      
-      console.log("Price type:", typeof req.body.price);
-      console.log("Price value:", req.body.price);
-      
-      console.log("Request body:", req.body);
-      console.log("Request params:", req.params);
-      console.log("Request user:", req.user);
-      const mockEstimate = { id: "est1", price: 50000 } as any;
-      const mockEstimateRequest = {
-        id: "req1",
-        status: "PENDING",
-        moveDate: new Date(Date.now() + 86400000 * 30), // 30일 후 날짜로 변경
-        customerId: "c1",
-        moveType: "SMALL"
-      } as any;
-      
-      console.log("Mock estimateRequest:", mockEstimateRequest);
+      const req = mockRequest({ driverId: "d1" }, {}, { requestId: "req1" }, { price: 50000, message: "견적 메시지" });
 
-      // spyOn을 사용한 mock 설정
+      // 모든 서비스 메서드를 모의 설정
       const findRequestByIdSpy = jest
         .spyOn(estimateReqService, "findRequestById")
-        .mockResolvedValue(mockEstimateRequest);
+        .mockResolvedValue(mockServiceResponses.findRequestById);
       const findEstimateByDriverAndRequestSpy = jest
         .spyOn(driverService, "findEstimateByDriverAndRequest")
-        .mockResolvedValue(null);
-      const checkResponseLimitSpy = jest.spyOn(driverService, "checkResponseLimit").mockResolvedValue({
-        canRespond: true,
-        limit: 5,
-        currentCount: 0,
-        message: "응답 가능합니다"
-      });
-      const createEstimateSpy = jest.spyOn(driverService, "createEstimate").mockResolvedValue(mockEstimate);
+        .mockResolvedValue(mockServiceResponses.findEstimateByDriverAndRequest);
+      const checkResponseLimitSpy = jest
+        .spyOn(driverService, "checkResponseLimit")
+        .mockResolvedValue(mockServiceResponses.checkResponseLimit);
+      const createEstimateSpy = jest
+        .spyOn(driverService, "createEstimate")
+        .mockResolvedValue(mockServiceResponses.createEstimate);
       const createEstimateProposalNotificationSpy = jest
         .spyOn(notificationService, "createEstimateProposalNotification")
-        .mockResolvedValue(undefined);
-      
-
+        .mockResolvedValue(mockServiceResponses.createEstimateProposalNotification);
 
       await driverController.createEstimate(req, res, next);
 
-      // 실제 응답 확인
-      console.log("Response status:", res.status.mock.calls);
-      console.log("Response json:", res.json.mock.calls);
-      console.log("CreateEstimateSpy calls:", createEstimateSpy.mock.calls);
-      console.log("Next function calls:", next.mock.calls);
+      // 디버깅을 위한 로그 추가
+      console.log("Response status calls:", res.status.mock.calls);
+      console.log("Response json calls:", res.json.mock.calls);
+      console.log("FindRequestById calls:", findRequestByIdSpy.mock.calls);
+      console.log("FindEstimateByDriverAndRequest calls:", findEstimateByDriverAndRequestSpy.mock.calls);
+      console.log("CheckResponseLimit calls:", checkResponseLimitSpy.mock.calls);
+      console.log("CreateEstimate calls:", createEstimateSpy.mock.calls);
+      console.log(
+        "Mock findEstimateByDriverAndRequest return value:",
+        mockServiceResponses.findEstimateByDriverAndRequest
+      );
+      console.log("Mock findRequestById return value:", mockServiceResponses.findRequestById);
+      console.log(
+        "FindEstimateByDriverAndRequest spy return value:",
+        findEstimateByDriverAndRequestSpy.mock.results[0]?.value
+      );
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({ message: "견적 요청을 찾을 수 없습니다." });
+      // 날짜 비교 확인
+      const currentDate = new Date();
+      const moveDate = new Date(mockServiceResponses.findRequestById.moveDate);
+      const todayStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+      console.log("Current date:", currentDate);
+      console.log("Move date:", moveDate);
+      console.log("Today start:", todayStart);
+      console.log("Move date < today start:", moveDate < todayStart);
+
+      expect(findRequestByIdSpy).toHaveBeenCalledWith("req1");
+      expect(findEstimateByDriverAndRequestSpy).toHaveBeenCalledWith("d1", "req1");
+      expect(checkResponseLimitSpy).toHaveBeenCalledWith("req1", "d1");
+      expect(createEstimateSpy).toHaveBeenCalledWith({
+        driverId: "d1",
+        estimateRequestId: "req1",
+        price: 50000,
+        comment: "견적 메시지"
+      });
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(mockServiceResponses.createEstimate);
     });
 
     test("기사님 인증 실패 시 401 반환", async () => {
@@ -205,45 +218,52 @@ describe("Driver Private Controller (인증 필요)", () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ message: "유효한 견적가를 입력해주세요." });
     });
+
+    test("견적 요청을 찾을 수 없을 때 404 반환", async () => {
+      const req = mockRequest({ driverId: "d1" }, {}, { requestId: "req1" }, { price: 50000, message: "견적 메시지" });
+
+      const findRequestByIdSpy = jest.spyOn(estimateReqService, "findRequestById").mockResolvedValue(null);
+
+      await driverController.createEstimate(req, res, next);
+
+      expect(findRequestByIdSpy).toHaveBeenCalledWith("req1");
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: "견적 요청을 찾을 수 없습니다." });
+    });
   });
 
   describe("rejectEstimateRequest", () => {
     test("견적 요청 반려 성공", async () => {
       const req = mockRequest({ driverId: "d1" }, {}, { requestId: "req1" }, { reason: "반려 사유" });
-      const mockResult = { id: "rej1", reason: "반려 사유" } as any;
-      const mockEstimateRequest = {
-        id: "req1",
-        status: "PENDING",
-        moveDate: new Date(Date.now() + 86400000) // 내일 날짜
-      } as any;
 
-      // spyOn을 사용한 mock 설정
+      // 모든 서비스 메서드를 모의 설정
       const findRequestByIdSpy = jest
         .spyOn(estimateReqService, "findRequestById")
-        .mockResolvedValue(mockEstimateRequest);
+        .mockResolvedValue(mockServiceResponses.findRequestById);
       const findEstimateByDriverAndRequestSpy = jest
         .spyOn(driverService, "findEstimateByDriverAndRequest")
-        .mockResolvedValue(null);
+        .mockResolvedValue(mockServiceResponses.findEstimateByDriverAndRequest);
       const checkIfAlreadyRejectedSpy = jest
         .spyOn(estimateReqService, "checkIfAlreadyRejected")
-        .mockResolvedValue(false);
-      const checkResponseLimitSpy = jest.spyOn(driverService, "checkResponseLimit").mockResolvedValue({
-        canRespond: true,
-        limit: 5,
-        currentCount: 0,
-        message: "응답 가능합니다"
-      });
+        .mockResolvedValue(mockServiceResponses.checkIfAlreadyRejected);
+      const checkResponseLimitSpy = jest
+        .spyOn(driverService, "checkResponseLimit")
+        .mockResolvedValue(mockServiceResponses.checkResponseLimit);
       const rejectEstimateRequestSpy = jest
         .spyOn(estimateReqService, "rejectEstimateRequest")
-        .mockResolvedValue(mockResult);
+        .mockResolvedValue(mockServiceResponses.rejectEstimateRequest);
 
       await driverController.rejectEstimateRequest(req, res, next);
 
+      expect(findRequestByIdSpy).toHaveBeenCalledWith("req1");
+      expect(findEstimateByDriverAndRequestSpy).toHaveBeenCalledWith("d1", "req1");
+      expect(checkIfAlreadyRejectedSpy).toHaveBeenCalledWith("d1", "req1");
+      expect(checkResponseLimitSpy).toHaveBeenCalledWith("req1", "d1");
       expect(rejectEstimateRequestSpy).toHaveBeenCalledWith("d1", "req1", "반려 사유");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         message: "견적 요청이 반려되었습니다.",
-        data: mockResult
+        data: mockServiceResponses.rejectEstimateRequest
       });
     });
 
@@ -258,15 +278,16 @@ describe("Driver Private Controller (인증 필요)", () => {
   describe("getMyEstimates", () => {
     test("내 견적 조회 성공", async () => {
       const req = mockRequest({ driverId: "d1" });
-      const mockEstimates = [{ id: "est1", price: 50000 }] as any;
 
-      const getMyEstimatesSpy = jest.spyOn(driverService, "getMyEstimates").mockResolvedValue(mockEstimates);
+      const getMyEstimatesSpy = jest
+        .spyOn(driverService, "getMyEstimates")
+        .mockResolvedValue(mockServiceResponses.getMyEstimates);
 
       await driverController.getMyEstimates(req, res, next);
 
       expect(getMyEstimatesSpy).toHaveBeenCalledWith("d1");
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(mockEstimates);
+      expect(res.json).toHaveBeenCalledWith(mockServiceResponses.getMyEstimates);
     });
 
     test("기사님 인증 실패 시 401 반환", async () => {
@@ -277,15 +298,16 @@ describe("Driver Private Controller (인증 필요)", () => {
   describe("getEstimateDetail", () => {
     test("견적 상세 조회 성공", async () => {
       const req = mockRequest({ driverId: "d1" }, {}, { estimateId: "est1" });
-      const mockEstimate = { id: "est1", price: 50000 } as any;
 
-      const getEstimateDetailSpy = jest.spyOn(driverService, "getEstimateDetail").mockResolvedValue(mockEstimate);
+      const getEstimateDetailSpy = jest
+        .spyOn(driverService, "getEstimateDetail")
+        .mockResolvedValue(mockServiceResponses.getEstimateDetail);
 
       await driverController.getEstimateDetail(req, res, next);
 
       expect(getEstimateDetailSpy).toHaveBeenCalledWith("d1", "est1");
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(mockEstimate);
+      expect(res.json).toHaveBeenCalledWith(mockServiceResponses.getEstimateDetail);
     });
 
     test("견적을 찾을 수 없을 때 404 반환", async () => {
@@ -310,17 +332,16 @@ describe("Driver Private Controller (인증 필요)", () => {
   describe("getRejectedEstimateRequests", () => {
     test("반려한 견적 요청 조회 성공", async () => {
       const req = mockRequest({ driverId: "d1" });
-      const mockRejectedRequests = [{ id: "req1", status: "REJECTED" }] as any;
 
       const getRejectedEstimateRequestsSpy = jest
         .spyOn(driverService, "getRejectedEstimateRequests")
-        .mockResolvedValue(mockRejectedRequests);
+        .mockResolvedValue(mockServiceResponses.getRejectedEstimateRequests);
 
       await driverController.getRejectedEstimateRequests(req, res, next);
 
       expect(getRejectedEstimateRequestsSpy).toHaveBeenCalledWith("d1");
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(mockRejectedRequests);
+      expect(res.json).toHaveBeenCalledWith(mockServiceResponses.getRejectedEstimateRequests);
     });
 
     test("기사님 인증 실패 시 401 반환", async () => {
