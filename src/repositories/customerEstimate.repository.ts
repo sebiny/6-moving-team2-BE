@@ -1,5 +1,6 @@
 import prisma from "../config/prisma";
 import { EstimateStatus, RequestStatus } from "@prisma/client";
+import { CustomError } from "../utils/customError";
 
 // ＜공통＞ 공통 데이터
 function buildEstimateInclude() {
@@ -187,33 +188,43 @@ async function acceptEstimateById(estimateId: string) {
     throw new Error("해당 견적서를 찾을 수 없습니다.");
   }
 
-  // 2. 같은 요청에 대한 다른 기사님 견적들을 모두 가져옴
   const requestId = targetEstimate.estimateRequestId;
+  const driverId = targetEstimate.driverId;
 
   return await prisma.$transaction(async (tx) => {
-    // 3. 선택된 견적을 ACCEPTED로
+    // 2. 선택된 견적을 ACCEPTED로
     await tx.estimate.update({
       where: { id: estimateId },
       data: { status: "ACCEPTED" }
     });
 
-    // 4. 같은 요청의 다른 견적들을 모두 AUTO_REJECTED 처리
+    // 3. 같은 요청의 다른 견적을 AUTO_REJECTED로
     await tx.estimate.updateMany({
       where: {
         estimateRequestId: requestId,
         id: { not: estimateId },
-        status: "PROPOSED" // 확정하지 않은 나머지
+        status: "PROPOSED"
       },
       data: { status: "AUTO_REJECTED" }
     });
 
-    // 5. 요청 상태도 업데이트 (다른 api와 맞춰서 변경 가능성)
+    // 4. 요청 상태 업데이트
     await tx.estimateRequest.update({
       where: { id: requestId },
       data: { status: RequestStatus.APPROVED }
     });
 
-    return { success: true, estimateId };
+    // 5. 기사님의 work 1 증가
+    const updatedDriver = await tx.driver.update({
+      where: { id: driverId },
+      data: { work: { increment: 1 } }
+    });
+
+    return {
+      success: true,
+      estimateId,
+      driverWork: updatedDriver.work // 응답에 최신 work 포함
+    };
   });
 }
 
