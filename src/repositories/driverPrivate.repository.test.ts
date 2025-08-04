@@ -1,7 +1,5 @@
 import prisma from "../config/prisma";
 import driverRepository from "./driver.repository";
-import { CustomError } from "../utils/customError";
-import { createMockData, createMockServiceResponses } from "./__mocks__/testData";
 
 jest.mock("../config/prisma", () => ({
   estimateRequest: {
@@ -36,17 +34,30 @@ describe("Driver Repository - Private Functions", () => {
   const mockEstimateRequestId = "req1";
   const mockEstimateId = "est1";
 
-  // testData에서 mock 데이터 가져오기
-  const mockData = createMockData();
-  const mockResponses = createMockServiceResponses();
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe("getDesignatedEstimateRequests - 지정 견적 요청 조회", () => {
     test("기사에게 지정된 견적 요청 목록을 성공적으로 조회한다", async () => {
-      const mockRequests = [mockData.estimateRequests[0]]; // req1
+      const mockRequests = [
+        {
+          id: "req1",
+          customerId: "cust1",
+          moveType: "HOME",
+          moveDate: new Date("2025-08-01"),
+          status: "PENDING",
+          fromAddressId: "addr1",
+          toAddressId: "addr2",
+          createdAt: new Date("2025-07-30"),
+          customer: {
+            authUser: { name: "고객1" }
+          },
+          fromAddress: { street: "서울시 강남구" },
+          toAddress: { street: "서울시 서초구" },
+          _count: { estimates: 2 }
+        }
+      ];
       const mockRejections: any[] = [];
       const mockEstimates: any[] = [];
 
@@ -83,7 +94,40 @@ describe("Driver Repository - Private Functions", () => {
     });
 
     test("반려하거나 응답한 견적 요청은 제외된다", async () => {
-      const mockRequests = [mockData.estimateRequests[0], mockData.estimateRequests[1]];
+      const mockRequests = [
+        {
+          id: "req1",
+          customerId: "cust1",
+          moveType: "HOME",
+          moveDate: new Date("2025-08-01"),
+          status: "PENDING",
+          fromAddressId: "addr1",
+          toAddressId: "addr2",
+          createdAt: new Date("2025-07-30"),
+          customer: {
+            authUser: { name: "고객1" }
+          },
+          fromAddress: { street: "서울시 강남구" },
+          toAddress: { street: "서울시 서초구" },
+          _count: { estimates: 2 }
+        },
+        {
+          id: "req2",
+          customerId: "cust2",
+          moveType: "SMALL",
+          moveDate: new Date("2025-08-02"),
+          status: "PENDING",
+          fromAddressId: "addr3",
+          toAddressId: "addr4",
+          createdAt: new Date("2025-07-31"),
+          customer: {
+            authUser: { name: "고객2" }
+          },
+          fromAddress: { street: "서울시 마포구" },
+          toAddress: { street: "서울시 영등포구" },
+          _count: { estimates: 1 }
+        }
+      ];
       const mockRejections = [{ estimateRequestId: "req1" }];
       const mockEstimates = [{ estimateRequestId: "req2" }];
 
@@ -99,8 +143,28 @@ describe("Driver Repository - Private Functions", () => {
 
   describe("getAvailableEstimateRequests - 일반 견적 요청 조회", () => {
     test("기사 서비스 지역의 일반 견적 요청을 성공적으로 조회한다", async () => {
-      const mockServiceAreas = mockData.driverServiceAreas;
-      const mockRequests = [mockData.estimateRequests[1]]; // req2
+      const mockServiceAreas = [
+        { driverId: "d1", region: "SEOUL" },
+        { driverId: "d1", region: "GYEONGGI" }
+      ];
+      const mockRequests = [
+        {
+          id: "req2",
+          customerId: "cust2",
+          moveType: "SMALL",
+          moveDate: new Date("2025-08-02"),
+          status: "PENDING",
+          fromAddressId: "addr3",
+          toAddressId: "addr4",
+          createdAt: new Date("2025-07-31"),
+          customer: {
+            authUser: { name: "고객2" }
+          },
+          fromAddress: { street: "서울시 마포구" },
+          toAddress: { street: "서울시 영등포구" },
+          _count: { estimates: 1 }
+        }
+      ];
       const mockEstimates: any[] = [];
       const mockRejections: any[] = [];
 
@@ -134,9 +198,28 @@ describe("Driver Repository - Private Functions", () => {
 
   describe("getAllEstimateRequests - 모든 견적 요청 조회", () => {
     test("지정 견적과 일반 견적을 모두 조회하여 합친다", async () => {
-      // 실제 함수가 호출되도록 필요한 mock 설정
-      const mockServiceAreas = mockData.driverServiceAreas;
-      const mockRequests = [mockData.estimateRequests[0]]; // req1 (지정 요청)
+      const mockServiceAreas = [
+        { driverId: "d1", region: "SEOUL" },
+        { driverId: "d1", region: "GYEONGGI" }
+      ];
+      const mockRequests = [
+        {
+          id: "req1",
+          customerId: "cust1",
+          moveType: "HOME",
+          moveDate: new Date("2025-08-01"),
+          status: "PENDING",
+          fromAddressId: "addr1",
+          toAddressId: "addr2",
+          createdAt: new Date("2025-07-30"),
+          customer: {
+            authUser: { name: "고객1" }
+          },
+          fromAddress: { street: "서울시 강남구" },
+          toAddress: { street: "서울시 서초구" },
+          _count: { estimates: 2 }
+        }
+      ];
       const mockRejections: any[] = [];
       const mockEstimates: any[] = [];
 
@@ -147,9 +230,7 @@ describe("Driver Repository - Private Functions", () => {
 
       const result = await driverRepository.getAllEstimateRequests(mockDriverId);
 
-      // 실제 함수가 호출되었는지 확인
       expect(prisma.estimateRequest.findMany).toHaveBeenCalled();
-      // 실제 함수의 결과를 검증 (지정 요청 1개 + 일반 요청 1개)
       expect(result.length).toBeGreaterThan(0);
       expect(result.some((item) => item.isDesignated === true)).toBe(true);
       expect(result.some((item) => item.isDesignated === false)).toBe(true);
@@ -158,7 +239,15 @@ describe("Driver Repository - Private Functions", () => {
 
   describe("findEstimateByDriverAndRequest - 특정 견적 조회", () => {
     test("기사가 특정 견적 요청에 대해 보낸 견적을 성공적으로 조회한다", async () => {
-      const mockEstimate = mockResponses.findEstimateByDriverAndRequest;
+      const mockEstimate = {
+        id: "est1",
+        driverId: "d1",
+        estimateRequestId: "req1",
+        price: 50000,
+        comment: "견적서입니다",
+        status: "PENDING",
+        createdAt: new Date("2025-07-30")
+      };
 
       (prisma.estimate.findFirst as jest.Mock).mockResolvedValue(mockEstimate);
 
@@ -192,7 +281,15 @@ describe("Driver Repository - Private Functions", () => {
     };
 
     test("일반 견적 요청에 대해 견적을 성공적으로 생성한다", async () => {
-      const mockCreatedEstimate = mockResponses.createEstimate;
+      const mockCreatedEstimate = {
+        id: "est1",
+        driverId: "d1",
+        estimateRequestId: "req1",
+        price: 50000,
+        comment: "견적서입니다",
+        status: "PENDING",
+        createdAt: new Date("2025-07-30")
+      };
 
       (prisma.designatedDriver.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.estimate.count as jest.Mock).mockResolvedValue(3);
@@ -241,7 +338,16 @@ describe("Driver Repository - Private Functions", () => {
 
   describe("rejectEstimate - 견적 거절", () => {
     test("견적을 성공적으로 거절 처리한다", async () => {
-      const mockRejectedEstimate = mockResponses.rejectEstimate;
+      const mockRejectedEstimate = {
+        id: "est1",
+        driverId: "d1",
+        estimateRequestId: "req1",
+        price: 50000,
+        comment: "견적서입니다",
+        status: "REJECTED",
+        rejectReason: "일정이 맞지 않습니다",
+        updatedAt: new Date("2025-07-30")
+      };
 
       (prisma.estimate.update as jest.Mock).mockResolvedValue(mockRejectedEstimate);
 
@@ -260,7 +366,24 @@ describe("Driver Repository - Private Functions", () => {
 
   describe("getMyEstimates - 내 견적 목록 조회", () => {
     test("기사가 보낸 모든 견적을 최신순으로 조회한다", async () => {
-      const mockEstimates = mockResponses.getMyEstimates;
+      const mockEstimates = [
+        {
+          id: "est1",
+          driverId: "d1",
+          estimateRequestId: "req1",
+          price: 50000,
+          comment: "견적서입니다",
+          status: "PENDING",
+          createdAt: new Date("2025-07-30"),
+          estimateRequest: {
+            customer: {
+              authUser: { name: "고객1" }
+            },
+            fromAddress: { street: "서울시 강남구" },
+            toAddress: { street: "서울시 서초구" }
+          }
+        }
+      ];
 
       (prisma.estimate.findMany as jest.Mock).mockResolvedValue(mockEstimates);
 
@@ -285,13 +408,40 @@ describe("Driver Repository - Private Functions", () => {
       });
 
       // 실제 함수가 추가하는 필드들을 포함하여 검증
-      expect(result).toEqual(mockEstimates);
+      expect(result[0]).toMatchObject({
+        id: "est1",
+        driverId: "d1",
+        estimateRequestId: "req1",
+        price: 50000,
+        comment: "견적서입니다",
+        status: "PENDING",
+        createdAt: new Date("2025-07-30"),
+        customerName: "고객1",
+        isCompleted: false,
+        isDesignated: undefined,
+        completionStatus: null
+      });
     });
   });
 
   describe("getEstimateDetail - 견적 상세 조회", () => {
     test("기사가 보낸 특정 견적의 상세 정보를 성공적으로 조회한다", async () => {
-      const mockEstimateDetail = mockResponses.getEstimateDetail;
+      const mockEstimateDetail = {
+        id: "est1",
+        driverId: "d1",
+        estimateRequestId: "req1",
+        price: 50000,
+        comment: "견적서입니다",
+        status: "PENDING",
+        createdAt: new Date("2025-07-30"),
+        estimateRequest: {
+          customer: {
+            authUser: { name: "고객1" }
+          },
+          fromAddress: { street: "서울시 강남구" },
+          toAddress: { street: "서울시 서초구" }
+        }
+      };
 
       (prisma.estimate.findFirst as jest.Mock).mockResolvedValue(mockEstimateDetail);
 
@@ -327,7 +477,23 @@ describe("Driver Repository - Private Functions", () => {
 
   describe("getRejectedEstimateRequests - 거절한 견적 요청 조회", () => {
     test("기사가 거절한 견적 요청 목록을 최신순으로 조회한다", async () => {
-      const mockRejections = mockResponses.getRejectedEstimateRequests;
+      const mockRejections = [
+        {
+          id: "rej1",
+          driverId: "d1",
+          estimateRequestId: "req1",
+          reason: "일정이 맞지 않습니다",
+          createdAt: new Date("2025-07-30"),
+          estimateRequest: {
+            customer: {
+              authUser: { name: "고객1" }
+            },
+            fromAddress: { street: "서울시 강남구" },
+            toAddress: { street: "서울시 서초구" },
+            designatedDrivers: []
+          }
+        }
+      ];
 
       (prisma.driverEstimateRejection.findMany as jest.Mock).mockResolvedValue(mockRejections);
 
@@ -351,7 +517,24 @@ describe("Driver Repository - Private Functions", () => {
         },
         orderBy: { createdAt: "desc" }
       });
-      expect(result).toEqual(mockRejections);
+
+      // 실제 함수가 추가하는 필드들을 포함하여 검증
+      expect(result[0]).toMatchObject({
+        id: "rej1",
+        driverId: "d1",
+        estimateRequestId: "req1",
+        reason: "일정이 맞지 않습니다",
+        createdAt: new Date("2025-07-30"),
+        estimateRequest: {
+          customer: {
+            authUser: { name: "고객1" }
+          },
+          fromAddress: { street: "서울시 강남구" },
+          toAddress: { street: "서울시 서초구" },
+          designatedDrivers: [],
+          isDesignated: false
+        }
+      });
     });
   });
 
