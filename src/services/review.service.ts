@@ -27,7 +27,7 @@ async function createReview(data: CreateReviewInput) {
   // 리뷰 생성 후 기사님 평균 평점 계산
   const allReviews = await reviewRepository.findAllByDriver(driverId);
   const total = allReviews.reduce((sum, r) => sum + r.rating, 0);
-  const averageRating = total / (allReviews.length + 1);
+  const averageRating = total / allReviews.length;
   await driverRepository.updateAverageRating(driverId, averageRating);
 
   return review;
