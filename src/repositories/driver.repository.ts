@@ -68,14 +68,26 @@ async function getDriverById(id: string, userId?: string) {
   });
 
   if (!driver) return null;
+
+  const ratingCounts = await prisma.review.groupBy({
+    by: ["rating"],
+    where: { driverId: id },
+    _count: true
+  });
+  const ratingStats: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+  ratingCounts.forEach((item) => {
+    ratingStats[item.rating] = item._count;
+  });
+
   const isFavorite = userId ? driver.favorite.length > 0 : false;
   const { favorite, _count, ...rest } = driver;
-  return { ...rest, isFavorite, reviewCount: _count.reviewsReceived, favoriteCount: _count.favorite };
+  return { ...rest, isFavorite, reviewCount: _count.reviewsReceived, favoriteCount: _count.favorite, ratingStats };
 }
 
 //기사님 리뷰 (페이지네이션 때문에 분리)
 async function getDriverReviews(id: string, page: number) {
-  const PAGE_SIZE = 3;
+  const PAGE_SIZE = 5;
   const skip = (page - 1) * PAGE_SIZE;
   const reviews = await prisma.review.findMany({
     where: { driverId: id },
