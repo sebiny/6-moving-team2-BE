@@ -51,7 +51,6 @@ describe("reviewService", () => {
   describe("deleteReview", () => {
     it("리뷰가 없으면 에러를 던진다.", async () => {
       (reviewRepository.findReviewById as jest.Mock).mockResolvedValue(null);
-
       await expect(reviewService.deleteReview("review1", "cust1")).rejects.toThrow(CustomError);
     });
 
@@ -62,7 +61,6 @@ describe("reviewService", () => {
       });
 
       (reviewRepository.deleteReviewById as jest.Mock).mockResolvedValue(undefined);
-
       (reviewRepository.findAllByDriver as jest.Mock).mockResolvedValue([{ rating: 3 }, { rating: 4 }]);
 
       await reviewService.deleteReview("review1", "cust1");
