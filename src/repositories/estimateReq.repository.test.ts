@@ -105,4 +105,91 @@ describe("EstimateReq Repository", () => {
       expect(result).toEqual(mockResult);
     });
   });
+
+  // 기사 반려 확인 - 추가된 테스트
+  describe("checkIfAlreadyRejected - 이미 반려했는지 확인", () => {
+    test("기사가 이미 견적 요청을 반려했는지 확인하고 결과를 반환한다", async () => {
+      const mockResult = true;
+      (prisma.driverEstimateRejection.findUnique as jest.Mock).mockResolvedValue(mockResult);
+
+      const result = await estimateReqRepository.checkIfAlreadyRejected("drv-1", "req-1");
+
+      expect(result).toBe(mockResult);
+      expect(prisma.driverEstimateRejection.findUnique).toHaveBeenCalledWith({
+        where: {
+          estimateRequestId_driverId: {
+            estimateRequestId: "req-1",
+            driverId: "drv-1"
+          }
+        }
+      });
+    });
+
+    test("반려하지 않은 경우 false를 반환한다", async () => {
+      (prisma.driverEstimateRejection.findUnique as jest.Mock).mockResolvedValue(null);
+
+      const result = await estimateReqRepository.checkIfAlreadyRejected("drv-1", "req-1");
+
+      expect(result).toBe(false);
+    });
+  });
+
+  // 견적 요청 반려 처리 - 추가된 테스트
+  describe("rejectEstimateRequest - 견적 요청 반려", () => {
+    test("기사가 견적 요청을 반려하고 결과를 반환한다", async () => {
+      const mockResult = { id: "rejection-1" };
+      const mockDesignatedDrivers: any[] = [];
+
+      // 트랜잭션 내부 함수들 모킹
+      const mockTx = {
+        driverEstimateRejection: {
+          create: jest.fn().mockResolvedValue(mockResult)
+        },
+        designatedDriver: {
+          findMany: jest.fn().mockResolvedValue(mockDesignatedDrivers)
+        }
+      };
+
+      (prisma.$transaction as jest.Mock).mockImplementation((callback) => callback(mockTx));
+
+      const result = await estimateReqRepository.rejectEstimateRequest("drv-1", "req-1", "일정이 맞지 않습니다");
+
+      expect(result).toEqual(mockResult);
+      expect(mockTx.driverEstimateRejection.create).toHaveBeenCalledWith({
+        data: {
+          driverId: "drv-1",
+          estimateRequestId: "req-1",
+          reason: "일정이 맞지 않습니다"
+        }
+      });
+    });
+
+    test("지정 요청인 경우 모든 기사가 반려하면 상태를 REJECTED로 변경한다", async () => {
+      const mockResult = { id: "rejection-1" };
+      const mockDesignatedDrivers: any[] = [{ id: "dd-1" }, { id: "dd-2" }];
+
+      const mockTx = {
+        driverEstimateRejection: {
+          create: jest.fn().mockResolvedValue(mockResult),
+          count: jest.fn().mockResolvedValue(2)
+        },
+        designatedDriver: {
+          findMany: jest.fn().mockResolvedValue(mockDesignatedDrivers)
+        },
+        estimateRequest: {
+          update: jest.fn().mockResolvedValue({})
+        }
+      };
+
+      (prisma.$transaction as jest.Mock).mockImplementation((callback) => callback(mockTx));
+
+      const result = await estimateReqRepository.rejectEstimateRequest("drv-1", "req-1", "일정이 맞지 않습니다");
+
+      expect(result).toEqual(mockResult);
+      expect(mockTx.estimateRequest.update).toHaveBeenCalledWith({
+        where: { id: "req-1" },
+        data: { status: "REJECTED" }
+      });
+    });
+  });
 });
