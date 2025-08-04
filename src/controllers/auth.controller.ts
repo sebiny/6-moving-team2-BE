@@ -146,6 +146,16 @@ const socialLoginCallback = (req: Request, res: Response, next: NextFunction) =>
           domain: getCookieDomain()
         });
 
+        // 환영 토스트를 띄우기 위한 임시 쿠키 설정 (유효시간 60초)
+        res.cookie("welcome_toast", "true", {
+          httpOnly: false, // 클라이언트 JS에서 읽을 수 있어야 하므로 false
+          sameSite: "lax",
+          secure: true,
+          maxAge: 60 * 1000,
+          path: "/",
+          domain: getCookieDomain()
+        });
+
         // 로그인 성공 후 클라이언트 메인 페이지로 리다이렉트
         return res.redirect(process.env.CLIENT_URL || "/");
       } catch (error) {
