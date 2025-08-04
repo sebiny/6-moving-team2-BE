@@ -8,7 +8,7 @@ const SHARE_SECRET = process.env.SHARE_JWT_SECRET || process.env.JWT_SECRET || "
 export const createShareLink = async (req: Request, res: Response): Promise<void> => {
   try {
     const { estimateId } = req.params;
-    const { sharedFrom = "CUSTOMER" } = req.query; // 기본값 CUSTOMER
+    const { sharedFrom = "CUSTOMER" } = req.body; // 기본값 CUSTOMER
 
     // JWT 토큰 생성
     const token = jwt.sign({ estimateId, sharedFrom }, SHARE_SECRET, { expiresIn: "7d" });
