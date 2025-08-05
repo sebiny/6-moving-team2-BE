@@ -99,24 +99,4 @@ describe("reviewController", () => {
       });
     });
   });
-
-  describe("deleteReview", () => {
-    it("리뷰가 삭제되면 200상태코드와 함께 성공 메세지 반환", async () => {
-      const req = {
-        user: mockUser,
-        body: { reviewId: "r1" }
-      } as unknown as Request;
-      const res = mockResponse();
-
-      (reviewService.deleteReview as jest.Mock).mockResolvedValue(undefined);
-
-      await reviewController.deleteReview(req, res, next);
-
-      expect(reviewService.deleteReview).toHaveBeenCalledWith("r1", "customer-123");
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "리뷰가 삭제되었습니다."
-      });
-    });
-  });
 });

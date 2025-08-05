@@ -24,6 +24,9 @@ jobs:
         run: |
           echo "${{ secrets.ENV }}" > .env
 
+      - name: .env 확인
+        run: cat .env
+
       - name: 테스트 코드 실행
         run: npm run test
 
