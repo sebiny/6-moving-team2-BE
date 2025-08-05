@@ -106,13 +106,13 @@ async function getDriverReviews(id: string, page: number) {
 
 // 지정 견적 요청 리스트 조회 (고객이 기사에게 직접 요청한 것만)
 async function getDesignatedEstimateRequests(driverId: string) {
-  // 1. 모든 지정 견적 요청 조회 (완료되지 않은 것만)
+  // 1. 모든 지정 견적 요청 조회
   const requests = await prisma.estimateRequest.findMany({
     where: {
       designatedDrivers: {
         some: { driverId }
       },
-      status: { not: "COMPLETED" }, // 완료된 견적 제외
+      status: "PENDING", // PENDING 상태만 조회
       deletedAt: null
     },
     include: {
@@ -179,7 +179,7 @@ async function getAvailableEstimateRequests(driverId: string) {
     return [];
   }
 
-  // 2. 해당 지역의 일반 요청 조회 (지정되지 않은 요청, 완료되지 않은 것만)
+  // 2. 해당 지역의 일반 요청 조회 (지정되지 않은 요청)
   const availableRequests = await prisma.estimateRequest.findMany({
     where: {
       AND: [
@@ -194,7 +194,7 @@ async function getAvailableEstimateRequests(driverId: string) {
             none: {}
           }
         },
-        { status: { not: "COMPLETED" } }, // 완료된 견적 제외
+        { status: "PENDING" }, // PENDING 상태만 조회
         { deletedAt: null }
       ]
     },
