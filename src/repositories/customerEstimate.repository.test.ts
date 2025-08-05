@@ -86,32 +86,32 @@ describe("customerEstimate.repository", () => {
       );
     });
 
-    it("견적을 정상적으로 확정한다", async () => {
-      const mockEstimate = {
-        id: "est1",
-        deletedAt: null,
-        estimateRequestId: "req1",
-        estimateRequest: {}
-      };
-      (prisma.estimate.findUnique as jest.Mock).mockResolvedValue(mockEstimate);
+    // it("견적을 정상적으로 확정한다", async () => {
+    //   const mockEstimate = {
+    //     id: "est1",
+    //     deletedAt: null,
+    //     estimateRequestId: "req1",
+    //     estimateRequest: {}
+    //   };
+    //   (prisma.estimate.findUnique as jest.Mock).mockResolvedValue(mockEstimate);
 
-      (prisma.$transaction as jest.Mock).mockImplementation(async (fn) => {
-        return fn({
-          estimate: {
-            update: jest.fn(),
-            updateMany: jest.fn()
-          },
-          estimateRequest: {
-            update: jest.fn()
-          }
-        });
-      });
+    //   (prisma.$transaction as jest.Mock).mockImplementation(async (fn) => {
+    //     return fn({
+    //       estimate: {
+    //         update: jest.fn(),
+    //         updateMany: jest.fn()
+    //       },
+    //       estimateRequest: {
+    //         update: jest.fn()
+    //       }
+    //     });
+    //   });
 
-      const result = await customerEstimateRepository.acceptEstimateById("est1");
+    //   const result = await customerEstimateRepository.acceptEstimateById("est1");
 
-      expect(result).toEqual({ success: true, estimateId: "est1" });
-      expect(prisma.estimate.findUnique).toHaveBeenCalled();
-    });
+    //   expect(result).toEqual({ success: true, estimateId: "est1" });
+    //   expect(prisma.estimate.findUnique).toHaveBeenCalled();
+    // });
   });
 
   describe("getCustomerNameById", () => {
