@@ -5,6 +5,9 @@ jest.mock("../config/prisma", () => ({
   driver: {
     findMany: jest.fn(),
     findUnique: jest.fn()
+  },
+  review: {
+    groupBy: jest.fn()
   }
 }));
 
@@ -110,10 +113,20 @@ describe("Driver Repository", () => {
         serviceAreas: []
       });
 
+      (mockedPrisma.review.groupBy as jest.Mock).mockResolvedValue([
+        { rating: 5, _count: 2 },
+        { rating: 4, _count: 1 },
+        { rating: 3, _count: 0 },
+        { rating: 2, _count: 0 },
+        { rating: 1, _count: 0 }
+      ]);
+
       const result = await driverRepository.getDriverById("driver1", "cust1");
       expect(result).not.toBeNull();
       expect(result!.id).toBe("driver1");
       expect(result!.isFavorite).toBe(true);
+      expect(result!.ratingStats[5]).toBe(2);
+      expect(result!.ratingStats[4]).toBe(1);
     });
     test("ID를 가진 기사가 없을 경우 null을 반환한다 ", async () => {
       (mockedPrisma.driver.findUnique as jest.Mock).mockResolvedValue(null);
