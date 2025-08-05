@@ -27,37 +27,11 @@ async function createReview(data: CreateReviewInput) {
   // 리뷰 생성 후 기사님 평균 평점 계산
   const allReviews = await reviewRepository.findAllByDriver(driverId);
   const total = allReviews.reduce((sum, r) => sum + r.rating, 0);
-  const averageRating = total / allReviews.length;
+  const averageRating =
+    allReviews.length > 0 ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length : 0;
   await driverRepository.updateAverageRating(driverId, averageRating);
 
   return review;
 }
 
-async function deleteReview(reviewId: string, customerId: string) {
-  const targetReview = await reviewRepository.findReviewById(reviewId, customerId);
-
-  if (!targetReview) {
-    throw new CustomError(404, "리뷰를 찾을 수 없습니다.");
-  }
-
-  // 삭제 전에 driverId 확보
-  const driverId = targetReview.driverId;
-
-  // 리뷰 삭제
-  await reviewRepository.deleteReviewById(reviewId, customerId);
-
-  // 삭제 후 평균 별점 재계산
-  const remainingReviews = await reviewRepository.findAllByDriver(driverId);
-
-  let newAverage = 0;
-  if (remainingReviews.length > 0) {
-    const total = remainingReviews.reduce((sum, r) => sum + r.rating, 0);
-    newAverage = total / remainingReviews.length;
-  }
-
-  await driverRepository.updateAverageRating(driverId, newAverage);
-
-  return;
-}
-
-export default { getAllCompleted, createReview, getMyReviews, deleteReview };
+export default { getAllCompleted, createReview, getMyReviews };
