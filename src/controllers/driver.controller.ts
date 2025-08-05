@@ -52,6 +52,9 @@ const getDriverReviews = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(result);
 });
 
+/**
+ * 지정견적요청 조회
+ */
 const getDesignatedEstimateRequests = asyncHandler(async (req: Request, res: Response) => {
   const driverId = req.user?.driverId;
   if (!driverId) {
@@ -61,6 +64,9 @@ const getDesignatedEstimateRequests = asyncHandler(async (req: Request, res: Res
   res.status(200).json(requests);
 });
 
+/**
+ * 일반견적요청 조회
+ */
 const getAvailableEstimateRequests = asyncHandler(async (req: Request, res: Response) => {
   const driverId = req.user?.driverId;
   if (!driverId) {
@@ -70,6 +76,9 @@ const getAvailableEstimateRequests = asyncHandler(async (req: Request, res: Resp
   res.status(200).json(requests);
 });
 
+/**
+ * 모든 견적 요청 조회 (지정견적요청 + 일반견적요청)
+ */
 const getAllEstimateRequests = asyncHandler(async (req: Request, res: Response) => {
   const driverId = req.user?.driverId;
   if (!driverId) {
@@ -79,6 +88,10 @@ const getAllEstimateRequests = asyncHandler(async (req: Request, res: Response) 
   res.status(200).json(requests);
 });
 
+/**
+ * 견적 생성
+ * - 운전자가 고객의 견적 요청에 대해 견적을 생성
+ */
 const createEstimate = asyncHandler(async (req, res) => {
   const driverId = req.user?.driverId;
   const { requestId } = req.params;
@@ -160,6 +173,10 @@ const createEstimate = asyncHandler(async (req, res) => {
   res.status(201).json(estimate);
 });
 
+/**
+ * 견적 요청 반려
+ * - 운전자가 고객의 견적 요청을 거절
+ */
 const rejectEstimateRequest = asyncHandler(async (req, res) => {
   const driverId = req.user?.driverId;
   const { requestId } = req.params;
@@ -226,6 +243,10 @@ const rejectEstimateRequest = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * 내 견적 조회
+ * - 운전자가 자신이 보낸 모든 견적 목록을 조회
+ */
 const getMyEstimates = asyncHandler(async (req, res) => {
   const driverId = req.user?.driverId;
   if (!driverId) return res.status(401).json({ message: "Driver not authenticated" });
@@ -233,6 +254,10 @@ const getMyEstimates = asyncHandler(async (req, res) => {
   res.status(200).json(estimates);
 });
 
+/**
+ * 견적 상세 조회
+ * - 특정 견적의 상세 정보를 조회
+ */
 const getEstimateDetail = asyncHandler(async (req, res) => {
   const driverId = req.user?.driverId;
   const { estimateId } = req.params;
@@ -242,6 +267,10 @@ const getEstimateDetail = asyncHandler(async (req, res) => {
   res.status(200).json(detail);
 });
 
+/**
+ * 반려한 견적 요청 조회
+ * - 운전자가 반려한 견적 요청 목록을 조회
+ */
 const getRejectedEstimateRequests = asyncHandler(async (req: Request, res: Response) => {
   const driverId = req.user?.driverId;
   if (!driverId) return res.status(401).json({ message: "Driver not authenticated" });

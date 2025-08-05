@@ -193,4 +193,66 @@ describe("EstimateReq Service", () => {
       expect(result).toBeNull();
     });
   });
+
+  // 기사 반려 확인 - 추가된 테스트
+  describe("checkIfAlreadyRejected - 이미 반려했는지 확인", () => {
+    test("기사가 이미 견적 요청을 반려한 경우 true를 반환한다", async () => {
+      (estimateReqRepository.checkIfAlreadyRejected as jest.Mock).mockResolvedValue(true);
+
+      const result = await estimateReqService.checkIfAlreadyRejected("drv-1", "req-1");
+
+      expect(estimateReqRepository.checkIfAlreadyRejected).toHaveBeenCalledWith("drv-1", "req-1");
+      expect(result).toBe(true);
+    });
+
+    test("기사가 견적 요청을 반려하지 않은 경우 false를 반환한다", async () => {
+      (estimateReqRepository.checkIfAlreadyRejected as jest.Mock).mockResolvedValue(false);
+
+      const result = await estimateReqService.checkIfAlreadyRejected("drv-1", "req-1");
+
+      expect(estimateReqRepository.checkIfAlreadyRejected).toHaveBeenCalledWith("drv-1", "req-1");
+      expect(result).toBe(false);
+    });
+  });
+
+  // 견적 요청 반려 처리 - 추가된 테스트
+  describe("rejectEstimateRequest - 견적 요청 반려", () => {
+    test("기사가 견적 요청을 성공적으로 반려한다", async () => {
+      const mockRejection = {
+        id: "rej-1",
+        driverId: "drv-1",
+        estimateRequestId: "req-1",
+        reason: "일정이 맞지 않습니다",
+        createdAt: new Date("2025-07-30")
+      };
+
+      (estimateReqRepository.rejectEstimateRequest as jest.Mock).mockResolvedValue(mockRejection);
+
+      const result = await estimateReqService.rejectEstimateRequest("drv-1", "req-1", "일정이 맞지 않습니다");
+
+      expect(estimateReqRepository.rejectEstimateRequest).toHaveBeenCalledWith(
+        "drv-1",
+        "req-1",
+        "일정이 맞지 않습니다"
+      );
+      expect(result).toEqual(mockRejection);
+    });
+
+    test("반려 사유 없이도 반려 처리가 가능하다", async () => {
+      const mockRejection = {
+        id: "rej-1",
+        driverId: "drv-1",
+        estimateRequestId: "req-1",
+        reason: "",
+        createdAt: new Date("2025-07-30")
+      };
+
+      (estimateReqRepository.rejectEstimateRequest as jest.Mock).mockResolvedValue(mockRejection);
+
+      const result = await estimateReqService.rejectEstimateRequest("drv-1", "req-1", "");
+
+      expect(estimateReqRepository.rejectEstimateRequest).toHaveBeenCalledWith("drv-1", "req-1", "");
+      expect(result).toEqual(mockRejection);
+    });
+  });
 });
