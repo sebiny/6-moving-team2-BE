@@ -48,11 +48,13 @@ describe("고객 견적 서비스 (customerEstimateService)", () => {
       await expect(customerEstimateService.acceptEstimate("")).rejects.toThrow(CustomError);
     });
 
-    it("레포지토리에서 데이터를 정상적으로 반환한다.", async () => {
-      (customerEstimateRepository.acceptEstimateById as jest.Mock).mockResolvedValue("견적 확정 완료");
+    it("레포지토리에서 work 값이 포함된 데이터를 정상적으로 반환한다.", async () => {
+      const mockResponse = { success: true, estimateId: "est-1", driverWork: 101 };
+      (customerEstimateRepository.acceptEstimateById as jest.Mock).mockResolvedValue(mockResponse);
 
       const result = await customerEstimateService.acceptEstimate("est-1");
-      expect(result).toBe("견적 확정 완료");
+      expect(result).toEqual(mockResponse);
+      expect(result.driverWork).toBe(101);
       expect(customerEstimateRepository.acceptEstimateById).toHaveBeenCalledWith("est-1");
     });
   });
