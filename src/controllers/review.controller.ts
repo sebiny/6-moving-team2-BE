@@ -21,7 +21,7 @@ const getAllCompletedEstimate = asyncHandler(async (req: Request, res: Response)
 // 내가 쓴 리뷰 가져오기
 const getMyReviews = asyncHandler(async (req: Request, res: Response) => {
   const customerId = req.user?.customerId;
-  const { page } = req.query;
+  const page = Number(req.query.page) || 1;
   if (!customerId) throw new CustomError(400, "고객 정보를 확인할 수 없습니다.");
 
   const result = await reviewService.getMyReviews(customerId, Number(page));
