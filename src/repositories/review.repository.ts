@@ -10,8 +10,13 @@ async function findAllCompletedEstimateRequest(customerId: string, page: number)
     prisma.estimateRequest.findMany({
       where: {
         customerId,
-        status: "APPROVED",
-        review: null
+        status: "COMPLETED",
+        review: null,
+        estimates: {
+          some: {
+            status: "ACCEPTED"
+          }
+        }
       },
       select: {
         id: true,
@@ -54,8 +59,13 @@ async function findAllCompletedEstimateRequest(customerId: string, page: number)
     prisma.estimateRequest.count({
       where: {
         customerId,
-        status: "APPROVED",
-        review: null
+        status: "COMPLETED",
+        review: null,
+        estimates: {
+          some: {
+            status: "ACCEPTED"
+          }
+        }
       }
     })
   ]);
