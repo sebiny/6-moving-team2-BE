@@ -28,7 +28,7 @@ jobs:
         run: cat .env
 
       - name: 테스트 코드 실행
-        run: npm run test
+        run: npm run test -- --maxWorkers=1 --forceExit
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
