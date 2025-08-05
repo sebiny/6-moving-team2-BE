@@ -39,21 +39,21 @@ async function createDesignatedEstimateRequest(customerId: string, driverId: str
   const activeRequest = await estimateReqRepository.findActiveEstimateRequest(customerId);
 
   if (!activeRequest) {
-    throw new CustomError(400, "진행 중인 일반 견적 요청이 없습니다.");
+    throw new CustomError(400, "noEstimateRequest");
   }
 
   if (activeRequest.status === "APPROVED") {
-    throw new CustomError(409, "이미 기사님이 확정된 요청에는 지정 요청을 할 수 없습니다.");
+    throw new CustomError(409, "alreadyApprovedEstimateRequest");
   }
 
   const alreadyDesignated = activeRequest.designatedDrivers?.some((d) => d.driverId === driverId);
   if (alreadyDesignated) {
-    throw new CustomError(409, "이미 지정된 기사님입니다.");
+    throw new CustomError(409, "alreadyDesignatedDriver");
   }
 
   const designatedCount = await estimateReqRepository.getDesignatedDriverCount(activeRequest.id);
   if (designatedCount >= 3) {
-    throw new CustomError(409, "최대 3명의 기사님만 지정할 수 있습니다.");
+    throw new CustomError(409, "maxThreeDriver");
   }
 
   return estimateReqRepository.createDesignatedDriver(activeRequest.id, driverId);
