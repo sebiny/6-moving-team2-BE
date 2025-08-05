@@ -4,6 +4,7 @@ import passport from "./config/passport";
 import helmet from "helmet";
 import morgan from "morgan";
 import cors from "cors";
+import * as Sentry from "@sentry/node";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import yaml from "yaml";
@@ -79,6 +80,7 @@ cron.schedule(
   }
 );
 
+Sentry.setupExpressErrorHandler(app);
 app.use(errorHandler as express.ErrorRequestHandler);
 
 export default app;

@@ -65,7 +65,7 @@ describe("EstimateReq Service", () => {
           fromAddressId: "same-id",
           toAddressId: "same-id"
         })
-      ).rejects.toThrow("출발지와 도착지는 서로 달라야 합니다.");
+      ).rejects.toThrow("sameAddressNotAllowed");
     });
 
     test("이사 날짜가 과거인 경우 400 에러를 반환한다", async () => {
@@ -76,7 +76,7 @@ describe("EstimateReq Service", () => {
           ...baseData,
           moveDate: new Date(Date.now() - 86400000)
         })
-      ).rejects.toThrow("이전 날짜로 이사를 요청할 수 없습니다.");
+      ).rejects.toThrow("moveDateInPast");
     });
 
     test("이사 날짜가 오늘이어도 견적 요청이 생성된다", async () => {
@@ -114,7 +114,7 @@ describe("EstimateReq Service", () => {
       (estimateReqRepository.findActiveEstimateRequest as jest.Mock).mockResolvedValue(null);
 
       await expect(estimateReqService.createDesignatedEstimateRequest(customerId, driverId)).rejects.toThrow(
-        "진행 중인 일반 견적 요청이 없습니다."
+        "noEstimateRequest"
       );
     });
 
@@ -126,7 +126,7 @@ describe("EstimateReq Service", () => {
       });
 
       await expect(estimateReqService.createDesignatedEstimateRequest(customerId, driverId)).rejects.toThrow(
-        "이미 기사님이 확정된 요청에는 지정 요청을 할 수 없습니다."
+        "alreadyApprovedEstimateRequest"
       );
     });
 
@@ -138,7 +138,7 @@ describe("EstimateReq Service", () => {
       });
 
       await expect(estimateReqService.createDesignatedEstimateRequest(customerId, driverId)).rejects.toThrow(
-        "이미 지정된 기사님입니다."
+        "alreadyDesignatedDriver"
       );
     });
 
@@ -151,7 +151,7 @@ describe("EstimateReq Service", () => {
       (estimateReqRepository.getDesignatedDriverCount as jest.Mock).mockResolvedValue(3);
 
       await expect(estimateReqService.createDesignatedEstimateRequest(customerId, driverId)).rejects.toThrow(
-        "최대 3명의 기사님만 지정할 수 있습니다."
+        "maxThreeDriver"
       );
     });
 

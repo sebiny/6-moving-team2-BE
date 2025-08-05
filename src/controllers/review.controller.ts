@@ -21,7 +21,7 @@ const getAllCompletedEstimate = asyncHandler(async (req: Request, res: Response)
 // 내가 쓴 리뷰 가져오기
 const getMyReviews = asyncHandler(async (req: Request, res: Response) => {
   const customerId = req.user?.customerId;
-  const { page } = req.query;
+  const page = Number(req.query.page) || 1;
   if (!customerId) throw new CustomError(400, "고객 정보를 확인할 수 없습니다.");
 
   const result = await reviewService.getMyReviews(customerId, Number(page));
@@ -57,26 +57,8 @@ const createReview = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-const deleteReview = asyncHandler(async (req: Request, res: Response) => {
-  const { reviewId } = req.body;
-  const customerId = req.user?.customerId;
-  if (!customerId) throw new CustomError(400, "고객 정보를 확인할 수 없습니다.");
-
-  if (!reviewId) {
-    throw new CustomError(400, "리뷰 ID가 누락되었습니다.");
-  }
-  try {
-    await reviewService.deleteReview(reviewId, customerId);
-    return res.status(200).json({ message: "리뷰가 삭제되었습니다." });
-  } catch (error: any) {
-    console.error("리뷰 삭제 중 에러:", error.message, error);
-    throw new CustomError(500, "리뷰 삭제 실패 (서버 내부 오류)");
-  }
-});
-
 export default {
   getAllCompletedEstimate,
   createReview,
-  getMyReviews,
-  deleteReview
+  getMyReviews
 };

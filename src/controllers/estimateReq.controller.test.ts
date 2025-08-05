@@ -73,7 +73,7 @@ describe("EstimateReq Controller", () => {
 
       const error = (next as jest.Mock).mock.calls[0][0];
       expect(error.statusCode).toBe(400);
-      expect(error.message).toContain("출발지와 도착지는 서로 달라야 합니다.");
+      expect(error.message).toBe("sameAddressNotAllowed");
     });
   });
 

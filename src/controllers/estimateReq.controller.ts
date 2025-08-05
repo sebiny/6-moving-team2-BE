@@ -40,7 +40,7 @@ const createEstimateRequest = asyncHandler(async (req: Request, res: Response) =
   }
 
   if (fromAddressId === toAddressId) {
-    throw new CustomError(400, "출발지와 도착지는 서로 달라야 합니다.");
+    throw new CustomError(400, "sameAddressNotAllowed");
   }
 
   const request = await estimateReqService.createEstimateRequest({
