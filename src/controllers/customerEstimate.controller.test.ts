@@ -88,8 +88,9 @@ describe("customerEstimate.controller", () => {
   });
 
   describe("견적 확정 (acceptEstimate)", () => {
-    it("견적 확정 시 성공 메시지를 반환하고 알림을 전송한다.", async () => {
-      (customerEstimateService.acceptEstimate as jest.Mock).mockResolvedValue("accepted");
+    it("견적 확정 시 driverWork를 포함하여 성공 메시지를 반환하고 알림을 전송한다.", async () => {
+      const mockResult = { success: true, estimateId: "est-1", driverWork: 101 };
+      (customerEstimateService.acceptEstimate as jest.Mock).mockResolvedValue(mockResult);
       (customerEstimateService.getCustomerAndDriverIdbyEstimateId as jest.Mock).mockResolvedValue({
         driverId: "drv-1",
         customerId: "cust-1"
@@ -100,13 +101,12 @@ describe("customerEstimate.controller", () => {
 
       await controller.acceptEstimate(req, res, mockNext);
 
-      // 알림 호출은 비동기적으로 이루어지므로 기다림
       await new Promise(setImmediate);
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         message: "견적이 성공적으로 확정되었습니다.",
-        data: "accepted"
+        data: mockResult
       });
       expect(notificationService.createEstimateConfirmNotification).toHaveBeenCalledWith({
         driverId: "drv-1",

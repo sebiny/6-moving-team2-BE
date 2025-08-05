@@ -86,32 +86,45 @@ describe("customerEstimate.repository", () => {
       );
     });
 
-    // it("견적을 정상적으로 확정한다", async () => {
-    //   const mockEstimate = {
-    //     id: "est1",
-    //     deletedAt: null,
-    //     estimateRequestId: "req1",
-    //     estimateRequest: {}
-    //   };
-    //   (prisma.estimate.findUnique as jest.Mock).mockResolvedValue(mockEstimate);
+    it("견적을 정상적으로 확정하고 기사님의 work를 1 증가시킨다", async () => {
+      const mockEstimate = {
+        id: "est1",
+        deletedAt: null,
+        estimateRequestId: "req1",
+        driverId: "driver123",
+        estimateRequest: {}
+      };
 
-    //   (prisma.$transaction as jest.Mock).mockImplementation(async (fn) => {
-    //     return fn({
-    //       estimate: {
-    //         update: jest.fn(),
-    //         updateMany: jest.fn()
-    //       },
-    //       estimateRequest: {
-    //         update: jest.fn()
-    //       }
-    //     });
-    //   });
+      const mockUpdatedDriver = {
+        id: "driver123",
+        work: 5
+      };
 
-    //   const result = await customerEstimateRepository.acceptEstimateById("est1");
+      (prisma.estimate.findUnique as jest.Mock).mockResolvedValue(mockEstimate);
 
-    //   expect(result).toEqual({ success: true, estimateId: "est1" });
-    //   expect(prisma.estimate.findUnique).toHaveBeenCalled();
-    // });
+      (prisma.$transaction as jest.Mock).mockImplementation(async (fn) => {
+        return fn({
+          estimate: {
+            update: jest.fn(),
+            updateMany: jest.fn()
+          },
+          estimateRequest: {
+            update: jest.fn()
+          },
+          driver: {
+            update: jest.fn().mockResolvedValue(mockUpdatedDriver)
+          }
+        });
+      });
+
+      const result = await customerEstimateRepository.acceptEstimateById("est1");
+
+      expect(result).toEqual({ success: true, estimateId: "est1", driverWork: 5 });
+      expect(prisma.estimate.findUnique).toHaveBeenCalledWith({
+        where: { id: "est1" },
+        include: { estimateRequest: true }
+      });
+    });
   });
 
   describe("getCustomerNameById", () => {
