@@ -65,7 +65,7 @@ describe("EstimateReq Service", () => {
           fromAddressId: "same-id",
           toAddressId: "same-id"
         })
-      ).rejects.toThrow("출발지와 도착지는 서로 달라야 합니다.");
+      ).rejects.toThrow("sameAddressNotAllowed");
     });
 
     test("이사 날짜가 과거인 경우 400 에러를 반환한다", async () => {
@@ -76,7 +76,7 @@ describe("EstimateReq Service", () => {
           ...baseData,
           moveDate: new Date(Date.now() - 86400000)
         })
-      ).rejects.toThrow("이전 날짜로 이사를 요청할 수 없습니다.");
+      ).rejects.toThrow("moveDateInPast");
     });
 
     test("이사 날짜가 오늘이어도 견적 요청이 생성된다", async () => {
