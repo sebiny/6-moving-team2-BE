@@ -29,6 +29,8 @@ jobs:
 
       - name: 테스트 코드 실행
         run: npm run test
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       - name: 빌드
         run: npm run build
