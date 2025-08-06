@@ -18,6 +18,7 @@ async function findAllCompletedEstimateRequest(customerId: string, page: number)
           }
         }
       },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         moveType: true,
@@ -82,6 +83,7 @@ async function getMyReviews(customerId: string, page: number) {
   const [reviews, totalCount] = await Promise.all([
     prisma.review.findMany({
       where: { customerId },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         rating: true,
