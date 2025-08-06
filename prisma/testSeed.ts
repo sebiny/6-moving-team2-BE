@@ -18,6 +18,7 @@ const randomPhone = () => `010${Math.floor(1000 + Math.random() * 9000)}${Math.f
 const randomName = ["김철수", "이영희", "박민수", "최지영", "한서준", "장도윤", "유지안", "서지우"];
 const randomDistrict = ["강남구", "송파구", "은평구", "수성구", "남구", "해운대구", "중구", "동작구"];
 const randomRegion = [RegionType.SEOUL, RegionType.DAEGU, RegionType.GYEONGGI, RegionType.BUSAN];
+const randomMoveTypes = [MoveType.HOME, MoveType.OFFICE, MoveType.SMALL];
 const randomReview = [
   "최악이었어요. 추천하지 않습니다.",
   "생각보다 아쉬운 점이 많았습니다.",
@@ -48,9 +49,14 @@ async function main() {
   // 고객 5명
   const customerIds: string[] = [];
   for (let i = 0; i < 5; i++) {
+    //랜덤 movetype
+    const count = Math.floor(Math.random() * 3) + 1;
+    const shuffled = [...randomMoveTypes].sort(() => 0.5 - Math.random());
+    const randomList = shuffled.slice(0, count);
+
     const authUser = await prisma.authUser.create({
       data: {
-        email: `customer${i}@test.com`,
+        email: `customer${i + 1}@test.com`,
         password: await hashPassword(`1q2w3e4r!`),
         phone: maskPhone(randomPhone()),
         userType: UserType.CUSTOMER,
@@ -58,7 +64,7 @@ async function main() {
 
         customer: {
           create: {
-            moveType: i % 2 === 0 ? [MoveType.HOME] : [MoveType.OFFICE],
+            moveType: randomList,
             currentArea: randomDistrict[i % randomDistrict.length],
             moveDate: new Date(`2025-08-0${i + 1}`)
           }
@@ -72,6 +78,9 @@ async function main() {
   // 기사 10명
   const driverIds: string[] = [];
   for (let i = 0; i < 10; i++) {
+    const count = Math.floor(Math.random() * 3) + 1;
+    const shuffled = [...randomMoveTypes].sort(() => 0.5 - Math.random());
+    const randomList = shuffled.slice(0, count);
     const authUser = await prisma.authUser.create({
       data: {
         email: `driver${i}@test.com`,
@@ -83,10 +92,11 @@ async function main() {
         driver: {
           create: {
             nickname: `기사${i + 1}`,
+            work: Math.floor(Math.random() * 10) + 1,
             career: i + 1, // Int 타입으로 변경
             shortIntro: `안녕하세요 기사${i + 1}입니다.`,
             detailIntro: `열심히 하겠습니다. 믿고 맡겨주세요.`,
-            moveType: [MoveType.HOME, MoveType.SMALL], // services에서 moveType으로 변경
+            moveType: randomList,
             serviceAreas: {
               create: [
                 {
@@ -102,6 +112,23 @@ async function main() {
     });
     driverIds.push(authUser.driver!.id);
   }
+
+  //찜하기
+  for (let i = 0; i < 5; i++) {
+    const shuffled = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => 0.5 - Math.random());
+    const randomList = shuffled.slice(0, 3);
+
+    for (const idx of randomList) {
+      const favorite = await prisma.favorite.create({
+        data: {
+          customerId: customerIds[i],
+          driverId: driverIds[idx]
+        }
+      });
+    }
+  }
+
+  console.log("🌱 기사, 고객, 찜하기 생성 완료");
 
   // 주소 5개
   const addressData = [
@@ -201,13 +228,31 @@ async function main() {
     }
   }
 
+  //리뷰 평점 업데이트
+  for (const driverId of driverIds) {
+    const reviews = await prisma.review.findMany({
+      where: { driverId },
+      select: { rating: true }
+    });
+
+    const total = reviews.reduce((acc, curr) => acc + curr.rating, 0);
+    const average = reviews.length ? total / reviews.length : 0;
+
+    await prisma.driver.update({
+      where: { id: driverId },
+      data: { averageRating: parseFloat(average.toFixed(2)) }
+    });
+  }
+
+  console.log("🌱 리뷰 생성 완료");
+
   // EstimateRequest + Estimate + DesignatedDriver
   for (let i = 0; i < 5; i++) {
     const req = await prisma.estimateRequest.create({
       data: {
         customerId: customerIds[i],
         moveType: MoveType.HOME,
-        moveDate: new Date(`2025-08-1${i}`),
+        moveDate: new Date(`2025-08-2${i}`),
         fromAddressId: addressList[0].id,
         toAddressId: addressList[1].id,
         status: RequestStatus.PENDING,
@@ -241,8 +286,8 @@ async function main() {
       });
     }
   }
-
-  console.log("🌱 랜덤 시드 완료 (고객/기사/주소/요청/견적/반려기록/리뷰 포함)");
+  console.log("🌱 견적 및 요청 생성 완료");
+  console.log("🌱 랜덤 시드 완료");
 }
 
 main()
