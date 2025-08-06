@@ -14,7 +14,7 @@
     "test:watch": "jest --watchAll"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts",
+    "seed": "ts-node prisma/testSeed.ts",
     "seed2": "ts-node prisma/seed2.ts"
   },
   "devDependencies": {
