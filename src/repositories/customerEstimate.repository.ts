@@ -1,6 +1,5 @@
 import prisma from "../config/prisma";
 import { EstimateStatus, RequestStatus } from "@prisma/client";
-import { CustomError } from "../utils/customError";
 
 // ＜공통＞ 공통 데이터
 function buildEstimateInclude() {
@@ -122,7 +121,7 @@ async function getReceivedEstimatesByCustomerId(customerId: string) {
   const estimateRequests = await prisma.estimateRequest.findMany({
     where: {
       customerId,
-      status: RequestStatus.APPROVED,
+      status: { in: [RequestStatus.APPROVED, RequestStatus.COMPLETED] },
       deletedAt: null
     },
     include: {

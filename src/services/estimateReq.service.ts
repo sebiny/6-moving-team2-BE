@@ -19,16 +19,16 @@ async function createEstimateRequest(data: CreateEstimateRequestInput) {
   const { customerId, fromAddressId, toAddressId, moveDate } = data;
 
   if (fromAddressId === toAddressId) {
-    throw new CustomError(400, "출발지와 도착지는 서로 달라야 합니다.");
+    throw new CustomError(400, "sameAddressNotAllowed");
   }
 
   if (dayjs(moveDate).isBefore(dayjs().startOf("day"))) {
-    throw new CustomError(400, "이전 날짜로 이사를 요청할 수 없습니다.");
+    throw new CustomError(400, "moveDateInPast");
   }
 
   const active = await estimateReqRepository.findActiveEstimateRequest(customerId);
   if (active) {
-    throw new CustomError(409, "진행 중인 이사 견적이 있습니다.");
+    throw new CustomError(409, "activeEstimateExists");
   }
 
   return estimateReqRepository.createEstimateRequest(data);
