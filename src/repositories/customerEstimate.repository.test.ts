@@ -77,6 +77,48 @@ describe("customerEstimate.repository", () => {
     });
   });
 
+  describe("getReceivedEstimatesByCustomerId", () => {
+    it("APPROVED와 COMPLETED 상태의 견적 요청을 모두 반환한다", async () => {
+      (prisma.estimateRequest.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: "req1",
+          status: "APPROVED",
+          moveDate: "2025-08-01",
+          moveType: "HOME",
+          createdAt: "2025-07-20",
+          fromAddress: { street: "서울 강남구" },
+          toAddress: { street: "부산 해운대구" },
+          designatedDrivers: [],
+          estimates: []
+        },
+        {
+          id: "req2",
+          status: "COMPLETED",
+          moveDate: "2025-09-01",
+          moveType: "OFFICE",
+          createdAt: "2025-08-25",
+          fromAddress: { street: "인천 미추홀구" },
+          toAddress: { street: "대구 수성구" },
+          designatedDrivers: [],
+          estimates: []
+        }
+      ]);
+
+      const result = await customerEstimateRepository.getReceivedEstimatesByCustomerId("cust123");
+
+      expect(prisma.estimateRequest.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            customerId: "cust123",
+            status: { in: ["APPROVED", "COMPLETED"] }
+          })
+        })
+      );
+
+      expect(result.length).toBe(2);
+    });
+  });
+
   describe("acceptEstimateById", () => {
     it("견적이 없으면 에러를 던진다", async () => {
       (prisma.estimate.findUnique as jest.Mock).mockResolvedValue(null);
