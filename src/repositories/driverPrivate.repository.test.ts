@@ -162,7 +162,9 @@ describe("Driver Repository - Private Functions", () => {
           },
           fromAddress: { street: "서울시 마포구" },
           toAddress: { street: "서울시 영등포구" },
-          _count: { estimates: 1 }
+          _count: { estimates: 1 },
+          estimates: [{ driverId: "d2" }],
+          designatedDrivers: []
         }
       ];
       const mockEstimates: any[] = [];
@@ -217,7 +219,9 @@ describe("Driver Repository - Private Functions", () => {
           },
           fromAddress: { street: "서울시 강남구" },
           toAddress: { street: "서울시 서초구" },
-          _count: { estimates: 2 }
+          _count: { estimates: 2 },
+          estimates: [{ driverId: "d1" }, { driverId: "d2" }],
+          designatedDrivers: [{ driverId: "d3" }]
         }
       ];
       const mockRejections: any[] = [];
@@ -287,8 +291,9 @@ describe("Driver Repository - Private Functions", () => {
         estimateRequestId: "req1",
         price: 50000,
         comment: "견적서입니다",
-        status: "PENDING",
-        createdAt: new Date("2025-07-30")
+        status: "PROPOSED",
+        createdAt: new Date("2025-07-30"),
+        isDesignated: false
       };
 
       (prisma.designatedDriver.findMany as jest.Mock).mockResolvedValue([]);
@@ -296,8 +301,24 @@ describe("Driver Repository - Private Functions", () => {
       (prisma.estimate.create as jest.Mock).mockResolvedValue(mockCreatedEstimate);
       (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
         return await callback({
-          designatedDriver: { findMany: jest.fn().mockResolvedValue([]) },
-          estimate: { count: jest.fn().mockResolvedValue(3), create: jest.fn().mockResolvedValue(mockCreatedEstimate) }
+          designatedDriver: {
+            findMany: jest.fn().mockResolvedValue([])
+          },
+          estimate: {
+            findMany: jest
+              .fn()
+              .mockResolvedValue([{ driverId: "d1" }, { driverId: "d2" }, { driverId: "d3" }, { driverId: "d4" }]),
+            create: jest.fn().mockResolvedValue({
+              id: "est1",
+              ...mockEstimateData,
+              status: "PROPOSED",
+              isDesignated: false,
+              createdAt: new Date("2025-07-30")
+            })
+          },
+          driverEstimateRejection: {
+            count: jest.fn().mockResolvedValue(0)
+          }
         });
       });
 
@@ -311,22 +332,49 @@ describe("Driver Repository - Private Functions", () => {
 
       (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
         return await callback({
-          designatedDriver: { findMany: jest.fn().mockResolvedValue(mockDesignatedDrivers) },
-          estimate: { count: jest.fn().mockResolvedValue(2) },
-          driverEstimateRejection: { count: jest.fn().mockResolvedValue(1) }
+          designatedDriver: {
+            findMany: jest.fn().mockResolvedValue([])
+          },
+          estimate: {
+            findMany: jest
+              .fn()
+              .mockResolvedValue([
+                { driverId: "d1" },
+                { driverId: "d2" },
+                { driverId: "d3" },
+                { driverId: "d4" },
+                { driverId: "d5" }
+              ])
+          },
+          driverEstimateRejection: {
+            count: jest.fn().mockResolvedValue(0)
+          }
         });
       });
 
       await expect(driverRepository.createEstimate(mockEstimateData)).rejects.toThrow(
-        "지정된 모든 기사님이 응답하셨습니다."
+        "이미 최대 응답 가능 기사님 수를 초과했습니다."
       );
     });
 
     test("일반 견적 요청에서 응답 제한을 초과하면 오류를 발생시킨다", async () => {
-      (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-        return await callback({
-          designatedDriver: { findMany: jest.fn().mockResolvedValue([]) },
-          estimate: { count: jest.fn().mockResolvedValue(5) }
+      (prisma.$transaction as jest.Mock).mockImplementation(async (cb) => {
+        return await cb({
+          estimate: {
+            findMany: jest
+              .fn()
+              .mockResolvedValue([
+                { driverId: "d1" },
+                { driverId: "d2" },
+                { driverId: "d3" },
+                { driverId: "d4" },
+                { driverId: "d5" }
+              ]),
+            create: jest.fn()
+          },
+          designatedDriver: {
+            findMany: jest.fn().mockResolvedValue([])
+          }
         });
       });
 
@@ -432,7 +480,7 @@ describe("Driver Repository - Private Functions", () => {
         estimateRequestId: "req1",
         price: 50000,
         comment: "견적서입니다",
-        status: "PENDING",
+        status: "PROPOSED",
         createdAt: new Date("2025-07-30"),
         estimateRequest: {
           customer: {
@@ -541,7 +589,11 @@ describe("Driver Repository - Private Functions", () => {
   describe("checkResponseLimit - 응답 제한 확인", () => {
     test("일반 견적 요청에서 응답 가능한 경우", async () => {
       (prisma.designatedDriver.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.estimate.count as jest.Mock).mockResolvedValue(3);
+      (prisma.estimate.findMany as jest.Mock).mockResolvedValue([
+        { driverId: "d1" },
+        { driverId: "d2" },
+        { driverId: "d3" }
+      ]);
 
       const result = await driverRepository.checkResponseLimit(mockEstimateRequestId, mockDriverId);
 
@@ -555,7 +607,13 @@ describe("Driver Repository - Private Functions", () => {
 
     test("일반 견적 요청에서 응답 제한을 초과한 경우", async () => {
       (prisma.designatedDriver.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.estimate.count as jest.Mock).mockResolvedValue(5);
+      (prisma.estimate.findMany as jest.Mock).mockResolvedValue([
+        { driverId: "d1" },
+        { driverId: "d2" },
+        { driverId: "d3" },
+        { driverId: "d4" },
+        { driverId: "d5" }
+      ]);
 
       const result = await driverRepository.checkResponseLimit(mockEstimateRequestId, mockDriverId);
 
@@ -577,10 +635,10 @@ describe("Driver Repository - Private Functions", () => {
       const result = await driverRepository.checkResponseLimit(mockEstimateRequestId, mockDriverId);
 
       expect(result).toEqual({
-        canRespond: true,
-        limit: 2,
+        canRespond: false,
+        limit: 1,
         currentCount: 1,
-        message: "응답 가능합니다."
+        message: "이미 처리된 요청입니다."
       });
     });
 
@@ -595,9 +653,9 @@ describe("Driver Repository - Private Functions", () => {
 
       expect(result).toEqual({
         canRespond: false,
-        limit: 2,
+        limit: 1,
         currentCount: 2,
-        message: "지정된 모든 기사님이 응답하셨습니다."
+        message: "이미 처리된 요청입니다."
       });
     });
   });
