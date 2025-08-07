@@ -174,7 +174,6 @@ paths:
             application/json:
               example:
                 message: "이미 지정된 기사님입니다."
-
   /reviews/reviewable:
     get:
       summary: 리뷰 작성 가능한 견적 조회
@@ -279,7 +278,6 @@ paths:
             application/json:
               example:
                 message: "서버 내부 오류가 발생했습니다."
-
   /customer/estimate-request/active:
     get:
       summary: 활성 견적 요청 조회
@@ -1418,6 +1416,7 @@ components:
         toAddress:
           type: string
           example: customer1@example.com
+
     EstimateRequest:
       type: object
       properties:
