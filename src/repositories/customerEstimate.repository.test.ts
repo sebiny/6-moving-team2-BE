@@ -77,6 +77,48 @@ describe("customerEstimate.repository", () => {
     });
   });
 
+  describe("getReceivedEstimatesByCustomerId", () => {
+    it("APPROVED와 COMPLETED 상태의 견적 요청을 모두 반환한다", async () => {
+      (prisma.estimateRequest.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: "req1",
+          status: "APPROVED",
+          moveDate: "2025-08-01",
+          moveType: "HOME",
+          createdAt: "2025-07-20",
+          fromAddress: { street: "서울 강남구" },
+          toAddress: { street: "부산 해운대구" },
+          designatedDrivers: [],
+          estimates: []
+        },
+        {
+          id: "req2",
+          status: "COMPLETED",
+          moveDate: "2025-09-01",
+          moveType: "OFFICE",
+          createdAt: "2025-08-25",
+          fromAddress: { street: "인천 미추홀구" },
+          toAddress: { street: "대구 수성구" },
+          designatedDrivers: [],
+          estimates: []
+        }
+      ]);
+
+      const result = await customerEstimateRepository.getReceivedEstimatesByCustomerId("cust123");
+
+      expect(prisma.estimateRequest.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            customerId: "cust123",
+            status: { in: ["APPROVED", "COMPLETED"] }
+          })
+        })
+      );
+
+      expect(result.length).toBe(2);
+    });
+  });
+
   describe("acceptEstimateById", () => {
     it("견적이 없으면 에러를 던진다", async () => {
       (prisma.estimate.findUnique as jest.Mock).mockResolvedValue(null);
@@ -86,13 +128,20 @@ describe("customerEstimate.repository", () => {
       );
     });
 
-    it("견적을 정상적으로 확정한다", async () => {
+    it("견적을 정상적으로 확정하고 기사님의 work를 1 증가시킨다", async () => {
       const mockEstimate = {
         id: "est1",
         deletedAt: null,
         estimateRequestId: "req1",
+        driverId: "driver123",
         estimateRequest: {}
       };
+
+      const mockUpdatedDriver = {
+        id: "driver123",
+        work: 5
+      };
+
       (prisma.estimate.findUnique as jest.Mock).mockResolvedValue(mockEstimate);
 
       (prisma.$transaction as jest.Mock).mockImplementation(async (fn) => {
@@ -103,14 +152,20 @@ describe("customerEstimate.repository", () => {
           },
           estimateRequest: {
             update: jest.fn()
+          },
+          driver: {
+            update: jest.fn().mockResolvedValue(mockUpdatedDriver)
           }
         });
       });
 
       const result = await customerEstimateRepository.acceptEstimateById("est1");
 
-      expect(result).toEqual({ success: true, estimateId: "est1" });
-      expect(prisma.estimate.findUnique).toHaveBeenCalled();
+      expect(result).toEqual({ success: true, estimateId: "est1", driverWork: 5 });
+      expect(prisma.estimate.findUnique).toHaveBeenCalledWith({
+        where: { id: "est1" },
+        include: { estimateRequest: true }
+      });
     });
   });
 

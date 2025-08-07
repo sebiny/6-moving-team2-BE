@@ -2,10 +2,8 @@ openapi: 3.0.3
 info:
   title: Moving API
   version: 1.0.0
-
 servers:
   - url: http://localhost:4000
-
 tags:
   - name: Address
   - name: Customer
@@ -13,12 +11,15 @@ tags:
   - name: Notification
   - name: Favorite
   - name: Review
+  - name: Profile
+  - name: Auth
 
 paths:
   /address:
     post:
       summary: 주소 등록
-      tags: [Address]
+      tags:
+        - Address
       requestBody:
         required: true
         content:
@@ -33,18 +34,18 @@ paths:
           content:
             application/json:
               example:
-                message: "필수 주소 정보가 누락되었습니다."
+                message: 필수 주소 정보가 누락되었습니다.
         "500":
           description: 서버 에러
           content:
             application/json:
               example:
-                message: "서버 내부 오류가 발생했습니다."
-
+                message: 서버 내부 오류가 발생했습니다.
   /customer/address:
     post:
       summary: 고객 주소 연결
-      tags: [Address]
+      tags:
+        - Address
       security:
         - access-token: []
       requestBody:
@@ -61,11 +62,11 @@ paths:
           content:
             application/json:
               example:
-                message: "필수 주소 정보가 누락되었습니다."
-
+                message: 필수 주소 정보가 누락되었습니다.
     get:
       summary: 고객 주소 조회(role 기준)
-      tags: [Address]
+      tags:
+        - Address
       security:
         - access-token: []
       parameters:
@@ -74,7 +75,10 @@ paths:
           required: true
           schema:
             type: string
-            enum: [FROM, TO, EXTRA]
+            enum:
+              - FROM
+              - TO
+              - EXTRA
       responses:
         "200":
           description: 고객 주소 리스트 반환
@@ -85,25 +89,25 @@ paths:
                 items:
                   $ref: "#/components/schemas/CustomerAddress"
               example:
-                - id: "cusaddr-123"
-                  role: "FROM"
+                - id: cusaddr-123
+                  role: FROM
                   address:
                     postalCode: "12345"
-                    street: "서울특별시 강남구 테헤란로 123"
-                    detail: "301호"
-                    region: "SEOUL"
-                    district: "강남구"
+                    street: 서울특별시 강남구 테헤란로 123
+                    detail: 301호
+                    region: SEOUL
+                    district: 강남구
           "400":
             description: 필수 정보 누락
             content:
               application/json:
                 example:
-                  message: "필수 요청 정보가 누락되었습니다."
-
+                  message: 필수 요청 정보가 누락되었습니다.
   /customer/estimate-request:
     post:
       summary: 견적 요청 생성
-      tags: [Customer]
+      tags:
+        - Customer
       security:
         - access-token: []
       requestBody:
@@ -118,32 +122,31 @@ paths:
           content:
             application/json:
               example:
-                id: "esti-abc123"
-                customerId: "cust-xyz789"
-                moveType: "HOME"
+                id: esti-abc123
+                customerId: cust-xyz789
+                moveType: HOME
                 moveDate: "2025-08-15T00:00:00.000Z"
-                status: "PENDING"
-                fromAddressId: "addr-001"
-                toAddressId: "addr-002"
+                status: PENDING
+                fromAddressId: addr-001
+                toAddressId: addr-002
                 createdAt: "2025-07-30T10:20:00.000Z"
-
         "400":
           description: 유효하지 않은 입력
           content:
             application/json:
               example:
-                message: "출발지와 도착지는 서로 달라야 합니다."
+                message: 출발지와 도착지는 서로 달라야 합니다.
         "409":
           description: 중복 요청
           content:
             application/json:
               example:
-                message: "진행 중인 이사 견적이 있습니다."
-
+                message: 진행 중인 이사 견적이 있습니다.
   /customer/estimate-request/designated:
     post:
       summary: 지정 견적 요청
-      tags: [Customer]
+      tags:
+        - Customer
       security:
         - access-token: []
       requestBody:
@@ -158,13 +161,13 @@ paths:
           content:
             application/json:
               example:
-                message: "지정 견적 요청 완료"
+                message: 지정 견적 요청 완료
         "400":
           description: 유효하지 않은 입력
           content:
             application/json:
               example:
-                message: "진행 중인 일반 견적 요청이 없습니다."
+                message: 진행 중인 일반 견적 요청이 없습니다.
         "409":
           description: 중복 지정 요청
           content:
@@ -280,7 +283,8 @@ paths:
   /customer/estimate-request/active:
     get:
       summary: 활성 견적 요청 조회
-      tags: [Customer]
+      tags:
+        - Customer
       security:
         - access-token: []
       responses:
@@ -289,16 +293,17 @@ paths:
           content:
             application/json:
               example:
-                id: "esti-abc123"
-                moveType: "SMALL"
+                id: esti-abc123
+                moveType: SMALL
                 moveDate: "2025-08-10T00:00:00.000Z"
-                status: "PENDING"
-                fromAddressId: "addr-123"
-                toAddressId: "addr-456"
+                status: PENDING
+                fromAddressId: addr-123
+                toAddressId: addr-456
   /notification:
     get:
       summary: 알림 목록 조회
-      tags: [Notification]
+      tags:
+        - Notification
       security:
         - access-token: []
       responses:
@@ -307,37 +312,37 @@ paths:
           content:
             application/json:
               example:
-                - id: "cmdpjx8d60005o8f6vt5zd8q7"
+                - id: cmdpjx8d60005o8f6vt5zd8q7
                   message: '요정구님의 <span style="color: #F9502E">소형이사</span> 견적요청이 전송되었어요.'
                   path: ""
-                  type: "ESTIMATE_REQUEST"
+                  type: ESTIMATE_REQUEST
                   isRead: false
                   createdAt: "2025-07-30T05:21:21.541Z"
                   updatedAt: null
                   deletedAt: null
-                  receiverId: "cmdpiq0dk0003o853egxsqmw8"
-                  senderId: "cmdpiq0dk0003o853egxsqmw8"
-                - id: "cmdpj4l0d0002o8ae7cz0ao8e"
+                  receiverId: cmdpiq0dk0003o853egxsqmw8
+                  senderId: cmdpiq0dk0003o853egxsqmw8
+                - id: cmdpj4l0d0002o8ae7cz0ao8e
                   message: '<span style="color: #F9502E">요정구</span>님, 무빙 회원가입을 축하합니다!'
                   path: ""
-                  type: "WELCOME"
+                  type: WELCOME
                   isRead: true
                   createdAt: "2025-07-30T05:21:21.541Z"
                   updatedAt: "2025-07-30T05:21:46.182Z"
                   deletedAt: null
-                  receiverId: "cmdpiq0dk0003o853egxsqmw8"
-                  senderId: "cmdpiq0dk0003o853egxsqmw8"
+                  receiverId: cmdpiq0dk0003o853egxsqmw8
+                  senderId: cmdpiq0dk0003o853egxsqmw8
         "500":
           description: 서버 에러
           content:
             application/json:
               example:
-                message: "서버 내부 오류가 발생했습니다."
-
+                message: 서버 내부 오류가 발생했습니다.
   /notification/:id:
     get:
       summary: 특정 알림 조회
-      tags: [Notification]
+      tags:
+        - Notification
       security:
         - access-token: []
       responses:
@@ -346,26 +351,26 @@ paths:
           content:
             application/json:
               example:
-                - id: "cmdpjx8d60005o8f6vt5zd8q7"
+                - id: cmdpjx8d60005o8f6vt5zd8q7
                   message: '요정구님의 <span style="color: #F9502E">소형이사</span> 견적요청이 전송되었어요.'
                   path: ""
-                  type: "ESTIMATE_REQUEST"
+                  type: ESTIMATE_REQUEST
                   isRead: false
                   createdAt: "2025-07-30T05:21:21.541Z"
                   updatedAt: null
                   deletedAt: null
-                  receiverId: "cmdpiq0dk0003o853egxsqmw8"
-                  senderId: "cmdpiq0dk0003o853egxsqmw8"
+                  receiverId: cmdpiq0dk0003o853egxsqmw8
+                  senderId: cmdpiq0dk0003o853egxsqmw8
         "500":
           description: 서버 에러
           content:
             application/json:
               example:
-                message: "서버 내부 오류가 발생했습니다."
-
+                message: 서버 내부 오류가 발생했습니다.
     patch:
       summary: 특정 알림 읽음 처리
-      tags: [Notification]
+      tags:
+        - Notification
       security:
         - access-token: []
       responses:
@@ -374,29 +379,29 @@ paths:
           content:
             application/json:
               example:
-                message: "알림을 성공적으로 읽음 처리했습니다."
+                message: 알림을 성공적으로 읽음 처리했습니다.
                 notification:
-                  - id: "cmdpjx8d60005o8f6vt5zd8q7"
+                  - id: cmdpjx8d60005o8f6vt5zd8q7
                     message: '요정구님의 <span style="color: #F9502E">소형이사</span> 견적요청이 전송되었어요.'
                     path: ""
-                    type: "ESTIMATE_REQUEST"
+                    type: ESTIMATE_REQUEST
                     isRead: true
                     createdAt: "2025-07-30T05:21:21.541Z"
                     updatedAt: "2025-07-31T05:21:21.541Z"
                     deletedAt: null
-                    receiverId: "cmdpiq0dk0003o853egxsqmw8"
-                    senderId: "cmdpiq0dk0003o853egxsqmw8"
+                    receiverId: cmdpiq0dk0003o853egxsqmw8
+                    senderId: cmdpiq0dk0003o853egxsqmw8
         "500":
           description: 서버 에러
           content:
             application/json:
               example:
-                message: "서버 내부 오류가 발생했습니다."
-
+                message: 서버 내부 오류가 발생했습니다.
   /favorite:
     get:
       summary: 즐겨찾기한 기사 리스트 조회
-      tags: [Favorite]
+      tags:
+        - Favorite
       security:
         - access-token: []
       responses:
@@ -412,11 +417,11 @@ paths:
           description: 인증 실패
         "500":
           description: 서버 에러
-
   /favorite/drivers/:id:
     post:
       summary: 기사 즐겨찾기 추가
-      tags: [Favorite]
+      tags:
+        - Favorite
       security:
         - access-token: []
       parameters:
@@ -434,10 +439,10 @@ paths:
           description: 인증 실패
         "500":
           description: 서버 에러
-
     delete:
       summary: 기사 즐겨찾기 삭제
-      tags: [Favorite]
+      tags:
+        - Favorite
       security:
         - access-token: []
       parameters:
@@ -455,11 +460,11 @@ paths:
           description: 즐겨찾기 내역 없음
         "500":
           description: 서버 에러
-
   /driver/auth:
     get:
       summary: 전체 기사 리스트 조회(회원)
-      tags: [Driver]
+      tags:
+        - Driver
       security:
         - access-token: []
       responses:
@@ -475,11 +480,11 @@ paths:
           description: 인증 실패
         "500":
           description: 서버 에러
-
   /driver/:id/auth:
     get:
       summary: 특정 기사 정보 조회(회원)
-      tags: [Driver]
+      tags:
+        - Driver
       security:
         - access-token: []
       parameters:
@@ -502,11 +507,11 @@ paths:
           description: 기사 정보를 찾을 수 없음
         "500":
           description: 서버 에러
-
   /driver:
     get:
       summary: 전체 기사 리스트 조회 (비회원용)
-      tags: [Driver]
+      tags:
+        - Driver
       responses:
         "200":
           description: 성공적으로 기사 리스트를 반환
@@ -518,7 +523,6 @@ paths:
                   $ref: "#/components/schemas/Driver"
         "500":
           description: 서버 에러
-
   /driver/:id:
     get:
       summary: 특정 기사 정보 조회 (비회원용)
@@ -542,11 +546,11 @@ paths:
           description: 기사 정보를 찾을 수 없음
         "500":
           description: 서버 에러
-
   /driver/:id/reviews:
     get:
       summary: 특정 기사의 리뷰 조회
-      tags: [Driver]
+      tags:
+        - Driver
       parameters:
         - name: id
           in: path
@@ -567,11 +571,11 @@ paths:
           description: 기사 정보를 찾을 수 없음
         "500":
           description: 서버 에러
-
   /driver/estimate-requests/designated:
     get:
       summary: 지정 견적 요청 조회
-      tags: [Driver]
+      tags:
+        - Driver
       security:
         - access-token: []
       responses:
@@ -587,11 +591,11 @@ paths:
           description: 인증 실패
         "500":
           description: 서버 에러
-
   /driver/estimate-requests/available:
     get:
       summary: 일반 견적 요청 조회
-      tags: [Driver]
+      tags:
+        - Driver
       security:
         - access-token: []
       responses:
@@ -607,11 +611,11 @@ paths:
           description: 인증 실패
         "500":
           description: 서버 에러
-
   /driver/estimate-requests:
     get:
       summary: 모든 견적 요청 조회
-      tags: [Driver]
+      tags:
+        - Driver
       security:
         - access-token: []
       responses:
@@ -627,11 +631,11 @@ paths:
           description: 인증 실패
         "500":
           description: 서버 에러
-
   /driver/estimate-requests/{requestId}/estimates:
     post:
       summary: 견적 생성
-      tags: [Driver]
+      tags:
+        - Driver
       security:
         - access-token: []
       parameters:
@@ -659,7 +663,7 @@ paths:
           content:
             application/json:
               example:
-                message: "유효한 견적가를 입력해주세요."
+                message: 유효한 견적가를 입력해주세요.
         "401":
           description: 인증 실패
         "404":
@@ -668,11 +672,11 @@ paths:
           description: 이미 견적을 보냈습니다
         "500":
           description: 서버 에러
-
   /driver/estimate-requests/{requestId}/reject:
     post:
       summary: 견적 요청 반려
-      tags: [Driver]
+      tags:
+        - Driver
       security:
         - access-token: []
       parameters:
@@ -694,13 +698,13 @@ paths:
           content:
             application/json:
               example:
-                message: "견적 요청이 반려되었습니다."
+                message: 견적 요청이 반려되었습니다.
         "400":
           description: 유효하지 않은 입력
           content:
             application/json:
               example:
-                message: "이사일이 지난 견적 요청에는 반려할 수 없습니다."
+                message: 이사일이 지난 견적 요청에는 반려할 수 없습니다.
         "401":
           description: 인증 실패
         "404":
@@ -709,11 +713,11 @@ paths:
           description: 이미 반려한 요청입니다
         "500":
           description: 서버 에러
-
   /driver/estimates:
     get:
       summary: 내 견적 조회
-      tags: [Driver]
+      tags:
+        - Driver
       security:
         - access-token: []
       responses:
@@ -729,11 +733,11 @@ paths:
           description: 인증 실패
         "500":
           description: 서버 에러
-
   /driver/estimates/{estimateId}:
     get:
       summary: 견적 상세 조회
-      tags: [Driver]
+      tags:
+        - Driver
       security:
         - access-token: []
       parameters:
@@ -756,11 +760,11 @@ paths:
           description: 견적을 찾을 수 없음
         "500":
           description: 서버 에러
-
   /driver/estimate-requests/rejected:
     get:
       summary: 반려한 견적 요청 조회
-      tags: [Driver]
+      tags:
+        - Driver
       security:
         - access-token: []
       responses:
@@ -776,12 +780,409 @@ paths:
           description: 인증 실패
         "500":
           description: 서버 에러
-
+  /auth/signup:
+    post:
+      summary: 회원가입
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpInput"
+      responses:
+        "201":
+          description: 회원가입 성공
+          content:
+            application/json:
+              example:
+                id: cmdybbktb0000s69v1v20bxa7
+                email: customer@test11.com
+                phone: 01012345678
+                name: 김테스트
+                userType: CUSTOMER
+                provider: LOCAL
+                providerId: null
+                createdAt: "2025-08-05T09:04:06.432Z"
+                updatedAt: "2025-08-05T09:04:06.432Z"
+                deletedAt: null
+  /auth/login:
+    post:
+      summary: 로그인
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: 로그인 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  user:
+                    type: object
+                    required:
+                      - id
+                      - email
+                      - userType
+                      - phone
+                      - name
+                    properties:
+                      id:
+                        type: string
+                      email:
+                        type: string
+                      userType:
+                        type: string
+                        enum:
+                          - CUSTOMER
+                          - DRIVER
+                      phone:
+                        type: string
+                      name:
+                        type: string
+              example:
+                accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                user:
+                  id: cmdy8ve9e0000s6vp0smx4i46
+                  email: customer@test10.com
+                  userType: CUSTOMER
+                  phone: 01012345678
+                  name: 김테스트
+  /auth/logout:
+    post:
+      summary: 로그아웃
+      tags:
+        - Auth
+      responses:
+        "204":
+          description: 로그아웃 성공
+  /auth/me:
+    get:
+      summary: 내 정보 확인
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: 토큰 기반 유저 정보
+          content:
+            application/json:
+              example:
+                user:
+                  id: cmdy8ve9e0000s6vp0smx4i46
+                  userType: CUSTOMER
+                  customerId: cmdy9927c0003s647oczsyull
+                  iat: 1754384755
+                  exp: 1754384815
+  /auth/me/detail:
+    get:
+      summary: 로그인 유저 상세 정보 조회
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: 유저 + 프로필 상세 정보
+          content:
+            application/json:
+              example:
+                id: cmdy8ve9e0000s6vp0smx4i46
+                email: customer@test10.com
+                phone: 01012345678
+                name: 김테스트
+                userType: CUSTOMER
+                provider: LOCAL
+                providerId: null
+                createdAt: "2025-08-05T07:55:32.210Z"
+                updatedAt: "2025-08-05T07:55:32.210Z"
+                deletedAt: null
+                customer:
+                  id: cmdy9927c0003s647oczsyull
+                  authUserId: cmdy8ve9e0000s6vp0smx4i46
+                  profileImage: https://example.com/image.jpg
+                  moveType:
+                    - OFFICE
+                    - HOME
+                  currentArea: 서울
+                  moveDate: null
+                  deletedAt: null
+                  languagePrefId: null
+                driver: null
+  /auth/me/name:
+    get:
+      summary: 이름 + 프로필 이미지 조회
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: 이름, 프로필 이미지
+          content:
+            application/json:
+              example:
+                name: 김테스트
+                profileImage: https://example.com/image.jpg
+  /auth/refresh-token:
+    post:
+      summary: 액세스토큰 재발급
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: 새 액세스토큰 발급
+          content:
+            application/json:
+              example:
+                accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+  /auth/{provider}:
+    get:
+      summary: 소셜 로그인 시작
+      tags:
+        - Auth
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+            enum:
+              - google
+              - kakao
+              - naver
+      responses:
+        "302":
+          description: 소셜 로그인 페이지로 리디렉션
+  /auth/{provider}/callback:
+    get:
+      summary: 소셜 로그인 콜백
+      tags:
+        - Auth
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+            enum:
+              - google
+              - kakao
+              - naver
+      responses:
+        "200":
+          description: 소셜 로그인 성공
+          content:
+            application/json:
+              example:
+                accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                user:
+                  id: cmdy8ve9e0000s6vp0smx4i46
+                  email: customer@test10.com
+                  userType: CUSTOMER
+                  phone: 01012345678
+                  name: 김테스트
+  /profile/customer:
+    post:
+      summary: 고객 프로필 생성
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerProfileInput"
+      responses:
+        "201":
+          description: 고객 프로필 생성 성공
+          content:
+            application/json:
+              example:
+                profile:
+                  id: cmdybood50006s69vh6hvzutz
+                  authUserId: cmdyboc370003s69vu6zbtcxs
+                  profileImage: https://example.com/image.jpg
+                  moveType:
+                    - OFFICE
+                    - HOME
+                  currentArea: 서울
+                  moveDate: null
+                  deletedAt: null
+                  languagePrefId: null
+                accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    patch:
+      summary: 고객 프로필 수정
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomerProfileInput"
+      responses:
+        "200":
+          description: 고객 프로필 수정 성공
+          content:
+            application/json:
+              example:
+                authUser:
+                  id: cmdyboc370003s69vu6zbtcxs
+                  email: customer@test12.com
+                  password: "..."
+                  phone: 01012345678
+                  name: 홍길길동
+                  userType: CUSTOMER
+                  provider: LOCAL
+                  providerId: null
+                  createdAt: "2025-08-05T09:14:01.651Z"
+                  updatedAt: "2025-08-05T09:17:00.688Z"
+                  deletedAt: null
+                  customer:
+                    id: cmdybood50006s69vh6hvzutz
+                    authUserId: cmdyboc370003s69vu6zbtcxs
+                    profileImage: https://example.com/new
+                    moveType:
+                      - HOME
+                    currentArea: 서울
+                    moveDate: null
+                    deletedAt: null
+                    languagePrefId: null
+                  driver: null
+  /profile/driver:
+    post:
+      summary: 기사 프로필 생성
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDriverProfileInput"
+      responses:
+        "201":
+          description: 기사 프로필 생성 성공
+          content:
+            application/json:
+              example:
+                profile:
+                  driver:
+                    id: cmdybw683000gs69v574ua7p1
+                    authUserId: cmdybv9bk000ds69vfohs8lf2
+                    nickname: 이사님님님
+                    profileImage: https://example.com/image.jpg
+                    shortIntro: 빠르고 안전한 이사
+                    detailIntro: 경력 5년의 베테랑 기사입니다.
+                    moveType:
+                      - OFFICE
+                      - HOME
+                    career: 5
+                    work: 0
+                    deletedAt: null
+                    averageRating: 0
+                    languagePrefId: null
+                    serviceAreas:
+                      - id: cmdybw684000hs69v7kuwqmws
+                        driverId: cmdybw683000gs69v574ua7p1
+                        region: SEOUL
+                        district: null
+                      - id: cmdybw684000is69vsuzxfj36
+                        driverId: cmdybw683000gs69v574ua7p1
+                        region: BUSAN
+                        district: null
+                accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    patch:
+      summary: 기사 프로필 수정
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDriverProfileInput"
+      responses:
+        "200":
+          description: 기사 프로필 수정 성공
+          content:
+            application/json:
+              example:
+                id: cmdybw683000gs69v574ua7p1
+                authUserId: cmdybv9bk000ds69vfohs8lf2
+                nickname: 이사가능장인임임
+                profileImage: https://example.com/image.jpg
+                shortIntro: 빠르고 안전한 이사
+                detailIntro: 경력 5년의 베테랑 기사.
+                moveType:
+                  - HOME
+                career: 3
+                work: 0
+                deletedAt: null
+                averageRating: 0
+                languagePrefId: null
+  /profile/driver/base-info:
+    patch:
+      summary: 기사 기본정보 수정
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDriverBaseInfoInput"
+      responses:
+        "200":
+          description: 기사 기본정보 수정 성공
+          content:
+            application/json:
+              example:
+                authUser:
+                  id: cmdybv9bk000ds69vfohs8lf2
+                  email: driver@test14.com
+                  password: "..."
+                  phone: 01098765432
+                  name: 홍길순
+                  userType: DRIVER
+                  provider: LOCAL
+                  providerId: null
+                  createdAt: "2025-08-05T09:19:24.657Z"
+                  updatedAt: "2025-08-05T09:25:10.375Z"
+                  deletedAt: null
+                  customer: null
+                  driver:
+                    id: cmdybw683000gs69v574ua7p1
+                    authUserId: cmdybv9bk000ds69vfohs8lf2
+                    nickname: 이사가능장인임임
+                    profileImage: https://example.com/image.jpg
+                    shortIntro: 빠르고 안전한 이사
+                    detailIntro: 경력 5년의 베테랑 기사.
+                    moveType:
+                      - HOME
+                    career: 3
+                    work: 0
+                    deletedAt: null
+                    averageRating: 0
+                    languagePrefId: null
+                    serviceAreas:
+                      - region: JEONBUK
+                      - region: BUSAN
 components:
   schemas:
     CreateAddressInput:
       type: object
-      required: [postalCode, street, region, district]
+      required:
+        - postalCode
+        - street
+        - region
+        - district
       properties:
         postalCode:
           type: string
@@ -792,47 +1193,55 @@ components:
         region:
           type: string
           enum:
-            [
-              SEOUL,
-              BUSAN,
-              DAEGU,
-              INCHEON,
-              GWANGJU,
-              DAEJEON,
-              ULSAN,
-              SEJONG,
-              GYEONGGI,
-              GANGWON,
-              CHUNGBUK,
-              CHUNGNAM,
-              JEONBUK,
-              JEONNAM,
-              GYEONGBUK,
-              GYEONGNAM,
-              JEJU
-            ]
+            - SEOUL
+            - BUSAN
+            - DAEGU
+            - INCHEON
+            - GWANGJU
+            - DAEJEON
+            - ULSAN
+            - SEJONG
+            - GYEONGGI
+            - GANGWON
+            - CHUNGBUK
+            - CHUNGNAM
+            - JEONBUK
+            - JEONNAM
+            - GYEONGBUK
+            - GYEONGNAM
+            - JEJU
         district:
           type: string
-
     LinkCustomerAddressInput:
       type: object
-      required: [addressId, role]
+      required:
+        - addressId
+        - role
       properties:
         addressId:
           type: string
         role:
           type: string
-          enum: [FROM, TO, EXTRA]
+          enum:
+            - FROM
+            - TO
+            - EXTRA
         customLabel:
           type: string
-
     CreateEstimateRequestInput:
       type: object
-      required: [moveType, moveDate, fromAddressId, toAddressId]
+      required:
+        - moveType
+        - moveDate
+        - fromAddressId
+        - toAddressId
       properties:
         moveType:
           type: string
-          enum: [SMALL, HOME, OFFICE]
+          enum:
+            - SMALL
+            - HOME
+            - OFFICE
         moveDate:
           type: string
           format: date-time
@@ -840,14 +1249,21 @@ components:
           type: string
         toAddressId:
           type: string
-
     CreateDesignatedEstimateRequestInput:
       type: object
-      required: [moveType, moveDate, fromAddressId, toAddressId, driverId]
+      required:
+        - moveType
+        - moveDate
+        - fromAddressId
+        - toAddressId
+        - driverId
       properties:
         moveType:
           type: string
-          enum: [SMALL, HOME, OFFICE]
+          enum:
+            - SMALL
+            - HOME
+            - OFFICE
         moveDate:
           type: string
           format: date-time
@@ -858,7 +1274,6 @@ components:
         driverId:
           type: string
           description: 지정하고자 하는 기사님 ID
-
     CustomerAddress:
       type: object
       properties:
@@ -866,7 +1281,10 @@ components:
           type: string
         role:
           type: string
-          enum: [FROM, TO, EXTRA]
+          enum:
+            - FROM
+            - TO
+            - EXTRA
         customLabel:
           type: string
         address:
@@ -887,13 +1305,13 @@ components:
       properties:
         id:
           type: string
-          example: "fav-abc123"
+          example: fav-abc123
         driverId:
           type: string
-          example: "drv-123"
+          example: drv-123
         customerId:
           type: string
-          example: "user-789"
+          example: user-789
         createdAt:
           type: string
           format: date-time
@@ -903,29 +1321,34 @@ components:
         id:
           type: string
           format: uuid
-          example: "abc123-uuid"
+          example: abc123-uuid
         nickname:
           type: string
-          example: "이삿짐마스터"
+          example: 이삿짐마스터
         phone:
           type: string
-          example: "01012345678"
+          example: 01012345678
         profileImage:
           type: string
           format: uri
-          example: "https://example.com/profile.jpg"
+          example: https://example.com/profile.jpg
         shortIntro:
           type: string
-          example: "10년 경력의 이사 전문가입니다."
+          example: 10년 경력의 이사 전문가입니다.
         detailIntro:
           type: string
-          example: "서울 및 수도권 지역 전문 이사 서비스를 제공합니다."
+          example: 서울 및 수도권 지역 전문 이사 서비스를 제공합니다.
         moveType:
           type: array
           items:
             type: string
-            enum: [SMALL, HOME, OFFICE]
-          example: ["SMALL", "HOME"]
+            enum:
+              - SMALL
+              - HOME
+              - OFFICE
+          example:
+            - SMALL
+            - HOME
         serviceAreas:
           type: array
           items:
@@ -935,7 +1358,7 @@ components:
                 type: string
               region:
                 type: string
-                example: "SEOUL"
+                example: SEOUL
         averageRating:
           type: number
           format: float
@@ -954,14 +1377,14 @@ components:
       properties:
         id:
           type: string
-          example: "rev-001"
+          example: rev-001
         rating:
           type: number
           format: float
           example: 4.5
         content:
           type: string
-          example: "정말 친절하고 만족스러운 서비스였습니다."
+          example: 정말 친절하고 만족스러운 서비스였습니다.
         createdAt:
           type: string
           format: date-time
@@ -994,42 +1417,50 @@ components:
           type: string
         toAddress:
           type: string
-
+          example: customer1@example.com
     EstimateRequest:
       type: object
       properties:
         id:
           type: string
-          example: "esti-abc123"
+          example: esti-abc123
         customerId:
           type: string
-          example: "cust-xyz789"
+          example: cust-xyz789
         moveType:
           type: string
-          enum: [SMALL, HOME, OFFICE]
-          example: "HOME"
+          enum:
+            - SMALL
+            - HOME
+            - OFFICE
+          example: HOME
         moveDate:
           type: string
           format: date-time
           example: "2025-08-15T00:00:00.000Z"
         status:
           type: string
-          enum: [PENDING, CONFIRMED, COMPLETED, CANCELLED]
-          example: "PENDING"
+          enum:
+            - PENDING
+            - CONFIRMED
+            - COMPLETED
+            - CANCELLED
+          example: PENDING
         fromAddressId:
           type: string
-          example: "addr-001"
+          example: addr-001
         toAddressId:
           type: string
-          example: "addr-002"
+          example: addr-002
         createdAt:
           type: string
           format: date-time
           example: "2025-07-30T10:20:00.000Z"
-
     CreateEstimateInput:
       type: object
-      required: [price, message]
+      required:
+        - price
+        - message
       properties:
         price:
           type: number
@@ -1038,41 +1469,209 @@ components:
           description: 견적가 (원)
         message:
           type: string
-          example: "안전하고 신속한 이사 서비스를 제공하겠습니다."
+          example: 안전하고 신속한 이사 서비스를 제공하겠습니다.
           description: 견적 메시지
-
     RejectEstimateRequestInput:
       type: object
-      required: [reason]
+      required:
+        - reason
       properties:
         reason:
           type: string
-          example: "일정이 맞지 않습니다."
+          example: 일정이 맞지 않습니다.
           description: 반려 사유
-
     Estimate:
       type: object
       properties:
         id:
           type: string
-          example: "est-abc123"
+          example: est-abc123
         driverId:
           type: string
-          example: "drv-xyz789"
+          example: drv-xyz789
         estimateRequestId:
           type: string
-          example: "esti-abc123"
+          example: esti-abc123
         price:
           type: number
           example: 150000
         comment:
           type: string
-          example: "안전하고 신속한 이사 서비스를 제공하겠습니다."
+          example: 안전하고 신속한 이사 서비스를 제공하겠습니다.
         status:
           type: string
-          enum: [PENDING, ACCEPTED, REJECTED]
-          example: "PENDING"
+          enum:
+            - PENDING
+            - ACCEPTED
+            - REJECTED
+          example: PENDING
         createdAt:
           type: string
           format: date-time
           example: "2025-07-30T10:20:00.000Z"
+    SignUpInput:
+      type: object
+      required:
+        - email
+        - password
+        - phone
+        - name
+        - userType
+        - provider
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        phone:
+          type: string
+        name:
+          type: string
+        userType:
+          type: string
+          enum:
+            - CUSTOMER
+            - DRIVER
+        provider:
+          type: string
+          enum:
+            - LOCAL
+            - GOOGLE
+            - NAVER
+            - KAKAO
+    LoginInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      example:
+        email: customer@test10.com
+        password: password123!
+    CreateCustomerProfileInput:
+      type: object
+      properties:
+        profileImage:
+          type: string
+        moveType:
+          type: array
+          items:
+            type: string
+        currentArea:
+          type: string
+    UpdateCustomerProfileInput:
+      type: object
+      properties:
+        profileImage:
+          type: string
+        moveType:
+          type: array
+          items:
+            type: string
+        currentArea:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+        passwordConfirmation:
+          type: string
+    CreateDriverProfileInput:
+      type: object
+      properties:
+        profileImage:
+          type: string
+        nickname:
+          type: string
+        career:
+          type: integer
+        shortIntro:
+          type: string
+        detailIntro:
+          type: string
+        moveType:
+          type: array
+          items:
+            type: string
+        serviceAreas:
+          type: array
+          items:
+            type: object
+            properties:
+              region:
+                type: string
+            required:
+              - region
+    UpdateDriverProfileInput:
+      type: object
+      properties:
+        nickname:
+          type: string
+        career:
+          type: integer
+        shortIntro:
+          type: string
+        detailIntro:
+          type: string
+        moveType:
+          type: array
+          items:
+            type: string
+        serviceAreas:
+          type: array
+          items:
+            type: object
+            properties:
+              region:
+                type: string
+            required:
+              - region
+    UpdateDriverBaseInfoInput:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        password:
+          type: string
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+        passwordConfirmation:
+          type: string
+    LoginUser:
+      type: object
+      required:
+        - id
+        - email
+        - userType
+        - phone
+        - name
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        userType:
+          type: string
+          enum:
+            - CUSTOMER
+            - DRIVER
+        phone:
+          type: string
+        name:
+          type: string

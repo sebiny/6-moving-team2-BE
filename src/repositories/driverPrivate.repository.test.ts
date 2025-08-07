@@ -70,7 +70,7 @@ describe("Driver Repository - Private Functions", () => {
       expect(prisma.estimateRequest.findMany).toHaveBeenCalledWith({
         where: {
           designatedDrivers: { some: { driverId: mockDriverId } },
-          status: { not: "COMPLETED" },
+          status: "PENDING",
           deletedAt: null
         },
         include: {
