@@ -1,5 +1,5 @@
 import prisma from "../config/prisma"; // Prisma 클라이언트 import
-import { Notification, NotificationType } from "@prisma/client";
+import { Notification } from "@prisma/client";
 import { CreateNotificationData } from "../types/notification.type";
 
 // 알림 데이터베이스 작업을 담당하는 객체
