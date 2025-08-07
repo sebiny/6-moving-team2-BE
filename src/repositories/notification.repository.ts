@@ -1,5 +1,5 @@
 import prisma from "../config/prisma"; // Prisma 클라이언트 import
-import { Notification } from "@prisma/client";
+import { Notification, NotificationType } from "@prisma/client";
 import { CreateNotificationData } from "../types/notification.type";
 
 // 알림 데이터베이스 작업을 담당하는 객체
@@ -90,7 +90,6 @@ async function findById(id: string): Promise<Notification | null> {
     where: { id: id }
   });
 }
-
 async function markAsRead(id: string): Promise<Notification> {
   return prisma.notification.update({
     where: {

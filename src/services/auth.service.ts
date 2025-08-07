@@ -229,6 +229,7 @@ async function findOrCreateOAuthUser(
   }
 
   let authUser = await authRepository.findByProviderId(provider, String(providerId));
+  let isNewUser = false;
 
   if (!authUser) {
     if (!email) {
@@ -249,11 +250,16 @@ async function findOrCreateOAuthUser(
       providerId: String(providerId),
       name: displayName
     });
+
+    isNewUser = true;
   }
 
   // 알림 전송 로직
+
   try {
-    notificationService.createAndSendSignUpNotification(authUser);
+    if (isNewUser) {
+      notificationService.createAndSendSignUpNotification(authUser);
+    }
   } catch (error) {
     console.error("알림 전송 실패:", error);
   }
