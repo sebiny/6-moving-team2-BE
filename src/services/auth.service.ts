@@ -251,6 +251,13 @@ async function findOrCreateOAuthUser(
     });
   }
 
+  // 알림 전송 로직
+  try {
+    notificationService.createAndSendSignUpNotification(authUser);
+  } catch (error) {
+    console.error("알림 전송 실패:", error);
+  }
+
   return {
     id: authUser!.id,
     userType: authUser!.userType
