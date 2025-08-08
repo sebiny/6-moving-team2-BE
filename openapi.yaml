@@ -459,7 +459,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EstimateDetailCustomer"
-               example:
+              example:
                 id: est-001
                 comment: 안전하고 빠르게 진행하겠습니다.
                 price: 180000
@@ -536,54 +536,6 @@ paths:
           description: 잘못된 요청
         "401":
           description: 인증 실패
-        "500":
-          description: 서버 에러
-
-  /estimate/shared/:token:
-    get:
-      summary: (공유) 토큰으로 견적 상세 조회
-      description: 인증 없이 공유 토큰으로 조회되는 견적 상세. 공유 페이지에서 사용.
-      tags:
-        - Customer
-      parameters:
-        - name: token
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: 성공적으로 공유용 견적 상세 반환
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SharedEstimateDetail"
-              example:
-                type: DRIVER
-                estimateId: est-001
-                id: est-001
-                comment: 안전하고 빠르게 진행하겠습니다.
-                price: 180000
-                status: PROPOSED
-                driver:
-                  id: drv-111
-                  profileImage: "https://cdn.example.com/driver1.jpg"
-                  name: 이사달인
-                  phone: "01011112222"
-                  email: pro1@example.com
-                  avgRating: 4.6
-                  reviewCount: 23
-                  favoriteCount: 7
-                  career: 6
-                  work: 42
-                requestDate: "2025-08-01T10:00:00.000Z"
-                moveType: HOME
-                moveDate: "2025-08-15T00:00:00.000Z"
-                fromAddress: { street: "서울 강남구 테헤란로 100" }
-                toAddress: { street: "경기 성남시 분당구 정자일로 10" }
-                isDesignated: true
-        "404":
-          description: 토큰 불일치 또는 만료
         "500":
           description: 서버 에러
 
@@ -696,7 +648,7 @@ paths:
         "404":
           description: 견적을 찾을 수 없음
         "500":
-          description: 서버 에러        
+          description: 서버 에러
 
   /notification:
     get:
