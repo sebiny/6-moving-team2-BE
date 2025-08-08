@@ -6,9 +6,11 @@ function buildEstimateInclude() {
   return {
     driver: {
       select: {
+        id: true,
         profileImage: true,
         authUser: {
           select: {
+            id: true,
             name: true,
             phone: true,
             email: true
@@ -267,6 +269,7 @@ async function getEstimateDetailById(estimateId: string) {
     price: formatted.price,
     status: formatted.status as EstimateStatus,
     driver: {
+      id: formatted.driver.id,
       profileImage: formatted.driver.profileImage,
       name: formatted.driver.authUser.name,
       phone: formatted.driver.authUser.phone,
