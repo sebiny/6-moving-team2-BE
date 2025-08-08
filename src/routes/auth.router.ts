@@ -1,5 +1,6 @@
 import express from "express";
-import authController, { authLimiter } from "../controllers/auth.controller";
+import authController from "../controllers/auth.controller";
+import { authLimiter } from "../middlewares/authLimiter";
 import passport from "../config/passport";
 
 const authRouter = express.Router();
