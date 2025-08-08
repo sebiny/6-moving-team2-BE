@@ -4,7 +4,6 @@ import authRepository from "../repositories/auth.repository";
 import passport from "../config/passport";
 import { asyncHandler } from "../utils/asyncHandler";
 import { UserType } from "@prisma/client";
-import rateLimit from "express-rate-limit";
 import { CustomError } from "../utils/customError";
 import { getCookieDomain } from "../utils/getCookieDomain";
 
@@ -13,16 +12,6 @@ declare global {
     interface User extends TokenUserPayload {}
   }
 }
-
-// 회원가입, 로그인 등 인증 관련 요청에 대한 횟수 제한 미들웨어
-export const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1시간
-  max: 50, // 1시간 동안 IP당 20번 요청 가능
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: "너무 많은 요청을 하셨습니다. 나중에 다시 시도해주세요." },
-  handler: (req: Request, res: Response, next, options) => res.status(options.statusCode).json(options.message)
-});
 
 // 회원가입
 const signUp = asyncHandler(async (req: Request, res: Response) => {
