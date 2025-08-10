@@ -1,3 +1,4 @@
+import prisma from "../config/prisma";
 import driverRepository from "../repositories/driver.repository";
 import reviewRepository from "../repositories/review.repository";
 import { CreateReviewInput } from "../types/review.type";
@@ -24,14 +25,16 @@ async function createReview(data: CreateReviewInput) {
   }
   const review = await reviewRepository.createReview(data);
 
-  // 리뷰 생성 후 기사님 평균 평점 계산
-  const allReviews = await reviewRepository.findAllByDriver(driverId);
-  const total = allReviews.reduce((sum, r) => sum + r.rating, 0);
-  const averageRating =
-    allReviews.length > 0 ? allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length : 0;
+  // 리뷰 생성 후 DB에서 바로 평균 계산
+  const aggregateResult = await prisma.review.aggregate({
+    where: { driverId },
+    _avg: { rating: true }
+  });
+
+  const averageRating = aggregateResult._avg.rating ?? 0;
+
   await driverRepository.updateAverageRating(driverId, averageRating);
 
   return review;
 }
-
 export default { getAllCompleted, createReview, getMyReviews };
