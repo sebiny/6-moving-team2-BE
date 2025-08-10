@@ -537,10 +537,11 @@ async function getDriversByRegion({ fromRegion, toRegion }: getDriversByRegionTy
   });
 }
 //기사님 평균 별점 업데이트
-async function updateAverageRating(driverId: string, average: number) {
+async function updateAverageRating(driverId: string, averageRating: number) {
+  const rounded = Number(averageRating.toFixed(2)); // 소수점 둘째 자리까지 반올림
   return prisma.driver.update({
     where: { id: driverId },
-    data: { averageRating: parseFloat(average.toFixed(2)) } // 소수점 둘째 자리 반올림
+    data: { averageRating: rounded }
   });
 }
 
