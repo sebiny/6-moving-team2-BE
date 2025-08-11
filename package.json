@@ -10,8 +10,10 @@
     "seed": "ts-node prisma/seed.ts",
     "seed2": "ts-node prisma/seed2.ts",
     "start": "node --enable-source-maps dist/server.ts",
-    "test": "jest",
-    "test:watch": "jest --watchAll"
+    "test:watch": "jest --watchAll",
+    "test": "DATABASE_URL=postgresql://postgres:password@localhost:5432/testdb jest",
+    "test:unit": "DATABASE_URL=postgresql://postgres:password@localhost:5432/testdb jest --testPathIgnorePatterns=src/integration-test",
+    "test:integration": "DATABASE_URL=postgresql://postgres:password@localhost:5432/testdb jest src/integration-test"
   },
   "prisma": {
     "seed": "ts-node prisma/testSeed.ts",
@@ -32,11 +34,13 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-kakao": "^1.0.3",
     "@types/passport-naver": "^1.0.4",
+    "@types/supertest": "^6.0.3",
     "@types/swagger-ui-express": "^4.1.8",
     "jest": "^30.0.5",
     "jest-mock-extended": "^4.0.0",
     "prettier": "^3.6.2",
     "prisma": "^6.11.0",
+    "supertest": "^7.1.4",
     "ts-jest": "^29.4.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
