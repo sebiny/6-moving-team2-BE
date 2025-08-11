@@ -11,7 +11,7 @@ async function findAllCompletedEstimateRequest(customerId: string, page: number)
       where: {
         customerId,
         status: "COMPLETED",
-        review: null,
+        OR: [{ review: null }, { review: { deletedAt: null } }],
         estimates: {
           some: {
             status: "ACCEPTED"
@@ -61,7 +61,7 @@ async function findAllCompletedEstimateRequest(customerId: string, page: number)
       where: {
         customerId,
         status: "COMPLETED",
-        review: null,
+        OR: [{ review: null }, { review: { deletedAt: null } }],
         estimates: {
           some: {
             status: "ACCEPTED"
@@ -93,7 +93,8 @@ async function getMyReviews(customerId: string, page: number) {
             averageRating: true,
             nickname: true,
             profileImage: true,
-            shortIntro: true
+            shortIntro: true,
+            id: true
           }
         },
         request: {
@@ -144,6 +145,7 @@ async function createReview(data: CreateReviewInput) {
   return prisma.review.create({ data });
 }
 
+//고객이 작성한 리뷰가 있는지 확인
 async function findByCustomerAndEstimate(customerId: string, estimateRequestId: string) {
   return prisma.review.findFirst({
     where: {
@@ -155,35 +157,29 @@ async function findByCustomerAndEstimate(customerId: string, estimateRequestId: 
 
 //리뷰 삭제
 async function deleteReviewById(reviewId: string, customerId: string) {
-  // 리뷰 먼저 찾고
   const review = await prisma.review.findUnique({
     where: { id: reviewId }
   });
-
   if (!review || review.customerId !== customerId) {
     throw new CustomError(403, "삭제 권한이 없습니다.");
   }
-
-  // 그다음 삭제
-  await prisma.review.delete({
-    where: { id: reviewId }
-  });
-}
-async function findReviewById(reviewId: string, customerId: string) {
-  return prisma.review.findUnique({
+  await prisma.review.update({
     where: { id: reviewId },
-    select: {
-      driverId: true,
-      customerId: true
+    data: {
+      deletedAt: new Date()
     }
   });
 }
+//리뷰 수정
+async function updateReviewById(reviewId: string, updateData: Partial<CreateReviewInput>) {
+  const review = await prisma.review.findUnique({
+    where: { id: reviewId }
+  });
+  if (!review) throw new CustomError(404, "리뷰를 찾을 수 없습니다.");
 
-//기사님 모든 리뷰 불러오기
-async function findAllByDriver(driverId: string) {
-  return prisma.review.findMany({
-    where: { driverId },
-    select: { rating: true }
+  await prisma.review.update({
+    where: { id: reviewId },
+    data: updateData
   });
 }
 
@@ -192,9 +188,8 @@ export default {
   createReview,
   getMyReviews,
   findByCustomerAndEstimate,
-  findAllByDriver,
   deleteReviewById,
-  findReviewById
+  updateReviewById
 };
 
 // EstimateRequest의 status가 COMLPETED면은 가져오기

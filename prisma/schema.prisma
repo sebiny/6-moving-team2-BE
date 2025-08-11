@@ -294,18 +294,18 @@ model Estimate {
 
 // 리뷰 (1개의 견적 요청 당 1개만 가능)
 model Review {
-  id                String   @id @default(cuid())
+  id                String          @id @default(cuid())
   customerId        String // 작성자
   driverId          String // 대상 기사님
   estimateRequestId String // 연결된 견적 요청
   rating            Int // 평점
   content           String // 리뷰 내용
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  writer  Customer        @relation(fields: [customerId], references: [id])
-  driver  Driver          @relation(fields: [driverId], references: [id])
-  request EstimateRequest @relation(fields: [estimateRequestId], references: [id])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  deletedAt         DateTime? // 소프트 삭제
+  writer            Customer        @relation(fields: [customerId], references: [id])
+  driver            Driver          @relation(fields: [driverId], references: [id])
+  request           EstimateRequest @relation(fields: [estimateRequestId], references: [id])
 
   @@unique([estimateRequestId])
 }
