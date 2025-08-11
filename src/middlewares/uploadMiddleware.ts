@@ -21,6 +21,13 @@ const s3 = new S3Client({
   region: AWS_REGION
 });
 
+// CloudFront URL 생성 (없으면 undefined)
+export const getCloudFrontUrl = (s3Key: string) => {
+  const domain = process.env.CLOUDFRONT_DOMAIN;
+  if (!domain) return undefined;
+  return `https://${domain}/${s3Key}`;
+};
+
 const storage = multerS3({
   s3: s3,
   bucket: AWS_BUCKET_NAME,

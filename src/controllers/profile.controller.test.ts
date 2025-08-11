@@ -32,7 +32,7 @@ describe("ProfileController", () => {
 
   describe("uploadProfileImage", () => {
     test("이미지 업로드 성공 시 201 상태 코드와 이미지 URL을 반환해야 합니다.", async () => {
-      mockRequest.file = { location: "http://example.com/image.jpg" };
+      (mockRequest as any).file = { location: "http://example.com/image.jpg" };
 
       await profileController.uploadProfileImage(mockRequest as Request, mockResponse as Response, mockNext);
 
