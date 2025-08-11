@@ -24,7 +24,15 @@ async function getAllDrivers(options: optionsType, userId?: string) {
 
   const orderByClause =
     orderBy === "reviewCount"
-      ? [{ reviewsReceived: { _count: "desc" as const } }, { id: "asc" as const }]
+      ? [
+          {
+            reviewsReceived: {
+              _count: "desc" as const,
+              where: { deletedAt: null }
+            }
+          },
+          { id: "asc" as const }
+        ]
       : [{ [orderBy]: "desc" as const }, { id: "asc" as const }];
 
   const PAGE_SIZE = 3;
@@ -71,7 +79,7 @@ async function getDriverById(id: string, userId?: string) {
 
   const ratingCounts = await prisma.review.groupBy({
     by: ["rating"],
-    where: { driverId: id },
+    where: { driverId: id, deletedAt: null },
     _count: true
   });
   const ratingStats: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
@@ -90,7 +98,7 @@ async function getDriverReviews(id: string, page: number) {
   const PAGE_SIZE = 5;
   const skip = (page - 1) * PAGE_SIZE;
   const reviews = await prisma.review.findMany({
-    where: { driverId: id },
+    where: { driverId: id, deletedAt: null },
     skip: skip,
     take: PAGE_SIZE,
     include: { writer: { select: { authUser: { select: { email: true } } } } }
