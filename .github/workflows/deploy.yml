@@ -43,7 +43,7 @@ jobs:
         run: npx prisma migrate deploy
 
       - name: 테스트 코드 실행
-        run: npm run test -- --maxWorkers=1 --forceExit
+        run: npm run test:unit -- --maxWorkers=1 --forceExit
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
