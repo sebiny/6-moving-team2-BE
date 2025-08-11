@@ -20,4 +20,7 @@ router.post("/", authMiddleware, reviewController.createReview);
 // 내가 쓴 리뷰
 router.get("/mine", authMiddleware, reviewController.getMyReviews);
 
+// 리뷰 삭제
+router.delete("/mine/:reviewId", authMiddleware, reviewController.deleteReview);
+
 export default router;

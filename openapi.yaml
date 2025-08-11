@@ -10,8 +10,10 @@ tags:
   - name: Driver
   - name: Notification
   - name: Favorite
+  - name: Review
   - name: Profile
   - name: Auth
+
 paths:
   /address:
     post:
@@ -171,7 +173,111 @@ paths:
           content:
             application/json:
               example:
-                message: 이미 지정된 기사님입니다.
+                message: "이미 지정된 기사님입니다."
+  /reviews/reviewable:
+    get:
+      summary: 리뷰 작성 가능한 견적 조회
+      tags: [Review]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: 성공적으로 리뷰 작성 가능한 견적 목록 반환
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReviewableEstimate"
+        "400":
+          description: 인증 실패
+          content:
+            application/json:
+              example:
+                message: "고객 정보를 확인할 수 없습니다.."
+        "404":
+          description: 리뷰 작성 가능한 견적 없음
+          content:
+            application/json:
+              example:
+                message: "작성 가능한 리뷰가 없습니다."
+        "500":
+          description: 서버 에러
+          content:
+            application/json:
+              example:
+                message: "서버 내부 오류가 발생했습니다."
+  /reviews:
+    post:
+      summary: 리뷰 작성
+      tags: [Review]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewInput"
+      responses:
+        "201":
+          description: 리뷰 작성 성공
+          content:
+            application/json:
+              example:
+                message: "리뷰 작성 완료"
+        "400":
+          description: 유효하지 않은 입력
+          content:
+            application/json:
+              example:
+                message: "고객 정보를 확인할 수 없습니다."
+        "500":
+          description: 서버 에러
+          content:
+            application/json:
+              example:
+                message: "서버 내부 오류가 발생했습니다."
+  /reviews/mine:
+    get:
+      summary: 내가 작성한 리뷰 조회
+      tags: [Review]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: 성공적으로 리뷰 목록 반환
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reviews:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+                  totalCount:
+                    type: integer
+                  totalPages:
+                    type: integer
+        "400":
+          description: 인증 실패
+          content:
+            application/json:
+              example:
+                message: "고객 정보를 확인할 수 없습니다."
+        "404":
+          description: 리뷰 없음
+          content:
+            application/json:
+              example:
+                message: "작성한 리뷰가 없습니다."
+        "500":
+          description: 서버 에러
+          content:
+            application/json:
+              example:
+                message: "서버 내부 오류가 발생했습니다."
   /customer/estimate-request/active:
     get:
       summary: 활성 견적 요청 조회
@@ -191,6 +297,358 @@ paths:
                 status: PENDING
                 fromAddressId: addr-123
                 toAddressId: addr-456
+
+  /customer/estimates/pending:
+    get:
+      summary: 대기 중인 견적 리스트 조회
+      tags:
+        - Customer
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: 성공적으로 대기 중인 견적 리스트 반환
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PendingEstimatesResponse"
+              example:
+                estimateRequest:
+                  id: esti-abc123
+                  moveDate: "2025-08-15T00:00:00.000Z"
+                  moveType: HOME
+                  requestDate: "2025-08-01T10:00:00.000Z"
+                  fromAddress: { region: SEOUL, district: GANGNAM }
+                  toAddress: { region: GYEONGGI, district: SEONGNAM }
+                estimates:
+                  - id: est-001
+                    comment: 안전하고 빠르게 진행하겠습니다.
+                    price: 180000
+                    status: PROPOSED
+                    createdAt: "2025-08-01T12:00:00.000Z"
+                    driverId: drv-111
+                    driver:
+                      id: drv-111
+                      profileImage: "https://cdn.example.com/driver1.jpg"
+                      authUser:
+                        id: user-111
+                        name: 이사달인
+                        phone: "01011112222"
+                        email: pro1@example.com
+                      avgRating: 4.6
+                      reviewCount: 23
+                      favoriteCount: 7
+                      career: 6
+                      work: 42
+                    isDesignated: true
+                  - id: est-002
+                    comment: 친절히 모시겠습니다.
+                    price: 200000
+                    status: PROPOSED
+                    createdAt: "2025-08-01T12:30:00.000Z"
+                    driverId: drv-222
+                    driver:
+                      id: drv-222
+                      profileImage: null
+                      authUser:
+                        id: user-222
+                        name: 스마일이사
+                        phone: "01033334444"
+                        email: pro2@example.com
+                      avgRating: 4.3
+                      reviewCount: 11
+                      favoriteCount: 3
+                      career: 4
+                      work: 19
+                    isDesignated: false
+        "401":
+          description: 인증 실패
+        "500":
+          description: 서버 에러
+
+  /customer/estimates/approve:
+    get:
+      summary: 받았던 견적 리스트 조회
+      tags:
+        - Customer
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: 성공적으로 받았던 견적 리스트 반환
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReceivedEstimatesGroup"
+              example:
+                - estimateRequest:
+                    id: esti-xyz999
+                    moveDate: "2025-07-20T00:00:00.000Z"
+                    moveType: SMALL
+                    requestDate: "2025-07-10T09:00:00.000Z"
+                    fromAddress: { street: "서울 강남구 테헤란로 100" }
+                    toAddress: { street: "경기 성남시 분당구 정자일로 10" }
+                  estimateCount: 2
+                  estimates:
+                    - id: est-100
+                      comment: 신속 정확!
+                      price: 150000
+                      status: ACCEPTED
+                      createdAt: "2025-07-10T09:30:00.000Z"
+                      driverId: drv-100
+                      driver:
+                        id: drv-100
+                        profileImage: null
+                        authUser:
+                          id: user-100
+                          name: 분당이사
+                          phone: "01055556666"
+                          email: bundang@example.com
+                        avgRating: 4.8
+                        reviewCount: 45
+                        favoriteCount: 12
+                        career: 8
+                        work: 120
+                      isDesignated: false
+                    - id: est-101
+                      comment: 꼼꼼히 도와드려요
+                      price: 160000
+                      status: AUTO_REJECTED
+                      createdAt: "2025-07-10T10:00:00.000Z"
+                      driverId: drv-101
+                      driver:
+                        id: drv-101
+                        profileImage: "https://cdn.example.com/driver101.jpg"
+                        authUser:
+                          id: user-101
+                          name: 꼼꼼이사
+                          phone: "01077778888"
+                          email: neat@example.com
+                        avgRating: 4.2
+                        reviewCount: 8
+                        favoriteCount: 1
+                        career: 3
+                        work: 15
+                      isDesignated: false
+        "401":
+          description: 인증 실패
+        "500":
+          description: 서버 에러
+
+  /customer/estimates/:estimateId:
+    get:
+      summary: 견적 상세 조회 (대기/받았던 공통)
+      tags:
+        - Customer
+      security:
+        - access-token: []
+      parameters:
+        - name: estimateId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 견적 ID
+      responses:
+        "200":
+          description: 성공적으로 견적 상세 반환
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstimateDetailCustomer"
+              example:
+                id: est-001
+                comment: 안전하고 빠르게 진행하겠습니다.
+                price: 180000
+                status: PROPOSED
+                driver:
+                  id: drv-111
+                  profileImage: "https://cdn.example.com/driver1.jpg"
+                  name: 이사달인
+                  phone: "01011112222"
+                  email: pro1@example.com
+                  avgRating: 4.6
+                  reviewCount: 23
+                  favoriteCount: 7
+                  career: 6
+                  work: 42
+                requestDate: "2025-08-01T10:00:00.000Z"
+                moveType: HOME
+                moveDate: "2025-08-15T00:00:00.000Z"
+                fromAddress: { street: "서울 강남구 테헤란로 100" }
+                toAddress: { street: "경기 성남시 분당구 정자일로 10" }
+                isDesignated: true
+        "400":
+          description: 잘못된 요청
+        "401":
+          description: 인증 실패
+        "404":
+          description: 견적 정보를 찾을 수 없음
+        "500":
+          description: 서버 에러
+
+  /customer/estimates/:estimateId/accept:
+    patch:
+      summary: 견적 확정하기
+      tags:
+        - Customer
+      security:
+        - access-token: []
+      parameters:
+        - name: estimateId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 견적 ID
+      responses:
+        "200":
+          description: 견적 확정 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 견적이 성공적으로 확정되었습니다.
+                  data:
+                    type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      estimateId:
+                        type: string
+                      driverWork:
+                        type: integer
+                        description: 기사님의 최신 작업 수
+              example:
+                message: 견적이 성공적으로 확정되었습니다.
+                data:
+                  success: true
+                  estimateId: est-001
+                  driverWork: 121
+        "400":
+          description: 잘못된 요청
+        "401":
+          description: 인증 실패
+        "500":
+          description: 서버 에러
+
+  /estimate/:estimateId/share:
+    post:
+      summary: 공유 링크 생성 (회원)
+      tags:
+        - Share
+      security:
+        - access-token: []
+      parameters:
+        - name: estimateId
+          in: path
+          required: true
+          schema: { type: string }
+          description: 공유할 견적 ID
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sharedFrom:
+                  type: string
+                  enum: [CUSTOMER, DRIVER]
+                  default: CUSTOMER
+                  description: 공유 주체(기본 CUSTOMER)
+            example:
+              sharedFrom: DRIVER
+      responses:
+        "200":
+          description: 공유 링크 생성 성공
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShareLinkResponse"
+              example:
+                shareUrl: "https://www.moving-2.click/estimate/shared/eyJhbGciOiJIUzI1NiIs..."
+        "400":
+          description: 잘못된 요청
+        "401":
+          description: 인증 실패
+        "500":
+          description: 서버 에러
+
+  /estimate/shared/:token:
+    get:
+      summary: (공유) 토큰으로 견적 상세 조회
+      description: 인증 없이 공유 토큰으로 조회되는 견적 상세. 공유 페이지에서 사용.
+      tags:
+        - Share
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: 성공적으로 공유용 견적 상세 반환
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedEstimate"
+              example:
+                id: est-001
+                estimateRequestId: esti-abc123
+                driverId: drv-111
+                comment: 안전하고 빠르게 진행하겠습니다.
+                price: 180000
+                status: PROPOSED
+                createdAt: "2025-08-01T12:00:00.000Z"
+                driver:
+                  id: drv-111
+                  profileImage: "https://cdn.example.com/driver1.jpg"
+                  authUser:
+                    id: user-111
+                    name: 이사달인
+                    phone: "01011112222"
+                    email: pro1@example.com
+                estimateRequest:
+                  id: esti-abc123
+                  moveType: HOME
+                  moveDate: "2025-08-15T00:00:00.000Z"
+                  createdAt: "2025-08-01T10:00:00.000Z"
+                  customer:
+                    id: cust-999
+                    authUser:
+                      id: user-999
+                      name: 김고객
+                      phone: "01099998888"
+                      email: customer@example.com
+                  fromAddress:
+                    id: addr-123
+                    postalCode: "06236"
+                    street: "서울 강남구 테헤란로 100"
+                    detail: "10층 1001호"
+                    region: SEOUL
+                    district: GANGNAM
+                  toAddress:
+                    id: addr-456
+                    postalCode: "13561"
+                    street: "경기 성남시 분당구 정자일로 10"
+                    detail: "301동 1203호"
+                    region: GYEONGGI
+                    district: SEONGNAM
+                type: DRIVER
+        "400":
+          description: 잘못되었거나 만료된 공유 링크
+        "404":
+          description: 견적을 찾을 수 없음
+        "500":
+          description: 서버 에러
+
   /notification:
     get:
       summary: 알림 목록 조회
@@ -1282,7 +1740,35 @@ components:
           format: date-time
         email:
           type: string
+          example: "customer1@example.com"
+    CreateReviewInput:
+      type: object
+      properties:
+        content:
+          type: string
+        rating:
+          type: number
+        driverId:
+          type: string
+        estimateRequestId:
+          type: string
+      required: [content, rating, driverId, estimateRequestId]
+    ReviewableEstimate:
+      type: object
+      properties:
+        estimateId:
+          type: string
+        driverId:
+          type: string
+        moveDate:
+          type: string
+          format: date-time
+        fromAddress:
+          type: string
+        toAddress:
+          type: string
           example: customer1@example.com
+
     EstimateRequest:
       type: object
       properties:

@@ -42,23 +42,46 @@ const createReview = asyncHandler(async (req: Request, res: Response) => {
   if (!content || !rating || !driverId || !estimateRequestId) {
     throw new CustomError(400, "리뷰에 필요한 정보가 누락되었습니다.");
   }
-  try {
-    const review = await reviewService.createReview({
-      customerId,
-      content,
-      rating,
-      driverId,
-      estimateRequestId
-    });
-    return res.status(201).json({ message: "리뷰 작성 완료", review });
-  } catch (error: any) {
-    console.error("리뷰 생성 중 에러:", error.message, error);
-    throw new CustomError(500, "리뷰 작성 실패 (서버 내부 오류)");
-  }
+  const result = await reviewService.createReview({
+    customerId,
+    content,
+    rating,
+    driverId,
+    estimateRequestId
+  });
+
+  res.status(201).json({ message: "리뷰 작성 완료", review: result });
 });
 
+//리뷰 삭제
+const deleteReview = asyncHandler(async (req: Request, res: Response) => {
+  const { reviewId } = req.params;
+  const customerId = req.user?.customerId;
+  const driverId = req.query.driverId as string;
+
+  if (!customerId) throw new CustomError(400, "고객 정보를 확인할 수 없습니다.");
+
+  const result = await reviewService.deleteReview(reviewId, customerId, driverId);
+
+  res.status(200).json({ success: true, message: result.message });
+});
+
+//리뷰 수정
+const updateReview = asyncHandler(async (req: Request, res: Response) => {
+  const { reviewId } = req.params;
+  const customerId = req.user?.customerId;
+  const { content, rating, driverId } = req.body;
+
+  if (!customerId) throw new CustomError(400, "고객 정보를 확인할 수 없습니다.");
+
+  const result = await reviewService.updateReview(reviewId, driverId, { content, rating });
+
+  res.status(200).json({ success: true, message: result.message });
+});
 export default {
   getAllCompletedEstimate,
   createReview,
-  getMyReviews
+  getMyReviews,
+  deleteReview,
+  updateReview
 };

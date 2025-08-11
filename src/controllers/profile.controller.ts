@@ -4,6 +4,7 @@ import { CustomError } from "../utils/customError";
 import profileService from "../services/profile.service";
 import { UserType } from "@prisma/client";
 import { getCookieDomain } from "../utils/getCookieDomain";
+import { getCloudFrontUrl } from "../middlewares/uploadMiddleware";
 
 declare global {
   namespace Express {
@@ -11,23 +12,23 @@ declare global {
       id: string;
       userType: UserType;
     }
-    interface Request {
-      file?: { location: string };
-    }
   }
 }
 
 // 프로필 이미지 업로드
 const uploadProfileImage = asyncHandler(async (req: Request, res: Response) => {
   const file = req.file;
-
   if (!file) {
     throw new CustomError(400, "업로드할 프로필 이미지가 없습니다.");
   }
 
+  // CloudFront 우선, 없으면 기존 S3 URL 폴백
+  const cfUrl = file.key ? getCloudFrontUrl(file.key) : undefined;
+  const imageUrl = cfUrl ?? (file.location as string);
+
   res.status(201).json({
     message: "프로필 이미지가 성공적으로 업로드되었습니다.",
-    imageUrl: file.location
+    imageUrl
   });
 });
 

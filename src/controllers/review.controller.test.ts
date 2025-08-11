@@ -1,7 +1,6 @@
 import reviewController from "../controllers/review.controller";
 import reviewService from "../services/review.service"; // 실제 경로 사용
 import { Request, Response } from "express";
-import { CustomError } from "../utils/customError";
 
 jest.mock("../services/review.service");
 const next = jest.fn();
@@ -62,6 +61,50 @@ describe("reviewController", () => {
         totalCount: 1,
         totalPages: 1
       });
+    });
+  });
+  describe("deleteReview", () => {
+    it("리뷰 삭제 후 200 상태코드와 성공 메시지 반환", async () => {
+      const req = {
+        user: { customerId: "cust1" },
+        params: { reviewId: "rev1" },
+        query: { driverId: "drv1" }
+      } as unknown as Request;
+      const res = mockResponse();
+
+      (reviewService.deleteReview as jest.Mock).mockResolvedValue({ message: "리뷰 삭제 완료" });
+
+      await reviewController.deleteReview(req, res, next);
+
+      expect(reviewService.deleteReview).toHaveBeenCalledWith("rev1", "cust1", "drv1");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ success: true, message: "리뷰 삭제 완료" });
+    });
+  });
+
+  describe("updateReview", () => {
+    it("리뷰 수정 후 200 상태코드와 성공 메시지 반환", async () => {
+      const req = {
+        user: { customerId: "cust1" },
+        params: { reviewId: "rev1" },
+        body: {
+          content: "수정된 내용",
+          rating: 4,
+          driverId: "drv1"
+        }
+      } as unknown as Request;
+      const res = mockResponse();
+
+      (reviewService.updateReview as jest.Mock).mockResolvedValue({ message: "리뷰 수정 완료" });
+
+      await reviewController.updateReview(req, res, next);
+
+      expect(reviewService.updateReview).toHaveBeenCalledWith("rev1", "drv1", {
+        content: "수정된 내용",
+        rating: 4
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ success: true, message: "리뷰 수정 완료" });
     });
   });
 

@@ -90,7 +90,6 @@ async function findById(id: string): Promise<Notification | null> {
     where: { id: id }
   });
 }
-
 async function markAsRead(id: string): Promise<Notification> {
   return prisma.notification.update({
     where: {
