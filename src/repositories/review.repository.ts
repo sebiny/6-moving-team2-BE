@@ -3,8 +3,6 @@ import { CreateReviewInput } from "../types/review.type";
 import { CustomError } from "../utils/customError";
 
 //작성가능한 견적(리뷰)
-// isReviewDeleted: boolean 같은 필드를 추가해서
-// 삭제하면 true로 바꾸고, 조회 조건에 isReviewDeleted: false 추가
 async function findAllCompletedEstimateRequest(customerId: string, page: number) {
   const PAGE_SIZE = 3;
   const skip = (page - 1) * PAGE_SIZE;
@@ -13,7 +11,7 @@ async function findAllCompletedEstimateRequest(customerId: string, page: number)
       where: {
         customerId,
         status: "COMPLETED",
-        review: null,
+        OR: [{ review: null }, { review: { deletedAt: null } }],
         estimates: {
           some: {
             status: "ACCEPTED"
@@ -63,7 +61,7 @@ async function findAllCompletedEstimateRequest(customerId: string, page: number)
       where: {
         customerId,
         status: "COMPLETED",
-        review: null,
+        OR: [{ review: null }, { review: { deletedAt: null } }],
         estimates: {
           some: {
             status: "ACCEPTED"
@@ -165,8 +163,11 @@ async function deleteReviewById(reviewId: string, customerId: string) {
   if (!review || review.customerId !== customerId) {
     throw new CustomError(403, "삭제 권한이 없습니다.");
   }
-  await prisma.review.delete({
-    where: { id: reviewId }
+  await prisma.review.update({
+    where: { id: reviewId },
+    data: {
+      deletedAt: new Date()
+    }
   });
 }
 //리뷰 수정
