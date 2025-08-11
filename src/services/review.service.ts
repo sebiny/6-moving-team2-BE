@@ -17,24 +17,46 @@ async function getMyReviews(customerId: string, page: number) {
 //리뷰 작성
 async function createReview(data: CreateReviewInput) {
   const { customerId, estimateRequestId, driverId, rating } = data;
-
   const existingReview = await reviewRepository.findByCustomerAndEstimate(customerId, estimateRequestId);
-
   if (existingReview) {
     throw new CustomError(400, "이미 이 견적에 대한 리뷰가 작성되었습니다.");
   }
   const review = await reviewRepository.createReview(data);
-
   // 리뷰 생성 후 DB에서 바로 평균 계산
   const aggregateResult = await prisma.review.aggregate({
     where: { driverId },
     _avg: { rating: true }
   });
-
   const averageRating = aggregateResult._avg.rating ?? 0;
-
   await driverRepository.updateAverageRating(driverId, averageRating);
-
   return review;
 }
-export default { getAllCompleted, createReview, getMyReviews };
+
+//리뷰 삭제
+async function deleteReview(reviewId: string, customerId: string, driverId: string) {
+  await reviewRepository.deleteReviewById(reviewId, customerId);
+
+  const aggregateResult = await prisma.review.aggregate({
+    where: { driverId },
+    _avg: { rating: true }
+  });
+  const averageRating = aggregateResult._avg.rating ?? 0;
+  await driverRepository.updateAverageRating(driverId, averageRating);
+
+  return { message: "리뷰 삭제 완료" };
+}
+
+//리뷰 수정
+async function updateReview(reviewId: string, driverId: string, updateData: Partial<CreateReviewInput>) {
+  await reviewRepository.updateReviewById(reviewId, updateData);
+  const aggregateResult = await prisma.review.aggregate({
+    where: { driverId },
+    _avg: { rating: true }
+  });
+  const averageRating = aggregateResult._avg.rating ?? 0;
+  await driverRepository.updateAverageRating(driverId, averageRating);
+
+  return { message: "리뷰 수정 완료" };
+}
+
+export default { getAllCompleted, createReview, getMyReviews, deleteReview, updateReview };

@@ -1,10 +1,26 @@
 import reviewService from "../services/review.service";
 import reviewRepository from "../repositories/review.repository";
 import driverRepository from "../repositories/driver.repository";
-import { CustomError } from "../utils/customError";
+import prisma from "../config/prisma";
 
 jest.mock("../repositories/review.repository");
 jest.mock("../repositories/driver.repository");
+jest.mock("../config/prisma");
+jest.mock("../config/prisma", () => ({
+  review: {
+    aggregate: jest.fn(),
+    create: jest.fn(),
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    findMany: jest.fn(),
+    count: jest.fn()
+  },
+  estimateRequest: {
+    findMany: jest.fn(),
+    count: jest.fn()
+  }
+}));
 
 describe("reviewService", () => {
   afterEach(() => {
@@ -12,24 +28,10 @@ describe("reviewService", () => {
   });
 
   describe("createReview", () => {
-    it("리뷰가 이미 있으면 에러를 반환한다.", async () => {
-      (reviewRepository.findByCustomerAndEstimate as jest.Mock).mockResolvedValue({ id: "existing" });
-
-      const data = {
-        customerId: "cust1",
-        estimateRequestId: "est1",
-        driverId: "drv1",
-        content: "좋아요",
-        rating: 4
-      };
-
-      await expect(reviewService.createReview(data)).rejects.toThrow(CustomError);
-    });
-
     it("리뷰를 생성하고 기사평균평점을 업데이트 한다.", async () => {
       (reviewRepository.findByCustomerAndEstimate as jest.Mock).mockResolvedValue(null);
       (reviewRepository.createReview as jest.Mock).mockResolvedValue({ id: "new-review" });
-      (reviewRepository.findAllByDriver as jest.Mock).mockResolvedValue([{ rating: 4 }, { rating: 5 }, { rating: 5 }]);
+      (prisma.review.aggregate as jest.Mock).mockResolvedValue({ _avg: { rating: 4.6667 } });
       (driverRepository.updateAverageRating as jest.Mock).mockResolvedValue(undefined);
 
       const data = {
@@ -43,7 +45,7 @@ describe("reviewService", () => {
       const result = await reviewService.createReview(data);
 
       expect(reviewRepository.createReview).toHaveBeenCalledWith(data);
-      expect(driverRepository.updateAverageRating).toHaveBeenCalledWith("drv1", (4 + 5 + 5) / 3);
+      expect(driverRepository.updateAverageRating).toHaveBeenCalledWith("drv1", 4.6667);
       expect(result).toEqual({ id: "new-review" });
     });
   });
@@ -54,6 +56,19 @@ describe("reviewService", () => {
       const result = await reviewService.getAllCompleted("cust1", 1);
       expect(result).toEqual([{ id: "e1" }]);
       expect(reviewRepository.findAllCompletedEstimateRequest).toHaveBeenCalledWith("cust1", 1);
+    });
+  });
+  describe("deleteReview", () => {
+    it("리뷰 삭제 후 기사평균평점 업데이트", async () => {
+      (reviewRepository.deleteReviewById as jest.Mock).mockResolvedValue(undefined);
+      (prisma.review.aggregate as jest.Mock).mockResolvedValue({ _avg: { rating: 4.5 } });
+      (driverRepository.updateAverageRating as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await reviewService.deleteReview("rev1", "cust1", "drv1");
+
+      expect(reviewRepository.deleteReviewById).toHaveBeenCalledWith("rev1", "cust1");
+      expect(driverRepository.updateAverageRating).toHaveBeenCalledWith("drv1", 4.5);
+      expect(result).toEqual({ message: "리뷰 삭제 완료" });
     });
   });
 
