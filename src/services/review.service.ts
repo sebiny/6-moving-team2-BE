@@ -24,7 +24,10 @@ async function createReview(data: CreateReviewInput) {
   const review = await reviewRepository.createReview(data);
   // 리뷰 생성 후 DB에서 바로 평균 계산
   const aggregateResult = await prisma.review.aggregate({
-    where: { driverId },
+    where: {
+      driverId,
+      deletedAt: null // Soft delete된 리뷰 제외
+    },
     _avg: { rating: true }
   });
   const averageRating = aggregateResult._avg.rating ?? 0;
@@ -37,7 +40,10 @@ async function deleteReview(reviewId: string, customerId: string, driverId: stri
   await reviewRepository.deleteReviewById(reviewId, customerId);
 
   const aggregateResult = await prisma.review.aggregate({
-    where: { driverId },
+    where: {
+      driverId,
+      deletedAt: null // Soft delete된 리뷰 제외
+    },
     _avg: { rating: true }
   });
   const averageRating = aggregateResult._avg.rating ?? 0;
@@ -50,7 +56,10 @@ async function deleteReview(reviewId: string, customerId: string, driverId: stri
 async function updateReview(reviewId: string, driverId: string, updateData: Partial<CreateReviewInput>) {
   await reviewRepository.updateReviewById(reviewId, updateData);
   const aggregateResult = await prisma.review.aggregate({
-    where: { driverId },
+    where: {
+      driverId,
+      deletedAt: null // Soft delete된 리뷰 제외
+    },
     _avg: { rating: true }
   });
   const averageRating = aggregateResult._avg.rating ?? 0;

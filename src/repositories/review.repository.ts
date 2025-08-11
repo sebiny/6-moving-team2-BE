@@ -11,7 +11,7 @@ async function findAllCompletedEstimateRequest(customerId: string, page: number)
       where: {
         customerId,
         status: "COMPLETED",
-        OR: [{ review: null }, { review: { deletedAt: null } }],
+        review: { is: null },
         estimates: {
           some: {
             status: "ACCEPTED"
@@ -61,7 +61,7 @@ async function findAllCompletedEstimateRequest(customerId: string, page: number)
       where: {
         customerId,
         status: "COMPLETED",
-        OR: [{ review: null }, { review: { deletedAt: null } }],
+        review: { is: null }, // 리뷰 row 자체가 없는 경우
         estimates: {
           some: {
             status: "ACCEPTED"
@@ -82,7 +82,8 @@ async function getMyReviews(customerId: string, page: number) {
 
   const [reviews, totalCount] = await Promise.all([
     prisma.review.findMany({
-      where: { customerId },
+      where: { customerId, deletedAt: null },
+
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -128,7 +129,7 @@ async function getMyReviews(customerId: string, page: number) {
       take: PAGE_SIZE
     }),
     prisma.review.count({
-      where: { customerId }
+      where: { customerId, deletedAt: null }
     })
   ]);
 
