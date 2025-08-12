@@ -10,9 +10,9 @@
     "seed": "ts-node prisma/seed.ts",
     "seed2": "ts-node prisma/seed2.ts",
     "start": "node --enable-source-maps dist/server.ts",
-    "test": "DATABASE_URL=postgresql://postgres:1q2w3e4r!@localhost:5433/testdb jest",
-    "test:unit": "DATABASE_URL=postgresql://postgres:1q2w3e4r!@localhost:5433/testdb jest --testPathIgnorePatterns=src/integration-test",
-    "test:integration": "DATABASE_URL=postgresql://postgres:1q2w3e4r!@localhost:5433/testdb jest src/integration-test",
+    "test": "DATABASE_URL=postgresql://postgres:1q2w3e4r!@localhost:5432/testdb jest",
+    "test:unit": "DATABASE_URL=postgresql://postgres:1q2w3e4r!@localhost:5432/testdb jest --testPathIgnorePatterns=src/integration-test",
+    "test:integration": "DATABASE_URL=postgresql://postgres:1q2w3e4r!@localhost:5432/testdb jest src/integration-test",
     "test:watch": "jest --watchAll"
   },
   "prisma": {
