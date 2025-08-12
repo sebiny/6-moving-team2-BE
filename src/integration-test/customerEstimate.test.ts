@@ -1,9 +1,10 @@
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import app from "../app";
-import { EstimateStatus, RequestStatus, UserType, MoveType, RegionType } from "@prisma/client";
+import { PrismaClient, EstimateStatus, RequestStatus, UserType, MoveType, RegionType } from "@prisma/client";
 import { resetDB } from "../utils/resetDB";
-import prisma from "../config/prisma";
+
+const prisma = new PrismaClient();
 
 const BASE = "/customer/estimate";
 
