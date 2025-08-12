@@ -22,28 +22,28 @@ authRouter.get("/social/:provider/callback", authController.socialLoginCallback)
 // 로그인된 유저 인증(최소) 정보 조회
 authRouter.get(
   "/me",
-  passport.authenticate("access-token", { session: false, failWithError: true }),
+  passport.authenticate("access-token", { session: false, failWithError: false }),
   authController.getMe
 );
 
 // 로그인된 유저 자세한 정보 조회
 authRouter.get(
   "/me/detail",
-  passport.authenticate("access-token", { session: false, failWithError: true }),
+  passport.authenticate("access-token", { session: false, failWithError: false }),
   authController.getUserById
 );
 
 // 로그인된 유저 이름 조회
 authRouter.get(
   "/me/name",
-  passport.authenticate("access-token", { session: false, failWithError: true }),
+  passport.authenticate("access-token", { session: false, failWithError: false }),
   authController.getMeName
 );
 
 // 액세스 토큰 재발급
 authRouter.post(
   "/refresh-token",
-  passport.authenticate("refresh-token", { session: false, failWithError: true }),
+  passport.authenticate("refresh-token", { session: false, failWithError: false }),
   authController.refreshToken
 );
 
