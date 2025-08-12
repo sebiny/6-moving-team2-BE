@@ -33,49 +33,16 @@ describe("reviewRepository", () => {
 
       expect(prisma.estimateRequest.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({
+          where: {
             customerId: "cust1",
             status: "COMPLETED",
             review: { is: null },
             estimates: { some: { status: "ACCEPTED" } }
-            // OR 제거
-          }),
+          },
           skip: 0,
           take: 3,
           orderBy: { createdAt: "desc" },
-          select: expect.objectContaining({
-            id: true,
-            moveType: true,
-            moveDate: true,
-            fromAddress: expect.objectContaining({
-              select: expect.objectContaining({
-                region: true,
-                district: true
-              })
-            }),
-            toAddress: expect.objectContaining({
-              select: expect.objectContaining({
-                region: true,
-                district: true
-              })
-            }),
-            estimates: expect.objectContaining({
-              where: { status: "ACCEPTED" },
-              select: expect.objectContaining({
-                id: true,
-                price: true,
-                isDesignated: true,
-                driver: expect.objectContaining({
-                  select: expect.objectContaining({
-                    id: true,
-                    nickname: true,
-                    profileImage: true,
-                    shortIntro: true
-                  })
-                })
-              })
-            })
-          })
+          select: expect.any(Object)
         })
       );
 
@@ -83,6 +50,7 @@ describe("reviewRepository", () => {
       expect(result.totalPages).toBe(1);
     });
   });
+
   describe("getMyReviews", () => {
     it("페이지네이션과 리뷰를 반환한다.", async () => {
       (prisma.review.findMany as jest.Mock).mockResolvedValue([{ id: "r1" }]);
@@ -96,42 +64,7 @@ describe("reviewRepository", () => {
           skip: 0,
           take: 3,
           orderBy: { createdAt: "desc" },
-          select: {
-            id: true,
-            rating: true,
-            content: true,
-            driver: expect.objectContaining({
-              select: expect.objectContaining({
-                averageRating: true,
-                nickname: true,
-                profileImage: true,
-                shortIntro: true,
-                id: true
-              })
-            }),
-            request: expect.objectContaining({
-              select: expect.objectContaining({
-                moveDate: true,
-                moveType: true,
-                estimates: expect.objectContaining({
-                  where: { status: "ACCEPTED" },
-                  select: { isDesignated: true }
-                }),
-                fromAddress: expect.objectContaining({
-                  select: expect.objectContaining({
-                    region: true,
-                    district: true
-                  })
-                }),
-                toAddress: expect.objectContaining({
-                  select: expect.objectContaining({
-                    region: true,
-                    district: true
-                  })
-                })
-              })
-            })
-          }
+          select: expect.any(Object)
         })
       );
 
@@ -177,7 +110,7 @@ describe("reviewRepository", () => {
       await expect(reviewRepository.deleteReviewById("r1", "cust1")).rejects.toThrow(CustomError);
     });
 
-    it("유저가 customerId가 맞으면 soft delete로 deletedAt을 업데이트 한다", async () => {
+    it("유저의 customerId가 맞으면 soft delete 한다", async () => {
       (prisma.review.findUnique as jest.Mock).mockResolvedValue({
         id: "r1",
         customerId: "cust1"

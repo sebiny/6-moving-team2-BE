@@ -88,6 +88,7 @@ async function getMyReviews(customerId: string, page: number) {
       select: {
         id: true,
         rating: true,
+        createdAt: true,
         content: true,
         driver: {
           select: {
@@ -134,7 +135,7 @@ async function getMyReviews(customerId: string, page: number) {
   ]);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-
+  console.log(reviews);
   return {
     reviews,
     totalCount,
