@@ -3,7 +3,7 @@ import { RateLimitRequestHandler } from "express-rate-limit";
 
 // API 호출 횟수 제한
 const authLimiter: RateLimitRequestHandler = rateLimit({
-  limit: 10, // 10회 제한
+  limit: 100, // 10회 제한
   windowMs: 10 * 60 * 1000, // 10분
   standardHeaders: true,
   legacyHeaders: false,

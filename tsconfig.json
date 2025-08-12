@@ -113,6 +113,6 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
-  "include": ["src/**/*"], // 컴파일 대상 폴더
+  "include": ["src/**/*", "src/integration-test/notification.test.ts"], // 컴파일 대상 폴더
   "exclude": ["node_modules"] // 컴파일 제외 폴더
 }
