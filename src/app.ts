@@ -23,8 +23,8 @@ import driverPrivateRouter from "./routes/driverPrivate.router";
 import shareEstimateRouter from "./routes/shareEstimate.router";
 import { initializeCronJobs } from "./utils/cronScheduler";
 
-// ★ 캐시 미들웨어 임포트
-import { cacheMiddleware /*, invalidateCache*/ } from "./middlewares/cacheMiddleware"; // 파일명이 cache.ts 라고 했던 그거
+// 캐시 미들웨어 임포트
+import { cacheMiddleware } from "./middlewares/cacheMiddleware";
 
 const app = express();
 app.use(helmet());
@@ -43,30 +43,20 @@ app.get("/health", (req, res) => {
   res.send("Health Check Success");
 });
 
-// 인증/프로필은 GET도 개인 정보라 필요시만 켜기 (지금은 비활성)
 app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
-
-// 비교적 안전한 GET 다수: 캐시 적용
-app.use("/address", cacheMiddleware(600), addressRouter); // ★ 주소 목록/상세: 10분
-app.use("/customer", cacheMiddleware(60), estimateReqRouter); // ★ 고객측 견적 관련 GET: 1분
+app.use("/address", cacheMiddleware(600), addressRouter);
+app.use("/customer", cacheMiddleware(600), estimateReqRouter);
 
 app.use("/reviews", reviewRouter);
-
-// 공개 API(목록/상세 트래픽 높음): 캐시 적용
-app.use("/drivers", cacheMiddleware(300), driverRouter); // ★ 드라이버 목록/상세: 5분
-
-// 로그인된 기사용 API: 쓰기 많음 → 필요 시 라우터 내부에서 개별 GET 에만 붙여
+app.use("/drivers", cacheMiddleware(600), driverRouter);
 app.use("/driver", driverPrivateRouter);
 
-// 즐겨찾기/알림: 변화 잦음 → 짧게
-app.use("/favorite", cacheMiddleware(120), favoriteRouter); // ★ 2분
-app.use("/notification", cacheMiddleware(30), notificationRouter); // ★ 30초
+app.use("/favorite", cacheMiddleware(600), favoriteRouter);
+app.use("/notification", cacheMiddleware(600), notificationRouter);
 
-// 고객 견적 상태 조회: 짧게
-app.use("/customer/estimate", cacheMiddleware(60), customerEstimateRouter); // ★ 1분
-
-app.use("/estimate", cacheMiddleware(120), shareEstimateRouter); // ★ 공유 링크 조회: 2분
+app.use("/customer/estimate", cacheMiddleware(600), customerEstimateRouter);
+app.use("/estimate", cacheMiddleware(600), shareEstimateRouter);
 
 app.use(
   "/api-docs",
