@@ -24,15 +24,7 @@ async function getAllDrivers(options: optionsType, userId?: string) {
 
   const orderByClause =
     orderBy === "reviewCount"
-      ? [
-          {
-            reviewsReceived: {
-              _count: "desc" as const,
-              where: { deletedAt: null }
-            }
-          },
-          { id: "asc" as const }
-        ]
+      ? [{ reviewsReceived: { _count: "desc" as const } }, { id: "asc" as const }]
       : [{ [orderBy]: "desc" as const }, { id: "asc" as const }];
 
   const PAGE_SIZE = 3;
@@ -48,7 +40,14 @@ async function getAllDrivers(options: optionsType, userId?: string) {
     take: PAGE_SIZE + 1, //hasNext 확인하기 위해 하나 더 가져옴
     orderBy: orderByClause,
     include: {
-      _count: { select: { reviewsReceived: true, favorite: true } },
+      _count: {
+        select: {
+          reviewsReceived: {
+            where: { deletedAt: null }
+          },
+          favorite: true
+        }
+      },
       serviceAreas: true,
       favorite: userId ? { where: { customerId: userId }, select: { id: true } } : false
     }
@@ -69,7 +68,14 @@ async function getDriverById(id: string, userId?: string) {
   const driver = await prisma.driver.findUnique({
     where: { id },
     include: {
-      _count: { select: { reviewsReceived: true, favorite: true } },
+      _count: {
+        select: {
+          reviewsReceived: {
+            where: { deletedAt: null }
+          },
+          favorite: true
+        }
+      },
       serviceAreas: true,
       favorite: userId ? { where: { customerId: userId }, select: { id: true } } : false
     }
