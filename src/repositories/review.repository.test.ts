@@ -36,18 +36,53 @@ describe("reviewRepository", () => {
           where: expect.objectContaining({
             customerId: "cust1",
             status: "COMPLETED",
-            OR: expect.any(Array),
+            review: { is: null },
             estimates: { some: { status: "ACCEPTED" } }
+            // OR 제거
           }),
           skip: 0,
-          take: 3
+          take: 3,
+          orderBy: { createdAt: "desc" },
+          select: expect.objectContaining({
+            id: true,
+            moveType: true,
+            moveDate: true,
+            fromAddress: expect.objectContaining({
+              select: expect.objectContaining({
+                region: true,
+                district: true
+              })
+            }),
+            toAddress: expect.objectContaining({
+              select: expect.objectContaining({
+                region: true,
+                district: true
+              })
+            }),
+            estimates: expect.objectContaining({
+              where: { status: "ACCEPTED" },
+              select: expect.objectContaining({
+                id: true,
+                price: true,
+                isDesignated: true,
+                driver: expect.objectContaining({
+                  select: expect.objectContaining({
+                    id: true,
+                    nickname: true,
+                    profileImage: true,
+                    shortIntro: true
+                  })
+                })
+              })
+            })
+          })
         })
       );
+
       expect(result.reviewableEstimates).toEqual([{ id: "e1" }]);
       expect(result.totalPages).toBe(1);
     });
   });
-
   describe("getMyReviews", () => {
     it("페이지네이션과 리뷰를 반환한다.", async () => {
       (prisma.review.findMany as jest.Mock).mockResolvedValue([{ id: "r1" }]);
@@ -57,9 +92,46 @@ describe("reviewRepository", () => {
 
       expect(prisma.review.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { customerId: "cust1" },
+          where: { customerId: "cust1", deletedAt: null },
           skip: 0,
-          take: 3
+          take: 3,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            rating: true,
+            content: true,
+            driver: expect.objectContaining({
+              select: expect.objectContaining({
+                averageRating: true,
+                nickname: true,
+                profileImage: true,
+                shortIntro: true,
+                id: true
+              })
+            }),
+            request: expect.objectContaining({
+              select: expect.objectContaining({
+                moveDate: true,
+                moveType: true,
+                estimates: expect.objectContaining({
+                  where: { status: "ACCEPTED" },
+                  select: { isDesignated: true }
+                }),
+                fromAddress: expect.objectContaining({
+                  select: expect.objectContaining({
+                    region: true,
+                    district: true
+                  })
+                }),
+                toAddress: expect.objectContaining({
+                  select: expect.objectContaining({
+                    region: true,
+                    district: true
+                  })
+                })
+              })
+            })
+          }
         })
       );
 

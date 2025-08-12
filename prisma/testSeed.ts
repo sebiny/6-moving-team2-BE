@@ -12,7 +12,6 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 const hashPassword = async (plain: string) => await bcrypt.hash(plain, 10);
-const maskPhone = (phone: string) => phone.replace(/(\d{3})\d{3,4}(\d{4})/, "$1****$2");
 
 const randomPhone = () => `010${Math.floor(1000 + Math.random() * 9000)}${Math.floor(1000 + Math.random() * 9000)}`;
 const randomName = ["김철수", "이영희", "박민수", "최지영", "한서준", "장도윤", "유지안", "서지우"];
@@ -48,7 +47,7 @@ async function main() {
   console.log("시드 데이터 생성 중...");
   // 고객 5명
   const customerIds: string[] = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 10; i++) {
     //랜덤 movetype
     const count = Math.floor(Math.random() * 3) + 1;
     const shuffled = [...randomMoveTypes].sort(() => 0.5 - Math.random());
@@ -58,7 +57,7 @@ async function main() {
       data: {
         email: `customer${i + 1}@test.com`,
         password: await hashPassword(`1q2w3e4r!`),
-        phone: maskPhone(randomPhone()),
+        phone: randomPhone(),
         userType: UserType.CUSTOMER,
         name: randomName[i % randomName.length],
 
@@ -83,9 +82,9 @@ async function main() {
     const randomList = shuffled.slice(0, count);
     const authUser = await prisma.authUser.create({
       data: {
-        email: `driver${i}@test.com`,
+        email: `driver${i + 1}@test.com`,
         password: await hashPassword(`1q2w3e4r!`),
-        phone: maskPhone(randomPhone()),
+        phone: randomPhone(),
         userType: UserType.DRIVER,
         name: randomName[(i + 5) % randomName.length],
 
@@ -190,7 +189,7 @@ async function main() {
       const estimateRequest = await prisma.estimateRequest.create({
         data: {
           customerId: customerIds[i],
-          moveType: MoveType.HOME,
+          moveType: randomMoveTypes[Math.floor(Math.random() * 3)],
           moveDate: new Date(2025, 6, j + 1),
           fromAddressId: addressList[0].id,
           toAddressId: addressList[1].id,
@@ -213,6 +212,18 @@ async function main() {
           status: EstimateStatus.ACCEPTED
         }
       });
+
+      await prisma.estimate.create({
+        data: {
+          estimateRequestId: estimateRequest.id,
+          driverId: driverIds[(j + 1) % 10],
+          price: 100000 + j * 20000,
+          comment: `견적 제안드립니다 (${j + 2})`,
+          isDesignated: false,
+          status: EstimateStatus.AUTO_REJECTED
+        }
+      });
+
       const ratingNum = Math.floor(Math.random() * 5) + 1;
       if (j % 2 === 0) {
         await prisma.review.create({
@@ -251,16 +262,11 @@ async function main() {
     const req = await prisma.estimateRequest.create({
       data: {
         customerId: customerIds[i],
-        moveType: MoveType.HOME,
+        moveType: randomMoveTypes[Math.floor(Math.random() * 3)],
         moveDate: new Date(`2025-08-2${i}`),
         fromAddressId: addressList[0].id,
         toAddressId: addressList[1].id,
-        status: RequestStatus.PENDING,
-        designatedDrivers: {
-          create: {
-            driverId: driverIds[i]
-          }
-        }
+        status: RequestStatus.PENDING
       }
     });
 
@@ -270,7 +276,17 @@ async function main() {
         driverId: driverIds[i],
         price: 100000 + i * 50000,
         comment: `견적 제안드립니다 (${i + 1})`,
-        isDesignated: true,
+        isDesignated: false,
+        status: EstimateStatus.PROPOSED
+      }
+    });
+    await prisma.estimate.create({
+      data: {
+        estimateRequestId: req.id,
+        driverId: driverIds[i + 5],
+        price: 100000 + i * 40000,
+        comment: `견적 제안드립니다 (${i + 6})`,
+        isDesignated: false,
         status: EstimateStatus.PROPOSED
       }
     });
@@ -285,6 +301,23 @@ async function main() {
         }
       });
     }
+  }
+  for (let i = 5; i < 10; i++) {
+    const req = await prisma.estimateRequest.create({
+      data: {
+        customerId: customerIds[i],
+        moveType: randomMoveTypes[Math.floor(Math.random() * 3)],
+        moveDate: new Date(`2025-08-2${i}`),
+        fromAddressId: addressList[0].id,
+        toAddressId: addressList[1].id,
+        status: RequestStatus.PENDING,
+        designatedDrivers: {
+          create: {
+            driverId: driverIds[i]
+          }
+        }
+      }
+    });
   }
   console.log("🌱 견적 및 요청 생성 완료");
   console.log("🌱 랜덤 시드 완료");
