@@ -16,9 +16,9 @@ function getCookieValue(setCookies: string[] | undefined, name: string): string 
 
 const SIGNUP_BODY = {
   userType: UserType.CUSTOMER,
-  name: "테스트 사용자",
-  email: "test@example.com",
-  phone: "01012345678",
+  name: "테스트계정",
+  email: "testuser@example.com",
+  phone: "01012344444",
   password: "Password!1",
   passwordConfirmation: "Password!1"
 };
