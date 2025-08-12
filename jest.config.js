@@ -8,5 +8,6 @@ module.exports = {
   maxWorkers: 1, // 테스트를 순차적으로 실행
   transform: {
     ...tsJestTransformCfg
-  }
+  },
+  setupFiles: ["<rootDir>/jest.setup.js"]
 };
