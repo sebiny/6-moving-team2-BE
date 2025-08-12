@@ -23,9 +23,6 @@ import driverPrivateRouter from "./routes/driverPrivate.router";
 import shareEstimateRouter from "./routes/shareEstimate.router";
 import { initializeCronJobs } from "./utils/cronScheduler";
 
-// 캐시 미들웨어 임포트
-import { cacheMiddleware } from "./middlewares/cacheMiddleware";
-
 const app = express();
 app.use(helmet());
 app.use(morgan("combined"));
@@ -45,18 +42,19 @@ app.get("/health", (req, res) => {
 
 app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
-app.use("/address", cacheMiddleware(600), addressRouter);
-app.use("/customer", cacheMiddleware(600), estimateReqRouter);
-
+app.use("/address", addressRouter);
+app.use("/customer", estimateReqRouter);
 app.use("/reviews", reviewRouter);
-app.use("/drivers", cacheMiddleware(600), driverRouter);
-app.use("/driver", driverPrivateRouter);
 
-app.use("/favorite", cacheMiddleware(600), favoriteRouter);
-app.use("/notification", cacheMiddleware(600), notificationRouter);
+app.use("/drivers", driverRouter); // 공개 API
+app.use("/driver", driverPrivateRouter); // 로그인된 기사용 API
 
-app.use("/customer/estimate", cacheMiddleware(600), customerEstimateRouter);
-app.use("/estimate", cacheMiddleware(600), shareEstimateRouter);
+app.use("/favorite", favoriteRouter);
+app.use("/notification", notificationRouter);
+
+app.use("/customer/estimate", customerEstimateRouter);
+
+app.use("/estimate", shareEstimateRouter);
 
 app.use(
   "/api-docs",

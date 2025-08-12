@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import driverController from "../controllers/driver.controller";
 import passport from "../config/passport";
+import { cacheMiddleware } from "../middlewares/cacheMiddleware";
 
 const driverRouter = express.Router();
 
@@ -10,10 +11,10 @@ driverRouter.get("/auth", authMiddleware, driverController.getAllDriversAuth);
 
 driverRouter.get("/:id/auth", authMiddleware, driverController.getDriverByIdAuth);
 
-driverRouter.get("/", driverController.getAllDrivers);
+driverRouter.get("/", cacheMiddleware(300), driverController.getAllDrivers);
 
-driverRouter.get("/:id", driverController.getDriverById);
+driverRouter.get("/:id", cacheMiddleware(300), driverController.getDriverById);
 
-driverRouter.get("/:id/reviews", driverController.getDriverReviews);
+driverRouter.get("/:id/reviews", cacheMiddleware(300), driverController.getDriverReviews);
 
 export default driverRouter;

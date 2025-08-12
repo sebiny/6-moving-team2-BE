@@ -1,11 +1,10 @@
 import Redis from "ioredis";
-import "dotenv/config";
 import type { Request, Response, NextFunction } from "express";
 
 let redis: Redis | null = null;
 
-// 테스트 환경이 아닐 때만 Redis 연결
 if (process.env.NODE_ENV !== "test") {
+  // 로컬 개발이면 REDIS_URL/REDIS_HOST 비우고 127.0.0.1:6379 로 붙도록
   redis = process.env.REDIS_URL
     ? new Redis(process.env.REDIS_URL)
     : new Redis({
@@ -20,54 +19,66 @@ if (process.env.NODE_ENV !== "test") {
   redis.on("error", (err) => console.error("Redis error:", err));
 }
 
-// ── 캐시 미들웨어 (테스트 환경이면 패스) ──
-export const cacheMiddleware = (ttl: number = 300) => {
+const keyOf = (req: Request) => `cache:GET:${req.originalUrl}`;
+
+export const cacheMiddleware = (ttl = 300) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    if (!redis || req.method !== "GET" || process.env.CACHE_DISABLED === "1") {
-      return next();
-    }
-
     try {
-      const cacheKey = `cache:${req.originalUrl}`;
-      const cached = await redis.get(cacheKey);
-      if (cached) return res.status(200).json(JSON.parse(cached));
+      // GET만 캐시
+      if (!redis || req.method !== "GET" || process.env.CACHE_DISABLED === "1") return next();
 
+      const cacheKey = keyOf(req);
+      const cached = await redis.get(cacheKey);
+
+      if (cached) {
+        console.log(`[CACHE HIT] ${cacheKey}`);
+        return res.status(200).json(JSON.parse(cached));
+      }
+
+      console.log(`[CACHE MISS] ${cacheKey}`);
+
+      // res.json / res.send 둘 다 캐치해서 저장
       const originalJson = res.json.bind(res) as (body: any) => Response;
+      const originalSend = res.send.bind(res) as (body: any) => Response;
+
+      const save = (data: any) => {
+        // JSON 문자열이면 그대로, 아니면 stringify
+        const payload = typeof data === "string" ? data : JSON.stringify(data);
+        void redis!.setex(cacheKey, ttl, payload).then(() => {
+          console.log(`[CACHE SET] ${cacheKey} (ttl=${ttl}s)`);
+        });
+      };
+
       res.json = ((data: any) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          void redis!.setex(cacheKey, ttl, JSON.stringify(data));
-        }
+        if (res.statusCode >= 200 && res.statusCode < 300) save(data);
         return originalJson(data);
       }) as typeof res.json;
 
+      res.send = ((data: any) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          // send로 들어오면 JSON 보장 안 되니 최대한 처리
+          try {
+            const maybeObj = typeof data === "string" ? JSON.parse(data) : data;
+            save(maybeObj);
+          } catch {
+            save(data);
+          }
+        }
+        return originalSend(data);
+      }) as typeof res.send;
+
       next();
-    } catch (error) {
-      console.error("Cache middleware error:", error);
+    } catch (err) {
+      console.error("Cache middleware error:", err);
       next();
     }
   };
 };
 
-// ── 캐시 무효화 (테스트 환경이면 패스) ──
-export const invalidateCache = (url: string | null = null) => {
-  return async (req: Request, _res: Response, next: NextFunction) => {
-    if (!redis) return next();
-
-    try {
-      const cacheKey = `cache:${url ?? req.originalUrl}`;
-      await redis.del(cacheKey);
-      next();
-    } catch (error) {
-      console.error("Cache invalidation error:", error);
-      next();
-    }
-  };
-};
-
-// 테스트 종료 시 Redis 연결 종료
-export const closeRedis = async () => {
-  if (redis) {
-    await redis.quit();
-    redis = null;
-  }
+// 필요시 사용: 특정 키/프리픽스 무효화 유틸
+export const invalidateByExact = (key: string) => redis?.del(key);
+export const invalidateByPrefix = async (prefix: string) => {
+  if (!redis) return;
+  const keys = await redis.keys(`${prefix}*`);
+  if (keys.length) await redis.del(keys);
 };
