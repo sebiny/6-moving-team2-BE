@@ -42,6 +42,7 @@ describe("Auth 통합 테스트 (/auth/*)", () => {
   });
 
   // Signup
+
   test("POST /auth/signup - 회원가입 성공(201)", async () => {
     const res = await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
 
@@ -81,6 +82,7 @@ describe("Auth 통합 테스트 (/auth/*)", () => {
   });
 
   //  Login
+
   test("POST /auth/login - 로그인 성공(200), accessToken 반환 & refreshToken 쿠키 설정", async () => {
     await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
 
@@ -133,6 +135,7 @@ describe("Auth 통합 테스트 (/auth/*)", () => {
   });
 
   // Me (인증)
+
   test("GET /auth/me - 토큰 없으면 401", async () => {
     await request(app).get("/auth/me").expect(401);
   });
@@ -176,9 +179,8 @@ describe("Auth 통합 테스트 (/auth/*)", () => {
     expect(res.body).not.toHaveProperty("password");
   });
 
-  /* =========================
-     Refresh Token
-     ========================= */
+  // Refresh Token
+
   test("POST /auth/refresh-token - 쿠키의 refreshToken으로 accessToken 재발급(200)", async () => {
     await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
 
@@ -213,9 +215,8 @@ describe("Auth 통합 테스트 (/auth/*)", () => {
     await request(app).post("/auth/refresh-token").set("Cookie", ["refreshToken=fake.invalid.token"]).expect(401);
   });
 
-  /* =========================
-     Logout
-     ========================= */
+  // Logout
+
   test("POST /auth/logout - 로그아웃 성공(200) & 쿠키 제거", async () => {
     await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
     await agent
@@ -231,9 +232,8 @@ describe("Auth 통합 테스트 (/auth/*)", () => {
     expect(Array.isArray(setCookie) || typeof setCookie === "string" || typeof setCookie === "undefined").toBe(true);
   });
 
-  /* =========================
-     Social
-     ========================= */
+  // Social
+
   test("GET /auth/social/:provider - 미지원 provider면 400", async () => {
     const res = await request(app).get("/auth/social/unknown?userType=CUSTOMER").expect(400);
     expect(res.body).toHaveProperty("message");
