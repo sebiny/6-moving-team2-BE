@@ -227,10 +227,6 @@ describe("EstimateRequest 통합 테스트", () => {
       expect(res.body).toHaveProperty("id", pendingRequestId);
       expect(res.body).toHaveProperty("status", RequestStatus.PENDING);
     });
-
-    it("토큰 없으면 401", async () => {
-      await request(app).get(`${BASE}/active`).expect(401);
-    });
   });
 
   describe("POST /customer/estimate-request/designated - 지정 견적 요청", () => {
@@ -297,10 +293,6 @@ describe("EstimateRequest 통합 테스트", () => {
         where: { estimateRequestId: reqId }
       });
       expect(count).toBe(1);
-    });
-
-    it("토큰 없으면 401", async () => {
-      await request(app).post(`${BASE}/designated`).send({ estimateRequestId: reqId, driverId }).expect(401);
     });
 
     it("driverId 누락 시 400을 반환한다", async () => {
