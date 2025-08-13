@@ -8,7 +8,7 @@ const authMiddleware = passport.authenticate("access-token", { session: false, f
 
 router.post("/address", authMiddleware, estimateReqController.linkCustomerAddress);
 
-router.get("/address", authMiddleware, cacheMiddleware(300), estimateReqController.getCustomerAddressesByRole);
+router.get("/address", authMiddleware, estimateReqController.getCustomerAddressesByRole);
 
 router.post("/estimate-request", authMiddleware, estimateReqController.createEstimateRequest);
 

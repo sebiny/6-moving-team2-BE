@@ -1,7 +1,6 @@
 import express from "express";
 import passport from "../config/passport";
 import * as shareEstimateController from "../controllers/shareEstimate.controller";
-import { cacheMiddleware } from "../middlewares/cacheMiddleware";
 
 const router = express.Router();
 
@@ -15,6 +14,6 @@ const authMiddleware = passport.authenticate("access-token", {
 router.post("/:estimateId/share", authMiddleware, shareEstimateController.createShareLink);
 
 // 공유 링크 접근 (비회원 허용)
-router.get("/shared/:token", cacheMiddleware(300), shareEstimateController.getSharedEstimate);
+router.get("/shared/:token", shareEstimateController.getSharedEstimate);
 
 export default router;
