@@ -14,86 +14,115 @@ function getCookieValue(setCookies: string[] | undefined, name: string): string 
   return undefined;
 }
 
-const SIGNUP_BODY = {
-  userType: UserType.CUSTOMER,
-  name: "테스트계정",
-  email: "testuser@example.com",
-  phone: "01012344444",
-  password: "Password!1",
-  passwordConfirmation: "Password!1"
-};
+// 유니크 값 헬퍼
+function unique() {
+  return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+function phone8() {
+  return String(Math.floor(10_000_000 + Math.random() * 89_999_999)).slice(0, 8);
+}
+/** 매 테스트마다 다른 회원가입 바디 생성 */
+function makeSignupBody(
+  overrides: Partial<{
+    userType: UserType;
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    passwordConfirmation: string;
+  }> = {}
+) {
+  const u = unique();
+  const base = {
+    userType: UserType.CUSTOMER,
+    name: "테스트계정",
+    email: `test+${u}@example.com`, // 매 테스트마다 다른 이메일
+    phone: `010${phone8()}`, // 매 테스트마다 다른 번호
+    password: "Password!1",
+    passwordConfirmation: "Password!1"
+  };
+  return { ...base, ...overrides };
+}
 
 describe("Auth 통합 테스트 (/auth/*)", () => {
   let agent: ReturnType<typeof request.agent>;
   let accessToken: string;
 
   beforeAll(async () => {
-    await resetDB(); //  모든 테이블 초기화
-    agent = request.agent(app);
+    await resetDB();
+  });
+
+  beforeEach(async () => {
+    await resetDB();
+    agent = request.agent(app); // 매 테스트 새 에이전트
+    accessToken = "";
   });
 
   afterAll(async () => {
     await prisma.$disconnect();
   });
 
-  beforeEach(async () => {
-    await resetDB(); //  모든 테이블 초기화
-    accessToken = "";
-  });
-
   // Signup
 
   test("POST /auth/signup - 회원가입 성공(201)", async () => {
-    const res = await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
+    const body = makeSignupBody();
+    const res = await request(app).post("/auth/signup").send(body).expect(201);
 
     expect(res.body).toHaveProperty("id");
-    expect(res.body).toHaveProperty("email", SIGNUP_BODY.email);
-    expect(res.body).toHaveProperty("userType", SIGNUP_BODY.userType);
+    expect(res.body).toHaveProperty("email", body.email);
+    expect(res.body).toHaveProperty("userType", body.userType);
 
-    const saved = await prisma.authUser.findUnique({ where: { email: SIGNUP_BODY.email } });
+    const saved = await prisma.authUser.findUnique({ where: { email: body.email } });
     expect(saved).toBeTruthy();
-    expect(saved?.name).toBe(SIGNUP_BODY.name);
+    expect(saved?.name).toBe(body.name);
   });
 
   test("POST /auth/signup - 중복 이메일이면 409", async () => {
-    await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
-    const res = await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(409);
+    const body = makeSignupBody();
+    await request(app).post("/auth/signup").send(body).expect(201);
+    const res = await request(app).post("/auth/signup").send(body).expect(409);
     expect(res.body).toHaveProperty("message");
   });
 
   test("POST /auth/signup - 유효성 실패들(이메일/전화/비번) 422", async () => {
+    const base = makeSignupBody();
+
     await request(app)
       .post("/auth/signup")
-      .send({ ...SIGNUP_BODY, email: "bad-email" })
+      .send({ ...base, email: "bad-email" })
       .expect(422);
+
     await request(app)
       .post("/auth/signup")
-      .send({ ...SIGNUP_BODY, email: "ok@ex.com", phone: "010-1234-5678" })
+      .send({ ...makeSignupBody(), email: "ok@ex.com", phone: "010-1234-5678" }) // 하이픈 포함
       .expect(422);
+
     await request(app)
       .post("/auth/signup")
-      .send({ ...SIGNUP_BODY, email: "ok2@ex.com", password: "short", passwordConfirmation: "short" })
+      .send({ ...makeSignupBody(), email: "ok2@ex.com", password: "short", passwordConfirmation: "short" })
       .expect(422);
   });
 
   test("POST /auth/signup - 응답에 password 포함 금지", async () => {
-    const res = await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
+    const body = makeSignupBody();
+    const res = await request(app).post("/auth/signup").send(body).expect(201);
     expect(res.body).not.toHaveProperty("password");
   });
 
-  //  Login
+  // Login
 
   test("POST /auth/login - 로그인 성공(200), accessToken 반환 & refreshToken 쿠키 설정", async () => {
-    await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
+    const body = makeSignupBody();
+    await request(app).post("/auth/signup").send(body).expect(201);
 
     const res = await agent
       .post("/auth/login")
-      .send({ email: SIGNUP_BODY.email, password: SIGNUP_BODY.password, userType: SIGNUP_BODY.userType })
+      .send({ email: body.email, password: body.password, userType: body.userType })
       .expect(200);
 
     expect(res.body).toHaveProperty("accessToken");
     expect(res.body).toHaveProperty("user");
-    expect(res.body.user.email).toBe(SIGNUP_BODY.email);
+    expect(res.body.user.email).toBe(body.email);
 
     // refreshToken 쿠키 존재 확인
     const setCookie = res.headers["set-cookie"];
@@ -126,10 +155,11 @@ describe("Auth 통합 테스트 (/auth/*)", () => {
   });
 
   test("POST /auth/login - 가입 userType과 다른 타입으로 로그인 시 403", async () => {
-    await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
+    const body = makeSignupBody();
+    await request(app).post("/auth/signup").send(body).expect(201);
     const res = await request(app)
       .post("/auth/login")
-      .send({ email: SIGNUP_BODY.email, password: SIGNUP_BODY.password, userType: UserType.DRIVER })
+      .send({ email: body.email, password: body.password, userType: UserType.DRIVER })
       .expect(403);
     expect(res.body).toHaveProperty("message");
   });
@@ -141,52 +171,56 @@ describe("Auth 통합 테스트 (/auth/*)", () => {
   });
 
   test("GET /auth/me - 유효한 accessToken으로 내 정보 조회(200)", async () => {
-    await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
+    const body = makeSignupBody();
+    await request(app).post("/auth/signup").send(body).expect(201);
     const login = await agent
       .post("/auth/login")
-      .send({ email: SIGNUP_BODY.email, password: SIGNUP_BODY.password, userType: SIGNUP_BODY.userType })
+      .send({ email: body.email, password: body.password, userType: body.userType })
       .expect(200);
     const token = login.body.accessToken as string;
 
     const res = await request(app).get("/auth/me").set("Authorization", `Bearer ${token}`).expect(200);
     expect(res.body).toHaveProperty("user");
     expect(res.body.user).toHaveProperty("id");
-    expect(res.body.user).toHaveProperty("userType", SIGNUP_BODY.userType);
+    expect(res.body.user).toHaveProperty("userType", body.userType);
   });
 
   test("GET /auth/me/name - 이름/프로필 조회(200)", async () => {
-    await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
+    const body = makeSignupBody();
+    await request(app).post("/auth/signup").send(body).expect(201);
     const login = await agent
       .post("/auth/login")
-      .send({ email: SIGNUP_BODY.email, password: SIGNUP_BODY.password, userType: SIGNUP_BODY.userType })
+      .send({ email: body.email, password: body.password, userType: body.userType })
       .expect(200);
     const token = login.body.accessToken as string;
 
     const res = await request(app).get("/auth/me/name").set("Authorization", `Bearer ${token}`).expect(200);
-    expect(res.body).toHaveProperty("name", SIGNUP_BODY.name);
+    expect(res.body).toHaveProperty("name", body.name);
   });
 
   test("GET /auth/me/detail - 상세 조회(200)", async () => {
-    await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
+    const body = makeSignupBody();
+    await request(app).post("/auth/signup").send(body).expect(201);
     const login = await agent
       .post("/auth/login")
-      .send({ email: SIGNUP_BODY.email, password: SIGNUP_BODY.password, userType: SIGNUP_BODY.userType })
+      .send({ email: body.email, password: body.password, userType: body.userType })
       .expect(200);
     const token = login.body.accessToken as string;
 
     const res = await request(app).get("/auth/me/detail").set("Authorization", `Bearer ${token}`).expect(200);
-    expect(res.body).toHaveProperty("email", SIGNUP_BODY.email);
+    expect(res.body).toHaveProperty("email", body.email);
     expect(res.body).not.toHaveProperty("password");
   });
 
   // Refresh Token
 
   test("POST /auth/refresh-token - 쿠키의 refreshToken으로 accessToken 재발급(200)", async () => {
-    await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
+    const body = makeSignupBody();
+    await request(app).post("/auth/signup").send(body).expect(201);
 
     const login = await agent
       .post("/auth/login")
-      .send({ email: SIGNUP_BODY.email, password: SIGNUP_BODY.password, userType: SIGNUP_BODY.userType })
+      .send({ email: body.email, password: body.password, userType: body.userType })
       .expect(200);
 
     // agent의 쿠키 저장(secure/domain 문제) 우회를 위해 직접 Cookie 헤더로 전달
@@ -218,10 +252,11 @@ describe("Auth 통합 테스트 (/auth/*)", () => {
   // Logout
 
   test("POST /auth/logout - 로그아웃 성공(200) & 쿠키 제거", async () => {
-    await request(app).post("/auth/signup").send(SIGNUP_BODY).expect(201);
+    const body = makeSignupBody();
+    await request(app).post("/auth/signup").send(body).expect(201);
     await agent
       .post("/auth/login")
-      .send({ email: SIGNUP_BODY.email, password: SIGNUP_BODY.password, userType: SIGNUP_BODY.userType })
+      .send({ email: body.email, password: body.password, userType: body.userType })
       .expect(200);
 
     const res = await agent.post("/auth/logout").expect(200);
