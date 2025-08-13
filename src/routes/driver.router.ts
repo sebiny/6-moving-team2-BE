@@ -7,14 +7,14 @@ const driverRouter = express.Router();
 
 const authMiddleware = passport.authenticate("access-token", { session: false, failWithError: false });
 
-driverRouter.get("/auth", authMiddleware, driverController.getAllDriversAuth);
+driverRouter.get("/auth", authMiddleware, cacheMiddleware(300), driverController.getAllDriversAuth);
 
-driverRouter.get("/:id/auth", authMiddleware, driverController.getDriverByIdAuth);
+driverRouter.get("/:id/auth", authMiddleware, cacheMiddleware(300), driverController.getDriverByIdAuth);
 
-driverRouter.get("/", cacheMiddleware(300), driverController.getAllDrivers);
+driverRouter.get("/", driverController.getAllDrivers);
 
-driverRouter.get("/:id", cacheMiddleware(300), driverController.getDriverById);
+driverRouter.get("/:id", driverController.getDriverById);
 
-driverRouter.get("/:id/reviews", cacheMiddleware(300), driverController.getDriverReviews);
+driverRouter.get("/:id/reviews", driverController.getDriverReviews);
 
 export default driverRouter;
