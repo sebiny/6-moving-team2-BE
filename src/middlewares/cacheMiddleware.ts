@@ -4,7 +4,6 @@ import type { Request, Response, NextFunction } from "express";
 let redis: Redis | null = null;
 
 if (process.env.NODE_ENV !== "test") {
-  // 로컬 개발이면 REDIS_URL/REDIS_HOST 비우고 127.0.0.1:6379 로 붙도록
   redis = process.env.REDIS_URL
     ? new Redis(process.env.REDIS_URL)
     : new Redis({
@@ -75,7 +74,7 @@ export const cacheMiddleware = (ttl = 300) => {
   };
 };
 
-// 필요시 사용: 특정 키/프리픽스 무효화 유틸
+//  특정 키/프리픽스 무효화 유틸
 export const invalidateByExact = (key: string) => redis?.del(key);
 export const invalidateByPrefix = async (prefix: string) => {
   if (!redis) return;
