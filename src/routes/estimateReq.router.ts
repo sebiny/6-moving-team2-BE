@@ -1,36 +1,23 @@
 import express from "express";
 import passport from "passport";
 import estimateReqController from "../controllers/estimateReq.controller";
+import { cacheMiddleware } from "../middlewares/cacheMiddleware";
 
 const router = express.Router();
+const authMiddleware = passport.authenticate("access-token", { session: false, failWithError: true });
 
-router.post(
-  "/address",
-  passport.authenticate("access-token", { session: false }),
-  estimateReqController.linkCustomerAddress
-);
+router.post("/address", authMiddleware, estimateReqController.linkCustomerAddress);
 
-router.get(
-  "/address",
-  passport.authenticate("access-token", { session: false }),
-  estimateReqController.getCustomerAddressesByRole
-);
+router.get("/address", authMiddleware, cacheMiddleware(300), estimateReqController.getCustomerAddressesByRole);
 
-router.post(
-  "/estimate-request",
-  passport.authenticate("access-token", { session: false }),
-  estimateReqController.createEstimateRequest
-);
+router.post("/estimate-request", authMiddleware, estimateReqController.createEstimateRequest);
 
-router.post(
-  "/estimate-request/designated",
-  passport.authenticate("access-token", { session: false }),
-  estimateReqController.createDesignatedEstimateRequest
-);
+router.post("/estimate-request/designated", authMiddleware, estimateReqController.createDesignatedEstimateRequest);
 
 router.get(
   "/estimate-request/active",
-  passport.authenticate("access-token", { session: false }),
+  authMiddleware,
+  cacheMiddleware(300),
   estimateReqController.getActiveEstimateRequest
 );
 

@@ -1,6 +1,7 @@
 import express from "express";
 import passport from "../config/passport";
 import * as customerEstimateController from "../controllers/customerEstimate.controller";
+import { cacheMiddleware } from "../middlewares/cacheMiddleware";
 
 const customerEstimateRouter = express.Router();
 
@@ -16,15 +17,15 @@ const auth = (req: any, res: any, next: any) => {
 };
 
 // 대기중인 견적서 조회
-customerEstimateRouter.get("/pending", auth, customerEstimateController.getPendingEstimates);
+customerEstimateRouter.get("/pending", auth, cacheMiddleware(300), customerEstimateController.getPendingEstimates);
 
 // 받았던 견적 리스트 조회
-customerEstimateRouter.get("/approve", auth, customerEstimateController.getReceivedEstimates);
+customerEstimateRouter.get("/approve", auth, cacheMiddleware(300), customerEstimateController.getReceivedEstimates);
 
 // 견적 확정하기
 customerEstimateRouter.patch("/:estimateId/accept", auth, customerEstimateController.acceptEstimate);
 
 // 견적 상세 조회
-customerEstimateRouter.get("/:estimateId", auth, customerEstimateController.getEstimateDetail);
+customerEstimateRouter.get("/:estimateId", auth, cacheMiddleware(300), customerEstimateController.getEstimateDetail);
 
 export default customerEstimateRouter;
