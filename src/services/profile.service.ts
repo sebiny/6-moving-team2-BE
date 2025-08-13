@@ -188,6 +188,15 @@ async function createDriverProfile(
     throw new CustomError(403, "기사가 아닌 사용자는 기사 프로필을 생성할 수 없습니다.");
   }
 
+  //  닉네임 중복 검사 (다른 사람이 사용 중인지)
+  const duplicateNickname = await profileRepository.findDriverByNickname(data.nickname);
+  if (duplicateNickname) {
+    // 본인 것이 아닌 경우만 충돌
+    if (duplicateNickname.authUserId !== authUserId) {
+      throw new CustomError(409, "이미 사용 중인 닉네임입니다.");
+    }
+  }
+
   // 이미 존재하는 경우 예외 처리
   const existing = await profileRepository.findDriverByAuthUserId(authUserId);
   if (existing) throw new CustomError(409, "이미 기사 프로필이 존재합니다.");
@@ -241,6 +250,14 @@ async function updateDriverProfile(
   const driver = await profileRepository.findDriverByAuthUserId(authUserId);
   if (!driver) throw new CustomError(404, "해당 기사를 찾을 수 없습니다.");
 
+  //  닉네임 변경 시에만 중복 검사
+  if (data.nickname && data.nickname !== driver.nickname) {
+    const duplicateNickname = await profileRepository.findDriverByNickname(data.nickname);
+    if (duplicateNickname && duplicateNickname.authUserId !== authUserId) {
+      throw new CustomError(409, "이미 사용 중인 닉네임입니다.");
+    }
+  }
+
   if (data.serviceAreas) {
     await profileRepository.deleteDriverServiceAreas(driver.id);
 
@@ -278,13 +295,13 @@ async function updateDriverBasicProfile(
 ) {
   if (!authUserId) throw new CustomError(400, "유저 ID가 유효하지 않습니다.");
 
-  // // 이름 유효성 검사 (2~5자의 한글)
-  // if (data.name) {
-  //   const nameRegex = /^[가-힣]{2,5}$/;
-  //   if (!nameRegex.test(data.name)) {
-  //     throw new CustomError(422, "이름은 2~5자의 한글만 사용 가능합니다.");
-  //   }
-  // }
+  // 이름 유효성 검사 (2~10자의 한글 또는 영어)
+  if (data.name) {
+    const nameRegex = /^[가-힣a-zA-Z]{2,10}$/;
+    if (!nameRegex.test(data.name)) {
+      throw new CustomError(422, "이름은 2~10자의 한글 또는 영어만 사용 가능합니다.");
+    }
+  }
 
   // 전화번호 형식 검사 (대한민국)
   if (data.phone) {

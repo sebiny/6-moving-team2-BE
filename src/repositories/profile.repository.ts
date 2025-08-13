@@ -46,6 +46,16 @@ async function findDriverByAuthUserId(authUserId: string): Promise<Driver | null
   });
 }
 
+// 기사 프로필 조회 by nickname
+async function findDriverByNickname(
+  nickname: string
+): Promise<{ id: string; authUserId: string; nickname: string } | null> {
+  return prisma.driver.findFirst({
+    where: { nickname },
+    select: { id: true, authUserId: true, nickname: true }
+  });
+}
+
 // 기사 프로필 생성
 async function createDriverProfile(data: Prisma.DriverCreateInput): Promise<Driver> {
   return prisma.driver.create({
@@ -96,5 +106,6 @@ export default {
   updateDriverProfile,
   // getDriverById,
   deleteDriverServiceAreas,
-  createDriverServiceAreas
+  createDriverServiceAreas,
+  findDriverByNickname
 };
