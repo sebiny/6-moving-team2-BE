@@ -22,6 +22,7 @@ import customerEstimateRouter from "./routes/customerEstimate.router";
 import driverPrivateRouter from "./routes/driverPrivate.router";
 import shareEstimateRouter from "./routes/shareEstimate.router";
 import { initializeCronJobs } from "./utils/cronScheduler";
+import translateRouter from "./routes/translateRouter";
 
 const app = express();
 app.use(helmet());
@@ -55,7 +56,7 @@ app.use("/notification", notificationRouter);
 app.use("/customer/estimate", customerEstimateRouter);
 
 app.use("/estimate", shareEstimateRouter);
-
+app.use("/translate", translateRouter);
 app.use(
   "/api-docs",
   swaggerUi.serve,
