@@ -1,106 +1,135 @@
 import Redis from "ioredis";
 import type { Request, Response, NextFunction } from "express";
+import { createHash } from "crypto";
+import "dotenv/config";
 
-let redis: Redis | null = null;
+// 테스트 환경에서 비활성
+const isTest = process.env.NODE_ENV === "test";
 
-// 테스트 환경에서 무효화
-if (process.env.NODE_ENV !== "test") {
-  redis = process.env.REDIS_URL
-    ? new Redis(process.env.REDIS_URL)
-    : new Redis({
-        host: process.env.NODE_ENV === "production" ? process.env.REDIS_HOST : "127.0.0.1",
-        port: Number(process.env.REDIS_PORT ?? 6379),
-        password: process.env.REDIS_PASSWORD,
-        ...(process.env.NODE_ENV === "production" ? { tls: {} } : {})
-      });
+// Redis 클라이언트
+export const redis: Redis | null = isTest
+  ? null
+  : new Redis({
+      host: process.env.NODE_ENV === "production" ? process.env.REDIS_HOST : "127.0.0.1",
+      port: Number(process.env.REDIS_PORT ?? 6379),
+      ...(process.env.NODE_ENV === "production" ? { tls: {} } : {})
+    });
 
-  redis.on("connect", () => console.log("Redis connected"));
-  redis.on("ready", () => console.log("Redis ready"));
-  redis.on("error", (err) => console.error("Redis error:", err));
+redis?.on("connect", () => console.log("Redis connected"));
+redis?.on("ready", () => console.log("Redis ready"));
+redis?.on("error", (err) => console.error("Redis error:", err));
+
+// 쿼리 정렬
+function normalizedUrl(req: Request): string {
+  const u = new URL(req.originalUrl, "http://x");
+  u.searchParams.sort();
+  return `${u.pathname}?${u.searchParams.toString()}`;
 }
 
-const keyOf = (req: Request) => `cache:GET:${req.originalUrl}`;
+// 본문 해시(GET이 아닐 때)
+function bodyHash(req: Request): string {
+  if (req.method.toUpperCase() === "GET") return "nobody";
+  const body = (req as any).body;
+  if (!body || typeof body !== "object") return "nobody";
+  const ct = String(req.headers["content-type"] || "").toLowerCase();
+  const ok = ct.includes("application/json") || ct.includes("application/x-www-form-urlencoded");
+  if (!ok) return "nobody";
+  try {
+    const s = JSON.stringify(body);
+    if (Buffer.byteLength(s, "utf8") > 64 * 1024) return "nobody"; // 과도한 키 방지
+    return createHash("sha1").update(s).digest("hex");
+  } catch {
+    return "nobody";
+  }
+}
 
-const shouldCache = (req: Request) => {
-  if (req.method !== "GET") return false;
-  if (process.env.CACHE_DISABLED === "1") return false;
-  if ("nocache" in req.query) return false; // ?nocache=1 우회
-  if (req.headers.authorization) return false; // 토큰 있는 요청 제외
-  const p = req.path;
-  if (p.startsWith("/auth")) return false; // 인증 계열 제외
-  if (p.startsWith("/notification")) return false; // 알림/SSE 제외
-  return true;
-};
+function keyOf(req: Request): string {
+  return `cache:${req.method.toUpperCase()}:${normalizedUrl(req)}:${bodyHash(req)}`;
+}
 
+/** 같은 URL의 모든 변형 캐시 무효화 (모든 메서드/바디 해시) */
+async function invalidateVariants(normUrl: string) {
+  if (!redis) return 0;
+  const pattern = `cache:*:${normUrl}:*`;
+  let cursor = "0";
+  let total = 0;
+  do {
+    const [nextCursor, keys]: [string, string[]] = await (redis as any).scan(cursor, "MATCH", pattern, "COUNT", 100);
+    cursor = nextCursor;
+    if (keys.length) {
+      const pipe = redis.pipeline();
+      keys.forEach((k) => pipe.del(k));
+      await pipe.exec();
+      total += keys.length;
+    }
+  } while (cursor !== "0");
+  return total;
+}
+
+// 캐시 미들웨어
 export const cacheMiddleware = (ttl = 300) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!redis || !shouldCache(req)) return next();
+      // 테스트 / Redis 미연결 / 강제 우회 시 통과
+      if (isTest || !redis || "nocache" in (req.query as any)) return next();
 
       const cacheKey = keyOf(req);
       const cached = await redis.get(cacheKey);
+      console.log("cachedData 여부", !!cached);
 
       if (cached) {
         res.setHeader("X-Cache", "HIT");
-        res.setHeader("Cache-Control", "no-store"); // 브라우저 캐시는 비활성
-        res.type("application/json");
-        return res.status(200).send(cached);
+        res.setHeader("Cache-Control", "no-store");
+        const parsed = JSON.parse(cached);
+        return res.status(200).json(parsed);
       }
 
       res.setHeader("X-Cache", "MISS");
 
-      const originalJson = res.json.bind(res) as (body: any) => Response;
-      const originalSend = res.send.bind(res) as (body: any) => Response;
+      const normUrl = normalizedUrl(req);
+      const method = req.method.toUpperCase();
 
-      const save = (payloadStr: string) => {
-        // 쿠키 내려보내는 응답은 캐시 금지
-        if (res.getHeader("Set-Cookie")) return;
-        res.setHeader("Cache-Control", "no-store");
-        void redis!.setex(cacheKey, ttl, payloadStr);
+      const originalJson = res.json.bind(res) as (body: any) => Response;
+      res.json = function (data: any): Response {
+        const is2xx = res.statusCode >= 200 && res.statusCode < 300;
+        const hasSetCookie = !!res.getHeader("Set-Cookie");
+
+        if (is2xx && (method === "PUT" || method === "PATCH" || method === "DELETE")) {
+          void invalidateVariants(normUrl);
+        } else if (is2xx && !hasSetCookie) {
+          try {
+            void redis!.setex(cacheKey, ttl, JSON.stringify(data));
+          } catch {}
+        }
+
+        return originalJson(data);
       };
 
-      res.json = ((data: any) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          save(JSON.stringify(data));
-        }
-        return originalJson(data);
-      }) as typeof res.json;
-
-      res.send = ((data: any) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          let payloadStr: string;
-          if (Buffer.isBuffer(data)) payloadStr = data.toString("utf8");
-          else if (typeof data === "string") payloadStr = data;
-          else payloadStr = JSON.stringify(data);
-          save(payloadStr);
-        }
-        return originalSend(data);
-      }) as typeof res.send;
-
       next();
-    } catch (err) {
-      console.error("Cache middleware error:", err);
+    } catch (error) {
+      console.error("Cache middleware error:", error);
       next();
     }
   };
 };
 
-export const invalidateByExact = (key: string) => redis?.del(key);
+// 캐시 무효화 미들웨어
+export const invalidateCache = (url: string | null = null) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!redis) return next();
 
-export const invalidateByPrefix = async (prefix: string) => {
-  if (!redis) return 0;
-  let cursor = "0";
-  let total = 0;
-  do {
-    const [next, keys]: [string, string[]] = await (redis as any).scan(cursor, "MATCH", `${prefix}*`, "COUNT", 100);
-    cursor = next;
-    if (keys.length) {
-      total += keys.length;
-      const pipe = redis.pipeline();
-      keys.forEach((k) => pipe.del(k));
-      await pipe.exec();
+      const target = url ?? req.originalUrl;
+      const u = new URL(target, "http://x");
+      u.searchParams.sort();
+      const norm = `${u.pathname}?${u.searchParams.toString()}`;
+
+      const deleted = await invalidateVariants(norm);
+      console.log(`Invalidated cache for: ${norm} (deleted ${deleted})`);
+      next();
+    } catch (error) {
+      console.error("Cache invalidation error:", error);
+      next();
     }
-  } while (cursor !== "0");
-  return total;
+  };
 };
-export { redis };
