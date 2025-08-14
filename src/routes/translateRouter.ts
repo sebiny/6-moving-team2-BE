@@ -76,7 +76,7 @@ translateRouter.post("/", async (req, res) => {
     const translation = data.translations?.[0]?.text;
     console.log("Extracted translation:", translation);
 
-    res.json({ translation, cached: false });
+    res.json({ translation });
   } catch (error: any) {
     console.error("Translation error:", error);
     res.status(500).json({ error: error.message });

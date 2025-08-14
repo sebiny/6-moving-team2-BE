@@ -103,3 +103,4 @@ export const invalidateByPrefix = async (prefix: string) => {
   } while (cursor !== "0");
   return total;
 };
+export { redis };
