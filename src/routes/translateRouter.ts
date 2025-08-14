@@ -1,9 +1,8 @@
 import { Router } from "express";
-import { cacheMiddleware } from "../middlewares/cacheMiddleware";
 
 const translateRouter = Router();
 
-translateRouter.post("/", cacheMiddleware(), async (req, res) => {
+translateRouter.post("/", async (req, res) => {
   try {
     console.log("Translation request received:", {
       body: req.body,
