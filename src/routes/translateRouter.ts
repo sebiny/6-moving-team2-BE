@@ -1,13 +1,9 @@
 import { Router } from "express";
-import Redis from "ioredis";
+import { cacheMiddleware, redis } from "../middlewares/cacheMiddleware";
 
 const translateRouter = Router();
-const redis = new Redis({
-  host: process.env.REDIS_HOST,
-  port: 6379
-});
 
-translateRouter.post("/", async (req, res) => {
+translateRouter.post("/", cacheMiddleware(), async (req, res) => {
   try {
     const { text, targetLang } = req.body;
 
@@ -19,11 +15,16 @@ translateRouter.post("/", async (req, res) => {
     const cacheKey = `translation:${targetLang}:${text}`;
 
     // 1. 캐시 확인
-    const cachedTranslation = await redis.get(cacheKey);
-    if (cachedTranslation) {
-      return res.json({ translation: cachedTranslation, cached: true });
+    if (!redis) {
+      throw new Error("Redis is not connected");
     }
 
+    const cachedTranslation = await redis.get(cacheKey);
+    if (cachedTranslation) {
+      console.log("Cache hit", cachedTranslation);
+      return res.json({ translation: cachedTranslation, cached: true });
+    }
+    console.log("Cache miss", cachedTranslation);
     // 2. DeepL API 호출
     const deeplApiKey = process.env.DEEPL_API_KEY;
     const deeplUrl = "https://api-free.deepl.com/v2/translate";
@@ -46,13 +47,9 @@ translateRouter.post("/", async (req, res) => {
 
     const data = await response.json();
     const translation = data.translations?.[0]?.text;
+    console.log("DeepL API response", translation);
 
-    // 3. Redis 캐시 저장 (1시간)
-    if (translation) {
-      await redis.set(cacheKey, translation, "EX", 3600);
-    }
-
-    res.json({ translation, cached: false });
+    res.json({ translation });
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ error: error.message });
