@@ -2,7 +2,8 @@
 
 ### 무빙 한줄소개
 
-![og-image-drivers.png](attachment:f6dacafc-8779-4f7d-bd7e-7d4c32bd8219:og-image-drivers.png)
+<img width="1235" height="673" alt="image" src="https://github.com/user-attachments/assets/3f00fbc4-e7cc-40f9-a829-cbc228c7a2be" />
+
 
 ### [🖼️ 무빙 구경하기 : https://www.moving-2.click](https://www.moving-2.click/)
 
@@ -18,7 +19,7 @@
 
 | 안세빈 | 최민경 | 김다은 | 김단이 | 오보람 | 이지수 | 황수정 |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/De-cal) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/WooGie911) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/choi-mk) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/subinkim9755) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Jam1eL1) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sebiny) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Shinmilli) |
+| [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sebiny) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/choi-mk) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fs6-kde) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/danikim8) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/danikim8) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sebiny) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/suejeong) |
 | 팀장 | 부팀장 | 팀원 | 팀원 | 팀원 | 팀원 | 팀원 |
 
 
@@ -141,35 +142,43 @@ Backend
 <div markdown="1">
 
 ```
-📦 /
+📦 프로젝트 루트
+┣ 📂.github
+┃ ┗ 📂workflows             # CI/CD 워크플로우 (GitHub Actions)
+┃   ┗ 📜deploy.yml          # 배포 파이프라인 설정
+┣ 📂node_modules            # 설치된 라이브러리 (자동 생성)
+┣ 📂prisma
+┃ ┣ 📂migrations            # Prisma 마이그레이션 파일
+┃ ┣ 📜schema.prisma         # Prisma 스키마 정의 파일
+┃ ┣ 📜seed.ts               # 초기 데이터 시드 스크립트
+┃ ┗ 📜testSeed.ts
 ┣ 📂src
-┃ ┣ 📂config               # 환경설정 및 설정 파일 모음
-┃ ┣ 📂controllers          # 라우트 요청에 대한 비즈니스 로직 처리
-┃ ┣ 📂db
-┃ ┃ ┣ 📂generated          # Prisma에 의해 자동 생성된 파일
-┃ ┃ ┗ 📂prisma
-┃ ┃   ┣ 📂migrations       # Prisma 마이그레이션 파일
-┃ ┃   ┣ 📂mocks            # 테스트용 mock 데이터
-┃ ┃   ┣ 📜prisma.js        # Prisma 클라이언트 초기화
-┃ ┃   ┣ 📜schema.prisma    # Prisma 스키마 정의 파일
-┃ ┃   ┗ 📜seed.js          # 초기 데이터 시드 파일
-┃ ┣ 📂middlewares          # Express 미들웨어 정의
-┃ ┣ 📂repositories         # DB 접근 로직 (DAO 계층)
-┃ ┣ 📂routes               # 라우터 정의
-┃ ┣ 📂services             # 비즈니스 로직 처리 계층
-┃ ┣ 📂structs
-┃ ┃ ┗ 📂auth               # 인증 관련 구조체 및 유틸
-┃ ┣ 📂uploads              # 파일 업로드 저장소
-┃ ┣ 📂utils                # 유틸리티 함수 모음
-┃ ┗ 📜app.js               # Express 앱 엔트리포인트
-┣ 📜.env                   # 환경 변수 설정
-┣ 📜.env.example           # 환경 변수 예시 파일
-┣ 📜.gitignore             # Git 추적 제외 파일 목록
-┣ 📜.http                  # REST API 테스트용 요청 모음 (VSCode용)
-┣ 📜.prettierrc            # Prettier 코드 포맷 설정
-┣ 📜package-lock.json      # 패키지 잠금 파일
-┣ 📜package.json           # 프로젝트 의존성 및 스크립트 정의
-┗ 📜README.md              # 프로젝트 설명 문서
+┃ ┣ 📂config                # 환경 설정 (DB, 로거, 서버 설정 등)
+┃ ┣ 📂controllers           # 요청-응답 처리 (Express 컨트롤러)
+┃ ┣ 📂dtos                  # 데이터 전송 객체 (DTO) 정의
+┃ ┣ 📂integration-test      # 통합 테스트
+┃ ┣ 📂middlewares           # Express 미들웨어 (auth, 에러 핸들링 등)
+┃ ┣ 📂repositories          # DB 접근 계층 (Prisma 쿼리 모음)
+┃ ┣ 📂routes                # 라우터 정의
+┃ ┣ 📂services              # 비즈니스 로직 계층
+┃ ┣ 📂sse                   # SSE(Server-Sent Events) 관련 구현
+┃ ┣ 📂types                 # 타입 정의 (TS 인터페이스, 타입 등)
+┃ ┣ 📂utils                 # 유틸리티 함수 모음
+┃ ┣ 📜app.ts                # Express 앱 초기화
+┃ ┣ 📜instrument.ts         # APM, 모니터링/트레이싱 관련 설정
+┃ ┗ 📜server.ts             # 서버 실행 엔트리포인트
+┣ 📜.env                    # 환경 변수 설정
+┣ 📜.gitignore              # Git 무시 파일 목록
+┣ 📜.http                   # VSCode용 REST Client 요청 모음
+┣ 📜.prettierrc             # Prettier 코드 스타일 설정
+┣ 📜jest.config.js          # Jest 테스트 설정
+┣ 📜jest.setup.js           # Jest 환경 세팅
+┣ 📜openapi.yaml            # OpenAPI 스펙 문서
+┣ 📜package-lock.json       # npm 패키지 잠금 파일
+┣ 📜package.json            # 프로젝트 의존성 및 스크립트
+┣ 📜tsconfig.json           # TypeScript 설정
+┗ 📜README.md               # 프로젝트 설명 문서
+
 ```
 
 </div>
