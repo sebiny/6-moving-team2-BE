@@ -36,7 +36,7 @@
 
 | 랜딩페이지                                                                                  | 실시간 알림 도착                                                                            | 견적 요청                                                                                   | 기사님 찾기                                                                                   |
 | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| <img src="https://github.com/user-attachments/assets/a41cfa4d-33ca-4beb-b673-c4d2c8375db7"> | <img src="https://github.com/user-attachments/assets/370fa061-78f3-4d94-a416-5c941e27d650"> | <img src="https://github.com/user-attachments/assets/ebbaec8b-1810-4b86-9376-4e8ce9a43722"> | <img src="https://github.com/user-attachments/assets/bdd5e59c-0769-4bf7-a0db-db2cc6db0371" /> |
+| <img src="https://github.com/user-attachments/assets/a41cfa4d-33ca-4beb-b673-c4d2c8375db7"> | <img src="https://github.com/user-attachments/assets/370fa061-78f3-4d94-a416-5c941e27d650"> | <img src="https://github.com/user-attachments/assets/ebbaec8b-1810-4b86-9376-4e8ce9a43722"> | <img src="https://github.com/user-attachments/assets/bdd5e59c-0769-4bf7-a0db-db2cc6db0371" width="220" /> |
 
 ## 3. 시스템 아키텍처
 
