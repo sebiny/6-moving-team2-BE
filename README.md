@@ -1,8 +1,8 @@
 # 🖼️ 무빙(BE)
 
-### 무빙 한줄소개
-
 <img width="1235" height="673" alt="image" src="https://github.com/user-attachments/assets/3f00fbc4-e7cc-40f9-a829-cbc228c7a2be" />
+
+# 복잡한 이사, 무빙으로 끝!
 
 ### [🖼️ 무빙 구경하기 : https://www.moving-2.click](https://www.moving-2.click/)
 
@@ -10,11 +10,45 @@
 
 ### [🔗 6-moving-team2-FE 바로가기](https://github.com/sebiny/6-moving-team2-FE)
 
-### [Swagger API](https://api.moving-2.click/api-docs/)
+### [📚 Swagger API](https://api.moving-2.click/api-docs/)
 
 <br>
 
-# 👨‍👩‍👧‍👦 **팀원 소개**
+## 목차
+1. [프로젝트 소개](#1-프로젝트-소개)
+2. [영상](#2-영상)
+3. [시스템 아키텍처](#3-시스템-아키텍처)
+4. [기술 스택](#4-기술-스택)
+5. [팀 소개 및 문서](#5-팀-소개-및-문서)
+6. [트러블 슈팅](#6-트러블-슈팅)
+7. [폴더 구조](#7-폴더-구조)
+
+
+
+
+## 1. 프로젝트 소개
+- 무빙은 이사 전문가와 고객을 연결해주는 플랫폼
+- 고객이 이사 정보를 요청하면, 여러 검증된 이사업체가 경쟁적으로 견적을 제시함
+- 고객은 이사 업체들이 제안한 다양한 견적을 한눈에 비교하고, 가장 합리적인 가격과 조건을 선택할 수 있음
+- 고객 리뷰를 통해 업체들의 자체적인 검증 가능
+- 투명하고 공정한 이사 준비를 지원하며, 고객의 경제적 부담을 덜어 줄 수 있음
+
+## 2. 영상
+
+
+## 3. 시스템 아키텍처
+
+
+
+## 4. 기술 스택
+| Category | Tech Stack |
+| -------- | ---------- |
+| **Backend** | ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white) ![express](https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express) ![Nodemon](https://img.shields.io/badge/NODEMON-76D04B.svg?style=for-the-badge&logo=nodemon&logoColor=FFFFFF) ![prisma](https://img.shields.io/badge/prisma-2D3748?style=for-the-badge&logo=prisma) ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) |
+| **Library** | ![passport](https://img.shields.io/badge/passport-000000?style=for-the-badge&logo=passport) ![superstruct](https://img.shields.io/badge/superstruct-CB3837?style=for-the-badge&logo=npm) ![bcrypt](https://img.shields.io/badge/bcrypt-CB3837?style=for-the-badge&logo=npm) ![express-jwt](https://img.shields.io/badge/express--jwt-DD0031?style=for-the-badge&logo=jsonwebtokens) ![jsonwebtoken](https://img.shields.io/badge/jsonwebtoken-DD0031?style=for-the-badge&logo=jsonwebtokens) ![multer](https://img.shields.io/badge/multer-CB3837?style=for-the-badge&logo=npm) ![Jest](https://img.shields.io/badge/-jest-%23C21325?style=for-the-badge&logo=jest&logoColor=white) ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white) ![OAuth](https://img.shields.io/badge/OAuth-4285F4?style=for-the-badge&logo=oauth&logoColor=white) ![node-cron](https://img.shields.io/badge/node--cron-339933?style=for-the-badge&logo=node.js&logoColor=white) ![Sentry](https://img.shields.io/badge/Sentry-362D59?style=for-the-badge&logo=sentry&logoColor=white) ![DeepL](https://img.shields.io/badge/DeepL-0F2027?style=for-the-badge&logo=deepl&logoColor=white) |
+| **Deploy** | ![Amazon EC2](https://img.shields.io/badge/Amazon%20EC2-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white) ![Amazon S3](https://img.shields.io/badge/Amazon%20S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white) ![Amazon RDS](https://img.shields.io/badge/Amazon%20RDS-527FFF?style=for-the-badge&logo=amazon-rds&logoColor=white) ![Amazon CloudFront](https://img.shields.io/badge/Amazon%20CloudFront-FF9900?style=for-the-badge&logo=amazon-cloudfront&logoColor=white) ![Route 53](https://img.shields.io/badge/Route%2053-FF9900?style=for-the-badge&logo=amazon-route53&logoColor=white) ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white) ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white) ![Application Load Balancer](https://img.shields.io/badge/AWS%20ALB-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white) |
+| **Tool** | ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white) |
+
+## 5. 팀 소개 및 문서
 
 <div align="center">
 
@@ -25,29 +59,39 @@
 |                                                         리뷰 </br> 다국어                                                          |                                            기사님 찾기 </br> 기사님 마이페이지 </br> AWS                                            |                                                             견적 (고객)                                                             |                                                       견적 (기사) </br> 스키마                                                       |                                                       견적 요청서 작성 (고객)                                                        |                                                       인증 및 유저 </br> AWS                                                       |                                                        알림 </br> 랜딩페이지                                                         |
 
 </div>
-<br>
 
-# 📑 프로젝트 소개
+## 6. 트러블 슈팅
 
-<br>
+<details>
+<summary><strong>[ 견적 완료 처리 스케줄러 ]</strong></summary>
 
-# 📆 프로젝트 기간
+### Problem
+* 견적 요청(EstimateRequest)의 완료 처리를 위한 수동 업데이트 기능이 없었음
+* 이사 날짜(moveDate)가 지난 견적들이 자동으로 COMPLETED 상태로 변경되지 않음
+* 사용자가 수동으로 완료 처리할 수 있는 API 엔드포인트 부재
 
-### 2025.07.01 - 2025.08.18
+### Solution
+* 이사 날짜가 지난 견적 요청을 자동으로 COMPLETED 상태로 업데이트하는 스케줄러 구현
+* 배치 처리로 대량 데이터 처리 시 성능 최적화
 
-<br>
-  
-# ⚙️ 기술 스택
-| Category | Tech Stack |
-| -------- | ---------- |
-| **Backend** | ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white) ![express](https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express) ![Nodemon](https://img.shields.io/badge/NODEMON-76D04B.svg?style=for-the-badge&logo=nodemon&logoColor=FFFFFF) ![prisma](https://img.shields.io/badge/prisma-2D3748?style=for-the-badge&logo=prisma) ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) |
-| **Library** | ![passport](https://img.shields.io/badge/passport-000000?style=for-the-badge&logo=passport) ![superstruct](https://img.shields.io/badge/superstruct-CB3837?style=for-the-badge&logo=npm) ![bcrypt](https://img.shields.io/badge/bcrypt-CB3837?style=for-the-badge&logo=npm) ![express-jwt](https://img.shields.io/badge/express--jwt-DD0031?style=for-the-badge&logo=jsonwebtokens) ![jsonwebtoken](https://img.shields.io/badge/jsonwebtoken-DD0031?style=for-the-badge&logo=jsonwebtokens) ![multer](https://img.shields.io/badge/multer-CB3837?style=for-the-badge&logo=npm) ![Jest](https://img.shields.io/badge/-jest-%23C21325?style=for-the-badge&logo=jest&logoColor=white) ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white) ![OAuth](https://img.shields.io/badge/OAuth-4285F4?style=for-the-badge&logo=oauth&logoColor=white) |
-| **Deploy** | ![Amazon EC2](https://img.shields.io/badge/Amazon%20EC2-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white) ![Amazon S3](https://img.shields.io/badge/Amazon%20S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white) ![Amazon RDS](https://img.shields.io/badge/Amazon%20RDS-527FFF?style=for-the-badge&logo=amazon-rds&logoColor=white) ![Amazon CloudFront](https://img.shields.io/badge/Amazon%20CloudFront-FF9900?style=for-the-badge&logo=amazon-cloudfront&logoColor=white) ![Route 53](https://img.shields.io/badge/Route%2053-FF9900?style=for-the-badge&logo=amazon-route53&logoColor=white) ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white) ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white) ![Application Load Balancer](https://img.shields.io/badge/AWS%20ALB-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white) |
-| **Tool** | ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white) |
+</details>
 
-<br>
+<details>
+<summary><strong>[ 기사님 평균 리뷰 계산 ]</strong></summary>
 
-# 🗂️ 프로젝트 구조
+### Problem
+* 기사님을 별점으로 정렬하기 기능 등 프론트에서 평균을 구했을 때 구현하기 어려운 기능들이 존재함
+* 부동 소수점 연산 누적 오차로 인해 실제 평균과 차이가 발생할 수 있었음
+* 리뷰 평균을 계산할 때 DB를 두 번 호출해야 하는 문제 발생
+
+### Solution
+* 계산 비용이 다소 있지만 정확도를 보장할 수 있어 리뷰를 저장할 때마다 전체 리뷰를 조회해 평균 값을 다시 계산함
+* 리뷰 저장 후 해당 기사님의 모든 리뷰를 조회하여 평균 평점을 새로 계산하는 방식으로 수정하였고, 이를 통해 정확한 평점 반영이 가능해졌음
+* 리뷰 생성 직후 `prisma.review.aggregate()`를 사용해 평균 평점을 한 번의 쿼리로 계산하여 평점을 갱신함
+
+</details>
+
+## 7. 폴더 구조
 
 <details>
 <summary>
