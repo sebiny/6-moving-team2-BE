@@ -9,7 +9,9 @@
 
 ### [📋 Team Notion 바로가기](https://www.notion.so/217fff3108c98098bd43fdc393e922a1?v=217fff3108c981078f8c000cd9c3e859_link)
 
-### [🔗 6-Favorite_Photo-FE 바로가기](https://github.com/De-cal/6-Favorite_Photo-FE)
+### [🔗 6-moving-team2-FE 바로가기](https://github.com/sebiny/6-moving-team2-FE)
+
+### [Swagger API](https://api.moving-2.click/api-docs/)
 
 <br>
 
@@ -32,18 +34,17 @@
 <br>
 
 # 📆 프로젝트 기간
-### 
+### 2025.07.01 - 2025.08.18
 
 <br>
   
 # ⚙️ 기술 스택
 | Category | Tech Stack |
 | -------- | ---------- |
-| <span style="color: red"> **Frontend** </span> | ![JavaScript](https://img.shields.io/badge/javascript-F7DF1E.svg?style=for-the-badge&logo=javascript&logoColor=000000) ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white) ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white) |
-| **Backend**  | ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white) ![express](https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express) ![Nodemon](https://img.shields.io/badge/NODEMON-76D04B.svg?style=for-the-badge&logo=nodemon&logoColor=FFFFFF) ![prisma](https://img.shields.io/badge/prisma-2D3748?style=for-the-badge&logo=prisma) ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) |
-| **Library** | **↳ Frontend** <br> ![React Query](https://img.shields.io/badge/React%20Query-FF4154?style=for-the-badge&logo=react-query&logoColor=white) ![Framer Motion](https://img.shields.io/badge/Framer%20Motion-ECD53F?style=for-the-badge&logo=framer&logoColor=white) ![date-fns](https://img.shields.io/badge/date--fns-770C56?style=for-the-badge&logo=date-fns&logoColor=white) ![crypto-js](https://img.shields.io/badge/crypto--js-000000?style=for-the-badge&logo=crypto-js&logoColor=white) <br><br> **↳ Backend** <br> ![passport](https://img.shields.io/badge/passport-000000?style=for-the-badge&logo=passport) ![superstruct](https://img.shields.io/badge/superstruct-CB3837?style=for-the-badge&logo=npm) ![bcrypt](https://img.shields.io/badge/bcrypt-CB3837?style=for-the-badge&logo=npm) ![express-jwt](https://img.shields.io/badge/express--jwt-DD0031?style=for-the-badge&logo=jsonwebtokens) ![jsonwebtoken](https://img.shields.io/badge/jsonwebtoken-DD0031?style=for-the-badge&logo=jsonwebtokens) ![multer](https://img.shields.io/badge/multer-CB3837?style=for-the-badge&logo=npm) |
-| **Deploy** | ![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white) ![Render](https://img.shields.io/badge/Render-000000.svg?style=for-the-badge&logo=render&logoColor=white) |
-| **Tool** | ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) ![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?style=for-the-badge&logo=figma&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white) |
+| **Backend** | ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white) ![express](https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express) ![Nodemon](https://img.shields.io/badge/NODEMON-76D04B.svg?style=for-the-badge&logo=nodemon&logoColor=FFFFFF) ![prisma](https://img.shields.io/badge/prisma-2D3748?style=for-the-badge&logo=prisma) ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) |
+| **Library** | ![passport](https://img.shields.io/badge/passport-000000?style=for-the-badge&logo=passport) ![superstruct](https://img.shields.io/badge/superstruct-CB3837?style=for-the-badge&logo=npm) ![bcrypt](https://img.shields.io/badge/bcrypt-CB3837?style=for-the-badge&logo=npm) ![express-jwt](https://img.shields.io/badge/express--jwt-DD0031?style=for-the-badge&logo=jsonwebtokens) ![jsonwebtoken](https://img.shields.io/badge/jsonwebtoken-DD0031?style=for-the-badge&logo=jsonwebtokens) ![multer](https://img.shields.io/badge/multer-CB3837?style=for-the-badge&logo=npm) ![Jest](https://img.shields.io/badge/-jest-%23C21325?style=for-the-badge&logo=jest&logoColor=white) ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white) ![OAuth](https://img.shields.io/badge/OAuth-4285F4?style=for-the-badge&logo=oauth&logoColor=white) |
+| **Deploy** | ![Amazon EC2](https://img.shields.io/badge/Amazon%20EC2-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white) ![Amazon S3](https://img.shields.io/badge/Amazon%20S3-569A31?style=for-the-badge&logo=amazon-s3&logoColor=white) ![Amazon RDS](https://img.shields.io/badge/Amazon%20RDS-527FFF?style=for-the-badge&logo=amazon-rds&logoColor=white) ![Amazon CloudFront](https://img.shields.io/badge/Amazon%20CloudFront-FF9900?style=for-the-badge&logo=amazon-cloudfront&logoColor=white) ![Route 53](https://img.shields.io/badge/Route%2053-FF9900?style=for-the-badge&logo=amazon-route53&logoColor=white) ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white) ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white) ![Application Load Balancer](https://img.shields.io/badge/AWS%20ALB-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white) |
+| **Tool** | ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white) |
 
 <br>
 
