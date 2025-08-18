@@ -22,6 +22,7 @@
 | :--------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------: |
 | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sebiny) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/choi-mk) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/fs6-kde) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/danikim8) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/danikim8) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sebiny) | [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/suejeong) |
 |                                                                팀장                                                                |                                                               부팀장                                                                |                                                                팀원                                                                 |                                                                 팀원                                                                 |                                                                 팀원                                                                 |                                                                팀원                                                                |                                                                 팀원                                                                 |
+|                                                         리뷰 </br> 다국어                                                          |                                            기사님 찾기 </br> 기사님 마이페이지 </br> AWS                                            |                                                             견적 (고객)                                                             |                                                       견적 (기사) </br> 스키마                                                       |                                                       견적 요청서 작성 (고객)                                                        |                                                       인증 및 유저 </br> AWS                                                       |                                                        알림 </br> 랜딩페이지                                                         |
 
 </div>
 <br>
@@ -45,80 +46,6 @@
 | **Tool** | ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white) |
 
 <br>
-
-# 팀원별 구현 기능
-
-<details>
-<summary>
-안세빈(팀장)
-
-</summary>
-<div markdown="1">
-
-- 역할
-
-</div>
-</details>
-
-<details>
-<summary>
-최민경(부팀장)
-
-</summary>
-<div markdown="1">
-
-</div>
-</details>
-
-<details>
-<summary>
-김다은
-
-</summary>
-<div markdown="1">
-
-</div>
-</details>
-
-<details>
-<summary>
-김단이
-
-</summary>
-<div markdown="1">
-
-</div>
-</details>
-
-<details>
-<summary>
-오보람
-
-</summary>
-<div markdown="1">
-
-</div>
-</details>
-
-<details>
-<summary>
-이지수
-
-</summary>
-<div markdown="1">
-
-</div>
-</details>
-
-<details>
-<summary>
-황수정
-
-</summary>
-<div markdown="1">
-
-</div>
-</details>
 
 # 🗂️ 프로젝트 구조
 
