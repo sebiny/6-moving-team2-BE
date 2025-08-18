@@ -34,9 +34,9 @@
 - 투명하고 공정한 이사 준비를 지원하며, 고객의 경제적 부담을 덜어 줄 수 있음
 
 ## 2. 영상
-| 랜딩페이지 | 실시간 알림 도착 | 주요 기능 | 주요 기능 | 주요 기능 |
-| --- | --- | --- | --- | --- |
-| <img src="https://github.com/user-attachments/assets/a41cfa4d-33ca-4beb-b673-c4d2c8375db7"> | <img src="https://github.com/user-attachments/assets/370fa061-78f3-4d94-a416-5c941e27d650"> | <img src="https://github.com/user-attachments/assets/a41cfa4d-33ca-4beb-b673-c4d2c8375db7"> | <img src="https://github.com/user-attachments/assets/a41cfa4d-33ca-4beb-b673-c4d2c8375db7"> | <img src="https://github.com/user-attachments/assets/a41cfa4d-33ca-4beb-b673-c4d2c8375db7"> |
+| 랜딩페이지 | 실시간 알림 도착 | 주요 기능 | 주요 기능 |
+| --- | --- | --- | --- |
+| <img src="https://github.com/user-attachments/assets/a41cfa4d-33ca-4beb-b673-c4d2c8375db7"> | <img src="https://github.com/user-attachments/assets/370fa061-78f3-4d94-a416-5c941e27d650"> | <img src="https://github.com/user-attachments/assets/a41cfa4d-33ca-4beb-b673-c4d2c8375db7"> | <img src="https://github.com/user-attachments/assets/a41cfa4d-33ca-4beb-b673-c4d2c8375db7"> |
 
 ## 3. 시스템 아키텍처
 
