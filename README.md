@@ -1,6 +1,7 @@
 # 🖼️ 무빙(BE)
 
-<img width="1235" height="673" alt="image" src="https://github.com/user-attachments/assets/3f00fbc4-e7cc-40f9-a829-cbc228c7a2be" />
+<img width="1353" height="740" alt="og-image" src="https://github.com/user-attachments/assets/5f9081da-bc48-4228-93dc-e2c641fc1408" />
+
 
 # 복잡한 이사, 무빙으로 끝!
 
