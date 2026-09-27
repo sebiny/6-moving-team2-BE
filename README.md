@@ -1,7 +1,5 @@
 # 🖼️ Moving (BE)
 
-<img width="1353" height="740" alt="og-image" src="https://github.com/user-attachments/assets/5f9081da-bc48-4228-93dc-e2c641fc1408" />
-
 # Simplify Your Move with Moving!
 
 ### [🖼️ Visit Moving](https://www.moving-2.click/)
