@@ -2,8 +2,6 @@
 
 # Simplify Your Move with Moving!
 
-### [🖼️ Visit Moving](https://www.moving-2.click/)
-
 ### [📋 Team Notion](https://www.notion.so/217fff3108c98098bd43fdc393e922a1?v=217fff3108c981078f8c000cd9c3e859_link)
 
 ### [🔗 6-moving-team2-FE](https://github.com/sebiny/6-moving-team2-FE)
